@@ -1,8 +1,9 @@
 // api.ts
 import axios from 'axios';
+import { getServerURL } from '@/lib/utils/url';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+  baseURL: getServerURL(),
   withCredentials: true,
 });
 
