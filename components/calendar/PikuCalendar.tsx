@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   format,
   startOfMonth,
@@ -11,6 +12,7 @@ import {
   isSameMonth,
   isEqual,
   getDay,
+  differenceInCalendarDays,
 } from 'date-fns';
 import type { SwipeableHandlers } from 'react-swipeable';
 
@@ -27,6 +29,7 @@ const PikuCalendar = ({
   handlers,
   today,
 }: PikuCalendarProps) => {
+  const router = useRouter();
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -35,8 +38,12 @@ const PikuCalendar = ({
 
   const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
-  const getDayClassName = (day: Date, isCurrentMonth: boolean) => {
-    if (!isCurrentMonth) return 'text-gray-300';
+  const getDayClassName = (
+    day: Date,
+    isCurrentMonth: boolean,
+    isFuture: boolean
+  ) => {
+    if (!isCurrentMonth || isFuture) return 'text-gray-300';
     const dayOfWeek = getDay(day);
     if (dayOfWeek === 0) return 'text-red-500'; // Sunday
     if (dayOfWeek === 6) return 'text-blue-500'; // Saturday
@@ -58,13 +65,19 @@ const PikuCalendar = ({
           const pikuImage = pikus[dateKey];
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isCurrentDay = isEqual(day, today);
+          const isFutureDate = differenceInCalendarDays(day, today) > 0;
+
+          const isClickable = !pikuImage && isCurrentMonth && !isFutureDate;
 
           return (
             <div
               key={day.toString()}
+              onClick={() => isClickable && router.push(`/diary/new/${dateKey}`)}
               className={`relative flex justify-center items-center overflow-hidden rounded-md ${
                 isCurrentDay ? 'border-yellow-400 border-2' : ''
-              } ${!isCurrentMonth ? 'bg-gray-50' : 'bg-white'}`}
+              } ${
+                !isCurrentMonth ? 'bg-gray-50' : 'bg-white'
+              } ${isClickable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
             >
               {pikuImage && isCurrentMonth ? (
                 <Image
@@ -77,7 +90,8 @@ const PikuCalendar = ({
                 <span
                   className={`${getDayClassName(
                     day,
-                    isCurrentMonth
+                    isCurrentMonth,
+                    isFutureDate
                   )} font-medium`}
                 >
                   {format(day, 'd')}
