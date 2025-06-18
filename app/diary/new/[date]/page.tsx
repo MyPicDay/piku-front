@@ -1,12 +1,6 @@
 import DiaryCreateForm from '@/components/diary/DiaryCreateForm';
 
-interface DiaryCreatePageProps {
-  params: {
-    date: string;
-  };
-}
-
-const DiaryCreatePage = async ({ params }: DiaryCreatePageProps) => {
+const DiaryCreatePage = async ({ params }: { params: Promise<{ date: string }> }) => {
   const { date } = await params;
 
   return <DiaryCreateForm date={date} />;
