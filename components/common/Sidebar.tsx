@@ -34,47 +34,47 @@ const Sidebar = () => {
           <Home className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">홈</span>
         </Link>
-        <Link
+        {/* <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <Search className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">검색</span>
-        </Link>
-        <Link
+        </Link> */}
+        {/* <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <Compass className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">탐색 탭</span>
-        </Link>
-        <Link
+        </Link> */}
+        {/* <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <Clapperboard className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">릴스</span>
-        </Link>
-        <Link
+        </Link> */}
+        {/* <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <Send className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">메시지</span>
-        </Link>
-        <Link
+        </Link> */}
+        {/* <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <Bell className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">알림</span>
-        </Link>
+        </Link> */}
         <Link
           href="#"
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
         >
           <PlusSquare className="w-6 h-6 xl:mr-4" />
-          <span className="md:hidden xl:inline">만들기</span>
+          <span className="md:hidden xl:inline">일기 작성</span>
         </Link>
         <Link
           href="#"
@@ -84,12 +84,12 @@ const Sidebar = () => {
           <span className="md:hidden xl:inline">프로필</span>
         </Link>
       </nav>
-      <div className="p-4">
+      {/* <div className="p-4">
         <button className="flex items-center w-full p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start">
           <Menu className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">더 보기</span>
         </button>
-      </div>
+      </div> */}
     </aside>
   );
 };

@@ -7,6 +7,6 @@ export interface FixedCharacter {
 }
 
 export const getFixedCharacters = async () => {
-  const response = await api.get<FixedCharacter[]>('/api/characters/fixed');
+  const response = await api.get<FixedCharacter[]>('/characters/fixed');
   return response.data;
 }; 

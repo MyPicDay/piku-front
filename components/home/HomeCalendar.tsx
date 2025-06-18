@@ -1,34 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useSwipeable } from 'react-swipeable';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, addMonths, subMonths, startOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import Image from 'next/image';
 import { ChevronDown, Send } from 'lucide-react';
 import useAuthStore from '@/components/store/authStore';
 import PikuCalendar from '@/components/calendar/PikuCalendar';
 import YearMonthPicker from '@/components/calendar/YearMonthPicker';
+import { getMonthlyDiaries } from '@/api/diary';
+import type { CalendarDiaryResponseDTO } from '@/api/diary';
 
-const samplePikus: { [key: string]: string } = {
-  '2025-06-02': '/next.svg',
-  '2025-06-04': '/next.svg',
-  '2025-06-06': '/next.svg',
-  '2025-06-08': '/next.svg',
-  '2025-06-10': '/next.svg',
-  '2025-06-11': '/next.svg',
-  '2025-06-12': '/next.svg',
-  '2025-06-14': '/next.svg',
-  '2025-06-16': '/next.svg',
-  '2025-06-18': '/next.svg',
-};
-
-const MainClient = () => {
-  const [currentDate, setCurrentDate] = useState(new Date('2025-06-19T00:00:00'));
+const HomeCalendar = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [pikus, setPikus] = useState<{ [key: string]: string }>({});
   const { user } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
+
+  useEffect(() => {
+    const fetchDiaries = async () => {
+      if (!user) return;
+
+      try {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const diaries: CalendarDiaryResponseDTO[] = await getMonthlyDiaries(
+          user.id,
+          year,
+          month
+        );
+        const newPikus = diaries.reduce(
+          (acc, diary) => {
+            acc[diary.date] = diary.coverPhotoUrl;
+            return acc;
+          },
+          {} as { [key: string]: string }
+        );
+        setPikus(newPikus);
+      } catch (error) {
+        console.error('Failed to fetch monthly diaries:', error);
+        setPikus({}); // 에러 발생 시 피쿠스 초기화
+      }
+    };
+
+    fetchDiaries();
+  }, [currentDate, user]);
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -40,23 +59,23 @@ const MainClient = () => {
     trackMouse: true,
   });
 
-  const today = new Date('2025-06-19T00:00:00');
+  const today = startOfDay(new Date());
 
-  const renderMobileView = () => (
+  const view = () => (
     <div className="flex flex-col h-screen">
       <header className="p-4 space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center md:hidden">
           <h1 className="text-2xl font-bold">PikU</h1>
           <Send className="w-6 h-6" />
         </div>
         <div className="flex justify-between items-center space-x-4">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <Image
-              src="/vercel.svg" // Placeholder
+              src={user?.avatar || "/vercel.svg"} // Placeholder
               alt="profile"
               width={40}
               height={40}
-              className="rounded-full bg-gray-200 flex-shrink-0"
+              className="rounded-full bg-gray-200 flex-shrink-0 h-full"
             />
             <div className="min-w-0">
               <p className="font-bold truncate">{user?.nickname || 'me'}</p>
@@ -88,22 +107,14 @@ const MainClient = () => {
 
       <PikuCalendar
         currentDate={currentDate}
-        pikus={samplePikus}
+        pikus={pikus}
         handlers={handlers}
         today={today}
       />
     </div>
   );
-
-  const renderDesktopView = () => (
-    <div className="p-4">
-      <h1 className="text-2xl">PC 화면은 현재 개발 중입니다.</h1>
-      <p>창 크기를 줄여 모바일 화면을 확인해주세요.</p>
-    </div>
-  );
-
-  // return isDesktopOrLaptop ? renderDesktopView() : renderMobileView();
-  return renderMobileView();
+  
+  return view();
 };
 
-export default MainClient; 
+export default HomeCalendar; 

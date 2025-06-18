@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { getServerURL } from '@/lib/utils/url';
 
 interface UserInfo {
-  id: string;
+  id: number;
   email: string;
   nickname: string;
   avatar: string;
