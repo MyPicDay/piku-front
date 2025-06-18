@@ -1,0 +1,55 @@
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
+import Sidebar from '@/components/common/Sidebar';
+import BottomNav from '@/components/common/BottomNav';
+import useAuthStore from '../store/authStore';
+import { useEffect, useState } from 'react';
+
+const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { isLoggedIn, checkAuth } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+    setIsClient(true);
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (isClient && isLoggedIn && (pathname === '/login' || pathname === '/signup')) {
+      router.replace('/');
+    }
+  }, [isClient, isLoggedIn, pathname, router]);
+
+  if (!isClient) {
+    return null;
+  }
+
+  const hideNavOnPaths = ['/login', '/signup'];
+  const shouldHideNav =
+    hideNavOnPaths.includes(pathname) || (pathname === '/' && !isLoggedIn);
+
+  if (isLoggedIn && (pathname === '/login' || pathname === '/signup')) {
+    return null; // 리다이렉트 중에는 아무것도 렌더링하지 않음
+  }
+
+  if (shouldHideNav) {
+    return <main className="w-full">{children}</main>;
+  }
+
+  return (
+    <>
+      <div className="flex">
+        <Sidebar />
+        <main className="w-full md:ml-20 xl:ml-64 transition-all duration-300 md:grid md:grid-cols-6 md:gap-4">
+          <div className="md:col-span-4 md:col-start-2">{children}</div>
+        </main>
+      </div>
+      <BottomNav />
+    </>
+  );
+};
+
+export default LayoutWrapper; 

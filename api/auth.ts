@@ -8,7 +8,11 @@ interface SignupData {
 }
 
 export const signup = async (data: SignupData) => {
-  const response = await api.post('/api/auth/signup', data);
+  const { character, ...rest } = data;
+  const response = await api.post('/auth/signup', {
+    ...rest,
+    fixedCharacterId: Number(character),
+  });
   return response.data;
 };
 
@@ -18,6 +22,6 @@ interface LoginData {
 }
 
 export const login = async (data: LoginData) => {
-  const response = await api.post('/api/auth/login', data, { withCredentials: true });
+  const response = await api.post('/auth/login', data, { withCredentials: true });
   return response;
 };

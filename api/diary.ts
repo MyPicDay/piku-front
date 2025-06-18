@@ -1,61 +1,71 @@
 import api from './api';
+import { DiaryCreateRequest } from '@/types/diary';
 
-interface DiaryData {
-  status: 'PUBLIC' | 'FOLLOWERS_ONLY' | 'PRIVATE';
-  content: string;
-  aiPhotos: string[];
-  photos: File[];
-  date: string;
-}
-
-export const createDiary = async (diaryData: DiaryData) => {
+export const createDiary = async (diaryData: DiaryCreateRequest) => {
   const formData = new FormData();
 
-  const diaryRequestDto = {
-    status: diaryData.status,
-    content: diaryData.content,
-    date: diaryData.date,
-    aiPhotos: diaryData.aiPhotos,
-  };
+  console.log(diaryData);
 
-  const diaryBlob = new Blob([JSON.stringify(diaryRequestDto)], {
-    type: 'application/json',
-  });
-
-  formData.append('request', diaryBlob);
-
-  diaryData.photos.forEach(photoFile => {
-    formData.append('photos', photoFile);
-  });
-
-  // --- [개발용] 요청 데이터 콘솔 출력 ---
-  console.log('========= 일기 생성 요청 데이터 =========');
-  console.log('Request DTO:', diaryRequestDto);
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof File) {
-      console.log(`FormData[${key}]:`, {
-        name: value.name,
-        size: value.size,
-        type: value.type,
-      });
-    } else {
-      console.log(`FormData[${key}]:`, value);
-    }
+  if (diaryData.photos) {
+    diaryData.photos.forEach((photoFile: File) => {
+      formData.append('photos', photoFile);
+    });
   }
-  console.log('=======================================');
+  
+  if (diaryData.aiPhotos) {
+    diaryData.aiPhotos.forEach((aiPhoto: string) => {
+      formData.append('aiPhotos', aiPhoto);
+    });
+  }
 
-  // const response = await api.post('/api/diaries', formData, {
-  //   headers: {
-  //     'Content-Type': 'multipart/form-data',
-  //   },
-  // });
-  // return response.data;
+  formData.append('status', diaryData.status);
+  formData.append('content', diaryData.content);
+  formData.append('date', diaryData.date);
 
-  // --- [개발용] 더미 응답 ---
-  await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 딜레이
-  return Promise.resolve({
-    isSuccess: true,
-    message: '더미 응답: 일기가 성공적으로 생성되었습니다.',
-    diaryId: `dummy-${Date.now()}`,
+  if (diaryData.coverPhotoType && diaryData.coverPhotoIndex !== undefined) {
+    formData.append('coverPhotoType', diaryData.coverPhotoType);
+    formData.append('coverPhotoIndex', String(diaryData.coverPhotoIndex));
+  }
+
+  const response = await api.post('/diary', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
   });
+  return response.data;
+};
+
+export const generateAiPhotos = async (content: string) => {
+   if (!content || content.trim().length === 0) {
+    console.log('내용이 없어 null을 반환합니다.');
+    return Promise.resolve(null);
+  }
+
+  const photo = await api.post('/diary/ai/generate', {
+    content,
+  });
+  return photo.data;
+
+};
+
+export interface CalendarDiaryResponseDTO {
+  diaryId: number;
+  coverPhotoUrl: string;
+  date: string; // 'yyyy-MM-dd'
+}
+
+export const getMonthlyDiaries = async (
+  userId: number,
+  year: number,
+  month: number
+): Promise<CalendarDiaryResponseDTO[]> => {
+  try {
+    const response = await api.get(
+      `/diary/user/${userId}/monthly?year=${year}&month=${month}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching monthly diaries:', error);
+    throw error;
+  }
 }; 

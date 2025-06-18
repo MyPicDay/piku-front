@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import useAuthStore from '@/components/store/authStore';
-import MainClient from '@/components/home/MainClient';
+import HomeCalendar from '@/components/home/HomeCalendar';
 import LandingClient from '@/components/home/LandingClient';
 
 export default function HomeRoot() {
@@ -20,5 +20,5 @@ export default function HomeRoot() {
     return null; // 또는 로딩 스피너
   }
 
-  return isLoggedIn ? <MainClient /> : <LandingClient />;
+  return isLoggedIn ? <HomeCalendar /> : <LandingClient />;
 } 

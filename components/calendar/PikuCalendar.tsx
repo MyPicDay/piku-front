@@ -80,11 +80,10 @@ const PikuCalendar = ({
               } ${isClickable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
             >
               {pikuImage && isCurrentMonth ? (
-                <Image
+                <img
                   src={pikuImage}
                   alt={`piku for ${dateKey}`}
-                  layout="fill"
-                  objectFit="cover"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <span
