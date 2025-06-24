@@ -9,6 +9,7 @@ import {
   User,
   Menu,
   Pocket,
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -82,6 +83,13 @@ const Sidebar = () => {
         >
           <User className="w-6 h-6 xl:mr-4" />
           <span className="md:hidden xl:inline">프로필</span>
+        </Link>
+        <Link
+          href="#"
+          className="flex items-center p-4 rounded-lg hover:bg-gray-100 md:justify-center xl:justify-start"
+        >
+          <LogOut className="w-6 h-6 xl:mr-4" />
+          <span className="md:hidden xl:inline">로그아웃</span>
         </Link>
       </nav>
       {/* <div className="p-4">
