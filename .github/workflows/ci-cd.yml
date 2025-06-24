@@ -1,0 +1,49 @@
+name: Nextjs CI/CD (Dev)
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up latest Node.js LTS version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Configure AWS Credentials for OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.AWS_ACCOUNT_ID}}:role/GitHubActionsDeploymentRole
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to EC2 (Dev) by running deploy.sh
+        env:
+          DEPLOY_LOG_PATH: /home/ubuntu/piku-front/deploy-logs
+        run: |
+          echo "${{ secrets.DEV_EC2_SSH_PRIVATE_KEY_DEV }}" > private_key.pem
+          chmod 400 private_key.pem
+          
+          # SSH 접속 후 deploy.sh 실행 (deploy.sh가 /home/ubuntu/piku-front 에 있어야 함)
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ secrets.DEV_EC2_PUBLIC_IP }} << 'EOF'
+            cd /home/ubuntu/piku-front
+            ./deploy.sh
+          EOF
