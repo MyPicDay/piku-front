@@ -1,20 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { getServerURL } from '@/lib/utils/url';
-
-interface UserInfo {
-  id: number;
-  email: string;
-  nickname: string;
-  avatar: string;
-}
-
+import { User } from '@/types/auth';
 
 interface AuthState {
   isLoggedIn: boolean;
-  user: UserInfo | null;
+  user: User | null;
 
-  login: (user:UserInfo) => void;
+  login: (user: User) => void;
   logout: () => void;
   checkAuth: () => void;
 }

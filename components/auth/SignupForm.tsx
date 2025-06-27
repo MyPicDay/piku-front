@@ -37,7 +37,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
             placeholder="email@example.com"
             onChange={handleChange('email')}
             defaultValue={values.email}
-            className="w-full border-b-2 border-gray-300 focus:border-black outline-none p-2"
+            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
           />
         </div>
         <div className="flex items-center space-x-4">
@@ -47,7 +47,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
             placeholder="비밀번호를 입력해주세요"
             onChange={handleChange('password')}
             defaultValue={values.password}
-            className="w-full border-b-2 border-gray-300 focus:border-black outline-none p-2"
+            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
           />
         </div>
         <div className="flex items-center space-x-4">
@@ -55,7 +55,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
           <input
             type="password"
             placeholder="비밀번호를 다시 입력해주세요"
-            className="w-full border-b-2 border-gray-300 focus:border-black outline-none p-2"
+            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
           />
         </div>
         <div className="flex items-center space-x-4">
@@ -65,7 +65,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
             placeholder="닉네임을 입력해주세요"
             onChange={handleChange('nickname')}
             defaultValue={values.nickname}
-            className="w-full border-b-2 border-gray-300 focus:border-black outline-none p-2"
+            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
           />
         </div>
         
@@ -78,9 +78,9 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
               checked={agreeAll}
               onChange={handleAgreeAllChange}
             />
-            <label htmlFor="agree-all" className="ml-3 text-gray-700">모두 동의</label>
+            <label htmlFor="agree-all" className="ml-3 text-gray-700 dark:text-gray-300">모두 동의</label>
           </div>
-          <hr />
+          <hr className="border-gray-300 dark:border-gray-700" />
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -90,7 +90,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
               checked={agreements.terms}
               onChange={handleAgreementChange}
             />
-            <label htmlFor="terms" className="ml-3 text-gray-700">이용약관 동의</label>
+            <label htmlFor="terms" className="ml-3 text-gray-700 dark:text-gray-300">이용약관 동의</label>
           </div>
           <div className="flex items-center">
             <input
@@ -101,7 +101,7 @@ const SignupForm = ({ handleChange, values }: { handleChange: any, values: any }
               checked={agreements.privacy}
               onChange={handleAgreementChange}
             />
-            <label htmlFor="privacy" className="ml-3 text-gray-700">개인정보 취급방침 동의</label>
+            <label htmlFor="privacy" className="ml-3 text-gray-700 dark:text-gray-300">개인정보 취급방침 동의</label>
           </div>
         </div>
       </form>

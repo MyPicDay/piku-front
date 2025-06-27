@@ -6,17 +6,24 @@ import { useSwipeable } from 'react-swipeable';
 import { format, addMonths, subMonths, startOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ChevronDown, Send } from 'lucide-react';
 import useAuthStore from '@/components/store/authStore';
 import PikuCalendar from '@/components/calendar/PikuCalendar';
 import YearMonthPicker from '@/components/calendar/YearMonthPicker';
-import { getMonthlyDiaries } from '@/api/diary';
-import type { CalendarDiaryResponseDTO } from '@/api/diary';
+import { getMonthlyDiaries, getDiaryById } from '@/api/diary';
+import type { MonthlyDiary, DiaryDetail } from '@/types/diary';
+import DiaryDetailModal from '@/components/diary/DiaryDetailModal';
 
 const HomeCalendar = () => {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [pikus, setPikus] = useState<{ [key: string]: string }>({});
+  const [pikus, setPikus] = useState<{
+    [key: string]: { id: number; imageUrl: string };
+  }>({});
+  const [selectedDiary, setSelectedDiary] = useState<DiaryDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
 
@@ -27,17 +34,20 @@ const HomeCalendar = () => {
       try {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
-        const diaries: CalendarDiaryResponseDTO[] = await getMonthlyDiaries(
+        const diaries: MonthlyDiary[] = await getMonthlyDiaries(
           user.id,
           year,
-          month
+          month,
         );
         const newPikus = diaries.reduce(
           (acc, diary) => {
-            acc[diary.date] = diary.coverPhotoUrl;
+            acc[diary.date] = {
+              id: diary.diaryId,
+              imageUrl: diary.coverPhotoUrl,
+            };
             return acc;
           },
-          {} as { [key: string]: string }
+          {} as { [key: string]: { id: number; imageUrl: string } },
         );
         setPikus(newPikus);
       } catch (error) {
@@ -48,6 +58,27 @@ const HomeCalendar = () => {
 
     fetchDiaries();
   }, [currentDate, user]);
+
+  const handleDayClick = async (diaryId: number) => {
+    if (isDesktopOrLaptop) {
+      setIsLoading(true);
+      try {
+        const diaryDetail = await getDiaryById(diaryId);
+        setSelectedDiary(diaryDetail);
+      } catch (error) {
+        console.error('Failed to fetch diary details:', error);
+        // 사용자에게 에러를 알리는 로직 추가 (예: toast)
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      router.push(`/diary/${diaryId}`);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedDiary(null);
+  };
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -110,7 +141,18 @@ const HomeCalendar = () => {
         pikus={pikus}
         handlers={handlers}
         today={today}
+        onDayClick={handleDayClick}
       />
+
+      {selectedDiary && (
+        <DiaryDetailModal diary={selectedDiary} onClose={handleCloseModal} />
+      )}
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <p className="text-white">로딩 중...</p>
+        </div>
+      )}
     </div>
   );
   

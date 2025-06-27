@@ -49,8 +49,8 @@ const YearMonthPicker = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-black z-40 flex justify-center items-end transition-opacity duration-300 ${
-        isVisible ? 'bg-opacity-30' : 'bg-opacity-0'
+      className={`fixed inset-0 z-40 flex justify-center items-end transition-opacity duration-300 ${
+        isVisible ? 'bg-black/50' : 'bg-black/0'
       }`}
       onClick={handleClose}
     >

@@ -4,13 +4,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createDiary, generateAiPhotos } from '@/api/diary';
+import { updateDiary, generateAiPhotos } from '@/api/diary';
 import useAuthStore from '../store/authStore';
 import {
   diarySchema,
   DiaryFormValues,
   UnifiedPhoto,
   PrivacyStatus,
+  DiaryDetail,
 } from '@/types/diary';
 import { X, Globe, Lock, Users, Camera, Sparkles, XCircle } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
@@ -18,13 +19,14 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 const MAX_AI_PHOTOS = 3;
 const MAX_TOTAL_PHOTOS = 5;
 
-interface DiaryCreateFormProps {
-  date: string;
+interface DiaryEditFormProps {
+  initialDiaryData: DiaryDetail;
 }
 
-const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
+const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
   const router = useRouter();
   const [allPhotos, setAllPhotos] = useState<UnifiedPhoto[]>([]);
+  const [deletedPhotoUrls, setDeletedPhotoUrls] = useState<string[]>([]);
   const [privacy, setPrivacy] = useState<PrivacyStatus>('PUBLIC');
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [tempPrivacy, setTempPrivacy] = useState<PrivacyStatus>(privacy);
@@ -41,6 +43,9 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   } = useForm<DiaryFormValues>({
     resolver: zodResolver(diarySchema),
     mode: 'onChange',
+    defaultValues: {
+      content: initialDiaryData.content,
+    },
   });
 
   useEffect(() => {
@@ -48,6 +53,18 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
       setTempPrivacy(privacy);
     }
   }, [isPrivacyModalOpen, privacy]);
+
+  useEffect(() => {
+    setPrivacy(initialDiaryData.status);
+    const fetchedPhotos: UnifiedPhoto[] = initialDiaryData.imgUrls.map(
+      (img, index) => ({
+        id: `existing-${index}-${img}`,
+        url: img,
+        type: 'user', 
+      }),
+    );
+    setAllPhotos(fetchedPhotos);
+  }, [initialDiaryData]);
 
   useEffect(() => {
     return () => {
@@ -82,18 +99,19 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
 
     try {
-      await createDiary({
+      await updateDiary(initialDiaryData.diaryId, {
         status: privacy,
         content: data.content,
         aiPhotos: aiPhotoIdsForUpload,
         photos: userPhotosForUpload,
-        date,
+        date: initialDiaryData.date,
         coverPhotoType,
         coverPhotoIndex,
+        deletedUrls: deletedPhotoUrls,
       });
       router.push('/');
     } catch (error) {
-      console.error('Failed to create diary:', error);
+      console.error('Failed to update diary:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -147,41 +165,45 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   };
 
   const removePhoto = (photoToRemove: UnifiedPhoto) => {
+    if (!photoToRemove.file) {
+      setDeletedPhotoUrls(prev => [...prev, photoToRemove.url]);
+    }
+
     if (photoToRemove.type === 'user' && photoToRemove.url.startsWith('blob:')) {
       URL.revokeObjectURL(photoToRemove.url);
     }
     setAllPhotos(allPhotos.filter(p => p.id !== photoToRemove.id));
   };
   
-  const formattedDate = new Date(date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
-  });
-
-  const PrivacyIcon =
-    {
-      PUBLIC: <Globe size={16} />,
-      FOLLOWERS_ONLY: <Users size={16} />,
-      PRIVATE: <Lock size={16} />,
-    }[privacy] || null;
-
-  const privacyText =
-    {
-      PUBLIC: '전체 공개',
-      FOLLOWERS_ONLY: '팔로워 공개',
-      PRIVATE: '나만 보기',
-    }[privacy] || '';
-
-  const userPhotosCount = allPhotos.filter(p => p.type === 'user').length;
-  const aiPhotosCount = allPhotos.filter(p => p.type === 'ai').length;
-  const totalPhotosCount = allPhotos.length;
-
   const handleConfirmPrivacy = () => {
     setPrivacy(tempPrivacy);
     setIsPrivacyModalOpen(false);
   };
+  
+    const formattedDate = new Date(initialDiaryData.date).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long',
+    });
+
+    const PrivacyIcon =
+        {
+            PUBLIC: <Globe size={16} />,
+            FOLLOWERS_ONLY: <Users size={16} />,
+            PRIVATE: <Lock size={16} />,
+        }[privacy] || null;
+
+    const privacyText =
+        {
+            PUBLIC: '전체 공개',
+            FOLLOWERS_ONLY: '팔로워 공개',
+            PRIVATE: '나만 보기',
+        }[privacy] || '';
+
+    const userPhotosCount = allPhotos.filter(p => p.type === 'user').length;
+    const aiPhotosCount = allPhotos.filter(p => p.type === 'ai').length;
+    const totalPhotosCount = allPhotos.length;
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-black">
@@ -193,14 +215,14 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                 <X size={24} />
             </button>
             <h1 className="text-lg font-semibold dark:text-white">
-                {'일기 작성'}
+                {'일기 수정'}
             </h1>
             <button
                 onClick={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 className="font-semibold text-blue-500 disabled:text-gray-400 dark:disabled:text-gray-600 cursor-pointer"
             >
-                {'완료'}
+                {'수정'}
             </button>
         </header>
 
@@ -330,7 +352,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50"
+                    className="fixed inset-0 bg-black/50 flex items-end justify-center z-50"
                     onClick={() => setIsPrivacyModalOpen(false)}
                 >
                     <motion.div
@@ -341,7 +363,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                         className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-t-2xl p-4 z-50"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="w-12 h-1.5 bg-gray-200/50 dark:bg-gray-700/50 rounded-full mx-auto mb-4" />
+                        <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4" />
                         <h2 className="text-lg font-bold text-center mb-6 text-black dark:text-white">
                             공개 범위 설정
                         </h2>
@@ -417,4 +439,4 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   );
 };
 
-export default DiaryCreateForm; 
+export default DiaryEditForm; 

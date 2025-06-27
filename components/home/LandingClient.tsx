@@ -12,17 +12,17 @@ const LandingClient = () => {
         </p>
       </div>
       <div className="mt-12 flex flex-col gap-4 w-full max-w-xs">
-        <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold">
+        {/* <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold">
           게스트로 시작
-        </button>
-        <Link href="/signup" passHref>
+        </button> */}
+        <Link href="/login" passHref>
           <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold">
-            회원가입
+            로그인
           </button>
         </Link>
-        <Link href="/login" passHref>
+        <Link href="/signup" passHref>
           <button className="text-gray-600 w-full">
-            로그인
+            회원가입
           </button>
         </Link>
       </div>

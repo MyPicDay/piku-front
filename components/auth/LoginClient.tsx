@@ -53,21 +53,21 @@ const LoginClient = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-black">
       <div className="w-full max-w-md px-8">
         <div className="w-full mb-10">
           <div className="relative text-center">
-            <button onClick={() => router.back()} className="text-2xl font-bold absolute left-0">&lt;</button>
-            <h2 className="text-2xl font-bold inline-block">로그인</h2>
+            <button onClick={() => router.back()} className="text-2xl font-bold absolute left-0 dark:text-white">&lt;</button>
+            <h2 className="text-2xl font-bold inline-block dark:text-white">로그인</h2>
           </div>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
               이메일
             </label>
             <input
-              className="appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="appearance-none border dark:border-gray-600 rounded-xl w-full py-3 px-4 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 leading-tight focus:outline-none focus:shadow-outline"
               id="email"
               type="email"
               placeholder="이메일을 입력하세요"
@@ -77,11 +77,11 @@ const LoginClient = () => {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
               비밀번호
             </label>
             <input
-              className="appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+              className="appearance-none border dark:border-gray-600 rounded-xl w-full py-3 px-4 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 mb-3 leading-tight focus:outline-none focus:shadow-outline"
               id="password"
               type="password"
               placeholder="비밀번호를 입력하세요"
@@ -92,7 +92,7 @@ const LoginClient = () => {
           </div>
           <div className="flex items-center justify-between">
             <button
-              className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold disabled:opacity-50"
+              className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
               type="submit"
               disabled={isLoading}
             >
@@ -100,7 +100,7 @@ const LoginClient = () => {
             </button>
           </div>
           <div className="text-center mt-6">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               계정이 없으신가요?{' '}
               <Link href="/signup" className="font-bold text-blue-500 hover:text-blue-800">
                 가입하기

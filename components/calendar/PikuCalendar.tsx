@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   format,
@@ -18,9 +17,10 @@ import type { SwipeableHandlers } from 'react-swipeable';
 
 interface PikuCalendarProps {
   currentDate: Date;
-  pikus: { [key: string]: string };
+  pikus: { [key: string]: { id: number; imageUrl: string } };
   handlers: SwipeableHandlers;
   today: Date;
+  onDayClick: (diaryId: number) => void;
 }
 
 const PikuCalendar = ({
@@ -28,6 +28,7 @@ const PikuCalendar = ({
   pikus,
   handlers,
   today,
+  onDayClick,
 }: PikuCalendarProps) => {
   const router = useRouter();
   const monthStart = startOfMonth(currentDate);
@@ -62,26 +63,35 @@ const PikuCalendar = ({
       <div className="grid grid-cols-7 flex-grow gap-1">
         {days.map((day, index) => {
           const dateKey = format(day, 'yyyy-MM-dd');
-          const pikuImage = pikus[dateKey];
+          const pikuData = pikus[dateKey];
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isCurrentDay = isEqual(day, today);
           const isFutureDate = differenceInCalendarDays(day, today) > 0;
 
-          const isClickable = !pikuImage && isCurrentMonth && !isFutureDate;
+          const canView = pikuData && isCurrentMonth;
+          const canCreate = !pikuData && isCurrentMonth && !isFutureDate;
+
+          const handleClick = () => {
+            if (canView) {
+              onDayClick(pikuData.id);
+            } else if (canCreate) {
+              router.push(`/diary/new/${dateKey}`);
+            }
+          };
 
           return (
             <div
               key={day.toString()}
-              onClick={() => isClickable && router.push(`/diary/new/${dateKey}`)}
+              onClick={handleClick}
               className={`relative flex justify-center items-center overflow-hidden rounded-md ${
                 isCurrentDay ? 'border-yellow-400 border-2' : ''
               } ${
                 !isCurrentMonth ? 'bg-gray-50' : 'bg-white'
-              } ${isClickable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+              } ${canCreate || canView ? 'cursor-pointer hover:bg-gray-100' : ''}`}
             >
-              {pikuImage && isCurrentMonth ? (
+              {pikuData && isCurrentMonth ? (
                 <img
-                  src={pikuImage}
+                  src={pikuData.imageUrl}
                   alt={`piku for ${dateKey}`}
                   className="w-full h-full object-cover"
                 />

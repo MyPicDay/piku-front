@@ -38,8 +38,8 @@ const CharacterSelection = ({ handleChange, values }: CharacterSelectionProps) =
   return (
     <>
       <div className="text-center mb-8">
-        <h3 className="text-xl font-bold">캐릭터 선택</h3>
-        <p className="text-gray-600">선택하신 캐릭터로 일기의 이미지가 생성됩니다</p>
+        <h3 className="text-xl font-bold dark:text-white">캐릭터 선택</h3>
+        <p className="text-gray-600 dark:text-gray-400">선택하신 캐릭터로 일기의 이미지가 생성됩니다</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-8">
@@ -47,7 +47,7 @@ const CharacterSelection = ({ handleChange, values }: CharacterSelectionProps) =
           <div
             key={char.id}
             className={`relative border-2 rounded-lg p-4 cursor-pointer flex justify-center items-center h-32
-              ${selected === String(char.id) ? 'border-blue-500' : 'border-gray-300'}`}
+              ${selected === String(char.id) ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'}`}
             onClick={() => handleSelect(char.id)}
           >
             {selected === String(char.id) && (
