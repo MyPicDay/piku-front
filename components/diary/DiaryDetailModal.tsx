@@ -130,6 +130,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             alt="Diary image"
             layout="fill"
             objectFit="contain"
+            unoptimized
           />
           {diary.imgUrls && diary.imgUrls.length > 1 && (
             <>

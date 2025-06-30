@@ -107,6 +107,7 @@ const HomeCalendar = () => {
               width={40}
               height={40}
               className="rounded-full bg-gray-200 flex-shrink-0 h-full"
+              unoptimized
             />
             <div className="min-w-0">
               <p className="font-bold truncate">{user?.nickname || 'me'}</p>

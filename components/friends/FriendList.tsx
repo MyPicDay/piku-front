@@ -35,6 +35,7 @@ const FriendList = () => {
               width={40}
               height={40}
               className="rounded-full mr-4"
+              unoptimized
             />
             <span>{friend.nickname}</span>
           </div>
