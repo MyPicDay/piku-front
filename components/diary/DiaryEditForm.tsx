@@ -197,7 +197,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
     const privacyText =
         {
             PUBLIC: '전체 공개',
-            FOLLOWERS_ONLY: '팔로워 공개',
+            FOLLOWERS_ONLY: '친구 공개',
             PRIVATE: '나만 보기',
         }[privacy] || '';
 
@@ -291,7 +291,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                 />
                                 <button
                                     onClick={() => removePhoto(photo)}
-                                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full text-white z-10 cursor-pointer"
+                                    className="absolute top-1 right-1 bg-black/50 rounded-full text-white z-10 cursor-pointer"
                                 >
                                     <XCircle size={16} />
                                 </button>
@@ -400,7 +400,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                             {
                                                 {
                                                     PUBLIC: '전체 공개',
-                                                    FOLLOWERS_ONLY: '팔로워 공개',
+                                                    FOLLOWERS_ONLY: '친구 공개',
                                                     PRIVATE: '나만 보기',
                                                 }[status]
                                             }

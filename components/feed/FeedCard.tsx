@@ -33,6 +33,7 @@ const FeedCard = ({ post }: FeedCardProps) => {
             width={32}
             height={32}
             className="rounded-full object-cover"
+            unoptimized
           />
           <div>
             <p className="text-sm font-semibold">{post.nickname}</p>
@@ -52,6 +53,7 @@ const FeedCard = ({ post }: FeedCardProps) => {
           alt="Diary image"
           layout="fill"
           objectFit="cover"
+          unoptimized
         />
       </div>
 

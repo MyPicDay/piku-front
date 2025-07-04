@@ -143,7 +143,7 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
       )}
 
       {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
           <p className="text-white">로딩 중...</p>
         </div>
       )}
