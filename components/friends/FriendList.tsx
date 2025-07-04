@@ -1,53 +1,104 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { Friend } from '@/types/friend';
 import { deleteFriend, getFriends } from '@/api/friend';
 
+const PAGE_SIZE = 20;
+
 const FriendList = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const observer = useRef<IntersectionObserver | null>(null);
+  
+  const lastFriendElementRef = useCallback((node: HTMLLIElement | null) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasNext) {
+        setPage(prevPage => prevPage + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasNext]);
+
+  const fetchFriends = useCallback(async (pageNum: number) => {
+    if (!hasNext && pageNum > 0) return; // 첫 페이지가 아니고, 다음 페이지가 없으면 요청 X
+    setIsLoading(true);
+    try {
+      const data = await getFriends(pageNum, PAGE_SIZE);
+      setFriends(prevFriends => pageNum === 0 ? data.friends : [...prevFriends, ...data.friends]);
+      setHasNext(data.hasNext);
+    } catch (error) {
+      console.error("친구 목록을 불러오는데 실패했습니다:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [hasNext]);
 
   useEffect(() => {
-    const fetchFriends = async () => {
-      const data = await getFriends();
-      setFriends(data);
-    };
-    fetchFriends();
-  }, []);
+    fetchFriends(page);
+  }, [fetchFriends, page]);
 
-  const handleDeleteFriend = async (id: number) => {
-    await deleteFriend(id);
-    setFriends(friends.filter(friend => friend.id !== id));
+  const handleDeleteFriend = async (userId: string) => {
+    try {
+      await deleteFriend(userId);
+      setFriends(prevFriends => prevFriends.filter(friend => friend.userId !== userId));
+    } catch (error) {
+      console.error("친구 삭제에 실패했습니다:", error);
+      alert("친구 삭제에 실패했습니다.");
+    }
   };
 
+  if (friends.length === 0 && !isLoading && !hasNext) {
+    return (
+      <div className="text-center text-gray-500 py-10">
+        아직 친구가 없습니다.
+      </div>
+    );
+  }
+
   return (
-    <ul>
-      {friends.map(friend => (
-        <li
-          key={friend.id}
-          className="flex items-center justify-between py-3 border-b"
-        >
-          <div className="flex items-center">
-            <Image
-              src={friend.profileImageUrl}
-              alt={friend.nickname}
-              width={40}
-              height={40}
-              className="rounded-full mr-4"
-              unoptimized
-            />
-            <span>{friend.nickname}</span>
-          </div>
-          <button
-            onClick={() => handleDeleteFriend(friend.id)}
-            className="border rounded-md px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-          >
-            친구 끊기
-          </button>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul>
+        {friends.map((friend, index) => {
+          const isLastElement = friends.length === index + 1;
+          return (
+            <li
+              ref={isLastElement ? lastFriendElementRef : null}
+              key={friend.userId}
+              className="flex items-center justify-between py-3 border-b"
+            >
+              <div className="flex items-center">
+                <Image
+                  src={friend.avatar}
+                  alt={friend.nickname}
+                  width={40}
+                  height={40}
+                  className="rounded-full mr-4"
+                  unoptimized
+                />
+                <span>{friend.nickname}</span>
+              </div>
+              <button
+                onClick={() => handleDeleteFriend(friend.userId)}
+                className="border rounded-md px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                친구 끊기
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {isLoading && (
+        <div className="text-center py-4">
+          친구를 불러오는 중...
+        </div>
+      )}
+    </>
   );
 };
 

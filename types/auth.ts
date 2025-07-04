@@ -13,7 +13,7 @@ export interface AuthFormProps {
 }
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   nickname: string;
   avatar: string;

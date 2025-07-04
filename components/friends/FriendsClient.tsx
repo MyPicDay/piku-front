@@ -22,24 +22,24 @@ const FriendsClient = () => {
     fetchRequests();
   }, []);
 
-  const handleAccept = async (id: number) => {
-    await acceptFriendRequest(id);
+  const handleAccept = async (userId: string) => {
+    await acceptFriendRequest(userId);
     setRequests(currentRequests =>
-      currentRequests.filter(req => req.id !== id),
+      currentRequests.filter(req => req.userId !== userId),
     );
     // You might want to refresh the main friend list here as well
   };
 
-  const handleReject = async (id: number) => {
-    await rejectFriendRequest(id);
+  const handleReject = async (userId: string) => {
+    await rejectFriendRequest(userId);
     setRequests(currentRequests =>
-      currentRequests.filter(req => req.id !== id),
+      currentRequests.filter(req => req.userId !== userId),
     );
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex flex-col min-h-screen p-4 sm:p-6 md:p-8">
+      <div className="max-w-4xl mx-auto w-full flex flex-col flex-grow">
         <h1 className="text-2xl font-bold mb-6">친구</h1>
         <div className="flex border-b mb-6">
           <button

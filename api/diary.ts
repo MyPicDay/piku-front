@@ -4,8 +4,6 @@ import { DiaryCreateRequest, DiaryContent, DiaryDetail } from '@/types/diary';
 export const createDiary = async (diaryData: DiaryCreateRequest) => {
   const formData = new FormData();
 
-  console.log(diaryData);
-
   if (diaryData.photos) {
     diaryData.photos.forEach((photoFile: File) => {
       formData.append('photos', photoFile);
@@ -77,7 +75,6 @@ export const updateDiary = async (diaryId: number, diaryData: DiaryCreateRequest
 
 export const generateAiPhotos = async (content: string) => {
    if (!content || content.trim().length === 0) {
-    console.log('내용이 없어 null을 반환합니다.');
     return Promise.resolve(null);
   }
 
@@ -95,7 +92,7 @@ export interface CalendarDiaryResponseDTO {
 }
 
 export const getMonthlyDiaries = async (
-  userId: number,
+  userId: string,
   year: number,
   month: number
 ): Promise<CalendarDiaryResponseDTO[]> => {

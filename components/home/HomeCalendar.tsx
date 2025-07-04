@@ -1,152 +1,145 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
-import { useSwipeable } from 'react-swipeable';
-import { format, addMonths, subMonths, startOfDay } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import Image from 'next/image';
+import { startOfDay } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '@/components/store/authStore';
 import PikuCalendar from '@/components/calendar/PikuCalendar';
-import YearMonthPicker from '@/components/calendar/YearMonthPicker';
-import { getMonthlyDiaries, getDiaryById } from '@/api/diary';
-import type { MonthlyDiary, DiaryDetail } from '@/types/diary';
+import HomeCalendarHeader from '@/components/home/HomeCalendarHeader';
 import DiaryDetailModal from '@/components/diary/DiaryDetailModal';
+import { useFriendManagement } from '@/hooks/useFriendManagement';
+import { useDiaryData } from '@/hooks/useDiaryData';
+import { useCalendarNavigation } from '@/hooks/useCalendarNavigation';
+import type { Friend } from '@/types/friend';
 
-const HomeCalendar = () => {
+interface HomeCalendarProps {
+  viewedUser?: Friend;
+}
+
+const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [pikus, setPikus] = useState<{
-    [key: string]: { id: number; imageUrl: string };
-  }>({});
-  const [selectedDiary, setSelectedDiary] = useState<DiaryDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
 
+  // 친구 관리 훅
+  const {
+    viewedUser: selectedViewedUser,
+    fetchFriendStatus,
+    nextFriend,
+    prevFriend,
+  } = useFriendManagement(user?.id);
+
+  // 실제로 표시할 유저 결정
+  const viewedUser = selectedViewedUser || initialViewedUser;
+
+  // 캘린더 네비게이션 훅
+  const {
+    currentDate,
+    setCurrentDate,
+    isPickerOpen,
+    setIsPickerOpen,
+    direction,
+    containerRef,
+    swipeHandlers,
+  } = useCalendarNavigation(isDesktopOrLaptop, nextFriend, prevFriend);
+
+  // 다이어리 데이터 훅
+  const {
+    pikus,
+    selectedDiary,
+    isLoading,
+    loadDiaryDetail,
+    closeDiaryDetail,
+  } = useDiaryData(currentDate, user, viewedUser);
+
+  // 친구 상태 페치
   useEffect(() => {
-    const fetchDiaries = async () => {
-      if (!user) return;
-
-      try {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
-        const diaries: MonthlyDiary[] = await getMonthlyDiaries(
-          user.id,
-          year,
-          month,
-        );
-        const newPikus = diaries.reduce(
-          (acc, diary) => {
-            acc[diary.date] = {
-              id: diary.diaryId,
-              imageUrl: diary.coverPhotoUrl,
-            };
-            return acc;
-          },
-          {} as { [key: string]: { id: number; imageUrl: string } },
-        );
-        setPikus(newPikus);
-      } catch (error) {
-        console.error('Failed to fetch monthly diaries:', error);
-        setPikus({}); // 에러 발생 시 피쿠스 초기화
-      }
-    };
-
-    fetchDiaries();
-  }, [currentDate, user]);
+    if (viewedUser && user) {
+      fetchFriendStatus(viewedUser.userId);
+    }
+  }, [viewedUser, user, fetchFriendStatus]);
 
   const handleDayClick = async (diaryId: number) => {
     if (isDesktopOrLaptop) {
-      setIsLoading(true);
-      try {
-        const diaryDetail = await getDiaryById(diaryId);
-        setSelectedDiary(diaryDetail);
-      } catch (error) {
-        console.error('Failed to fetch diary details:', error);
-        // 사용자에게 에러를 알리는 로직 추가 (예: toast)
-      } finally {
-        setIsLoading(false);
-      }
+      await loadDiaryDetail(diaryId);
     } else {
       router.push(`/diary/${diaryId}`);
     }
   };
 
-  const handleCloseModal = () => {
-    setSelectedDiary(null);
-  };
-
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-
-  const handlers = useSwipeable({
-    onSwipedLeft: () => nextMonth(),
-    onSwipedRight: () => prevMonth(),
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
-
   const today = startOfDay(new Date());
 
-  const view = () => (
-    <div className="flex flex-col h-screen">
-      <header className="p-4 space-y-4">
-        <div className="flex justify-between items-center md:hidden">
-          <h1 className="text-2xl font-bold">PikU</h1>
-          <Send className="w-6 h-6" />
-        </div>
-        <div className="flex justify-between items-center space-x-4">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <Image
-              src={user?.avatar || "/vercel.svg"} // Placeholder
-              alt="profile"
-              width={40}
-              height={40}
-              className="rounded-full bg-gray-200 flex-shrink-0 h-full"
-              unoptimized
-            />
-            <div className="min-w-0">
-              <p className="font-bold truncate">{user?.nickname || 'me'}</p>
-              <p className="text-sm text-gray-500 truncate">
-                프로필에 자기소개를 입력해보세요
-              </p>
-            </div>
-          </div>
-          <div className="relative flex-shrink-0">
-            <button
-              onClick={() => setIsPickerOpen(!isPickerOpen)}
-              className="flex items-center space-x-1"
-            >
-              <span className="text-lg font-bold">
-                {format(currentDate, 'yy년 M월', { locale: ko })}
-              </span>
-              <ChevronDown className="w-5 h-5" />
-            </button>
-            {isPickerOpen && (
-              <YearMonthPicker
-                currentDate={currentDate}
-                onDateChange={setCurrentDate}
-                onClose={() => setIsPickerOpen(false)}
-              />
-            )}
-          </div>
-        </div>
-      </header>
+  const slideVariants = {
+    initial: (customDirection: 'up' | 'down') => ({
+      y: customDirection === 'up' ? '-10vh' : '10vh',
+      opacity: 0,
+    }),
+    animate: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'tween' as const,
+        ease: 'easeInOut' as const,
+        duration: 0.4,
+      },
+    },
+    exit: (customDirection: 'up' | 'down') => ({
+      y: customDirection === 'up' ? '10vh' : '-10vh',
+      opacity: 0,
+      transition: {
+        type: 'tween' as const,
+        ease: 'easeInOut' as const,
+        duration: 0.4,
+      },
+    }),
+  };
 
-      <PikuCalendar
-        currentDate={currentDate}
-        pikus={pikus}
-        handlers={handlers}
-        today={today}
-        onDayClick={handleDayClick}
-      />
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>사용자 정보 로딩 중...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex flex-col h-screen overflow-hidden xl:pb-0"
+      ref={containerRef}
+    >
+      <AnimatePresence initial={false} custom={direction}>
+        <motion.div
+          key={viewedUser ? viewedUser.userId : user.id}
+          className="h-full flex flex-col"
+          variants={slideVariants}
+          custom={direction}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          <HomeCalendarHeader
+            user={user}
+            viewedUser={viewedUser}
+            currentDate={currentDate}
+            isPickerOpen={isPickerOpen}
+            onPickerToggle={() => setIsPickerOpen(!isPickerOpen)}
+            onDateChange={setCurrentDate}
+          />
+
+          <PikuCalendar
+            currentDate={currentDate}
+            pikus={pikus}
+            handlers={swipeHandlers}
+            today={today}
+            onDayClick={handleDayClick}
+          />
+        </motion.div>
+      </AnimatePresence>
 
       {selectedDiary && (
-        <DiaryDetailModal diary={selectedDiary} onClose={handleCloseModal} />
+        <DiaryDetailModal diary={selectedDiary} onClose={closeDiaryDetail} />
       )}
 
       {isLoading && (
@@ -156,8 +149,6 @@ const HomeCalendar = () => {
       )}
     </div>
   );
-  
-  return view();
 };
 
 export default HomeCalendar; 

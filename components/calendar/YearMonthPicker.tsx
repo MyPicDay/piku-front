@@ -65,14 +65,14 @@ const YearMonthPicker = ({
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={() => handleYearChange(pickerYear - 1)}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <span className="font-bold text-lg">{pickerYear}년</span>
           <button
             onClick={() => handleYearChange(pickerYear + 1)}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
@@ -82,7 +82,7 @@ const YearMonthPicker = ({
             <button
               key={month}
               onClick={() => handleMonthSelect(month)}
-              className={`p-3 text-base rounded-lg font-semibold ${
+              className={`p-3 text-base rounded-lg font-semibold cursor-pointer ${
                 tempDate.getMonth() === month
                   ? 'bg-black text-white'
                   : 'bg-gray-100 text-black'
@@ -94,7 +94,7 @@ const YearMonthPicker = ({
         </div>
         <button
           onClick={handleConfirm}
-          className="w-full mt-4 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black"
+          className="w-full mt-4 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black cursor-pointer"
         >
           확인
         </button>

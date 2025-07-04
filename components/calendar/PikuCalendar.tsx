@@ -83,7 +83,7 @@ const PikuCalendar = ({
             <div
               key={day.toString()}
               onClick={handleClick}
-              className={`relative flex justify-center items-center overflow-hidden rounded-md ${
+              className={`relative flex justify-center items-center overflow-hidden rounded-md  ${
                 isCurrentDay ? 'border-yellow-400 border-2' : ''
               } ${
                 !isCurrentMonth ? 'bg-gray-50' : 'bg-white'

@@ -64,6 +64,30 @@ export interface DiaryDetail extends Diary {
   comments: Comment[];
 }
 
+export interface FeedDiary {
+  diaryId: number;
+  status: PrivacyStatus;
+  content: string;
+  imgUrls: string[];
+  date: string; // LocalDate -> "YYYY-MM-DD"
+  nickname: string;
+  avatar: string;
+  userId: string;
+  createdAt: string; // LocalDateTime -> ISO String
+}
+
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
+}
+
 export interface MonthlyDiary {
   diaryId: number;
   date: string;

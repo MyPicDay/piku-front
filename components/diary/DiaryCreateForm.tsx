@@ -12,7 +12,7 @@ import {
   UnifiedPhoto,
   PrivacyStatus,
 } from '@/types/diary';
-import { X, Globe, Lock, Users, Camera, Sparkles, XCircle } from 'lucide-react';
+import { X, Globe, Lock, Users, Camera, Sparkles, XCircle, LogIn } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 
 const MAX_AI_PHOTOS = 3;
@@ -30,7 +30,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const [tempPrivacy, setTempPrivacy] = useState<PrivacyStatus>(privacy);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
-  const { user } = useAuthStore();
+  const { user, isLoggedIn } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -42,6 +42,12 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     resolver: zodResolver(diarySchema),
     mode: 'onChange',
   });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login');
+    }
+  }, [isLoggedIn, router]);
 
   useEffect(() => {
     if (isPrivacyModalOpen) {
@@ -58,6 +64,41 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
       });
     };
   }, [allPhotos]);
+
+  if (!isLoggedIn || !user) {
+    return (
+      <div className="flex flex-col h-screen bg-white dark:bg-black">
+        <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900 dark:border-gray-700">
+          <button
+            onClick={() => router.back()}
+            className="cursor-pointer dark:text-white"
+          >
+            <X size={24} />
+          </button>
+          <h1 className="text-lg font-semibold dark:text-white">일기 작성</h1>
+          <div className="w-6" />
+        </header>
+
+        <main className="flex-grow flex flex-col items-center justify-center p-8 text-center">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-6 mb-6">
+            <LogIn size={48} className="text-gray-400 dark:text-gray-500" />
+          </div>
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+            로그인이 필요합니다
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-sm">
+            일기를 작성하려면 먼저 로그인해주세요.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            로그인하기
+          </button>
+        </main>
+      </div>
+    );
+  }
 
   const onSubmit = async (data: DiaryFormValues) => {
     setIsSubmitting(true);

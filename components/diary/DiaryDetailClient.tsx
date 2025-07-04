@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import type { DiaryDetail } from '@/types/diary';
 import { getDiaryById } from '@/api/diary';
 import { format } from 'date-fns';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle, Send, X } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
+import { motion, AnimatePresence } from 'framer-motion';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import type { CSSProperties } from 'react';
@@ -19,6 +20,9 @@ interface DiaryDetailClientProps {
 const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
   const [diary, setDiary] = useState<DiaryDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
   const serverUrl = getServerURL();
 
   useEffect(() => {
@@ -36,6 +40,26 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
 
     fetchDiaryDetail();
   }, [diaryId]);
+
+  const handleCommentSubmit = () => {
+    if (commentText.trim()) {
+      // TODO: API 호출로 댓글 등록
+      console.log('댓글 등록:', commentText);
+      setCommentText('');
+    }
+  };
+
+  const getDisplayContent = (content: string) => {
+    const maxLength = 100;
+    if (content.length <= maxLength || isContentExpanded) {
+      return content;
+    }
+    return content.slice(0, maxLength) + '...';
+  };
+
+  const shouldShowMoreButton = (content: string) => {
+    return content.length > 100 && !isContentExpanded;
+  };
 
   if (isLoading) {
     return (
@@ -111,7 +135,10 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
               />
               <span className="text-sm font-semibold">{diary.likeCount}</span>
             </button>
-            <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
+            <button 
+              onClick={() => setIsCommentModalOpen(true)}
+              className="flex items-center space-x-1 text-gray-600 dark:text-gray-400"
+            >
               <MessageCircle className="w-7 h-7" />
               <span className="text-sm font-semibold">
                 {diary.commentCount}
@@ -119,82 +146,124 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
             </button>
           </div>
 
-          <main className="p-4 pt-0">
-            <div className="bg-neutral-100 dark:bg-neutral-800 p-6 rounded-2xl min-h-[120px]">
-              <p className="whitespace-pre-wrap text-base leading-relaxed dark:text-gray-300">
-                {diary.content}
+          <main className="px-4 py-3">
+            <div className="space-y-3">
+              <p className="text-gray-900 dark:text-gray-100 text-base leading-relaxed whitespace-pre-wrap">
+                {getDisplayContent(diary.content)}
               </p>
-              <div className="mt-6 flex items-center space-x-2">
-                <img
-                  src={diary.avatar ? `${serverUrl}/${diary.avatar}` : '/globe.svg'}
-                  alt={diary.nickname}
-                  width={24}
-                  height={24}
-                  className="rounded-full bg-gray-200"
-                />
-                <p className="font-semibold text-sm dark:text-white">{diary.nickname}</p>
-              </div>
+              {shouldShowMoreButton(diary.content) && (
+                <button
+                  onClick={() => setIsContentExpanded(true)}
+                  className="text-gray-500 dark:text-gray-400 text-sm hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                >
+                  더 보기
+                </button>
+              )}
             </div>
           </main>
-
-          <section className="p-4">
-            <h2 className="font-bold mb-4 text-gray-800 dark:text-gray-200">
-              댓글 {diary.comments?.length ?? 0}개
-            </h2>
-            {diary.comments && diary.comments.length > 0 ? (
-              <div className="space-y-4">
-                {diary.comments.map(comment => (
-                  <div
-                    key={comment.commentId}
-                    className="flex space-x-3 items-start"
-                  >
-                    <img
-                      src={
-                        comment.member.avatar
-                          ? `${serverUrl}${comment.member.avatar}`
-                          : '/globe.svg'
-                      }
-                      alt={comment.member.nickname}
-                      width={32}
-                      height={32}
-                      className="rounded-full bg-gray-200 mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3">
-                        <p className="font-semibold text-sm dark:text-white">
-                          {comment.member.nickname}
-                        </p>
-                        <p className="text-sm dark:text-gray-300">{comment.content}</p>
-                      </div>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 pl-1">
-                        {format(new Date(comment.createdAt), 'yy.MM.dd HH:mm')}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-10 text-center text-gray-500 dark:text-gray-400">
-                <p>아직 댓글이 없습니다.</p>
-                <p>가장 먼저 댓글을 남겨보세요!</p>
-              </div>
-            )}
-          </section>
         </div>
-
-        <footer className="sticky bottom-0 bg-white dark:bg-neutral-900 border-t dark:border-gray-700 p-2">
-          <div className="flex items-center">
-            <input
-              type="text"
-              placeholder="댓글을 입력하세요..."
-              className="flex-grow bg-gray-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 border-none rounded-full py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-yellow-500"
-            />
-            <button className="ml-2 bg-yellow-400 hover:bg-yellow-500 text-white p-3 rounded-full flex-shrink-0 flex items-center justify-center">
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
-        </footer>
       </div>
+
+      {/* 댓글 모달 */}
+      <AnimatePresence>
+        {isCommentModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-end justify-center z-50"
+            onClick={() => setIsCommentModalOpen(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                             className="w-full max-w-md bg-white dark:bg-gray-900 rounded-t-2xl min-h-[95vh] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                <h2 className="text-lg font-semibold dark:text-white">
+                  댓글 {diary.comments?.length ?? 0}개
+                </h2>
+                <button
+                  onClick={() => setIsCommentModalOpen(false)}
+                  className="p-2 text-gray-500 dark:text-gray-400"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {diary.comments && diary.comments.length > 0 ? (
+                  <div className="space-y-4">
+                    {diary.comments.map(comment => (
+                      <div
+                        key={comment.commentId}
+                        className="flex space-x-3 items-start"
+                      >
+                        <img
+                          src={
+                            comment.member.avatar
+                              ? `${serverUrl}${comment.member.avatar}`
+                              : '/globe.svg'
+                          }
+                          alt={comment.member.nickname}
+                          width={32}
+                          height={32}
+                          className="rounded-full bg-gray-200 mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3">
+                            <p className="font-semibold text-sm dark:text-white">
+                              {comment.member.nickname}
+                            </p>
+                            <p className="text-sm dark:text-gray-300">{comment.content}</p>
+                          </div>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 pl-1">
+                            {format(new Date(comment.createdAt), 'yy.MM.dd HH:mm')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center text-gray-500 dark:text-gray-400">
+                    <p>아직 댓글이 없습니다.</p>
+                    <p>가장 먼저 댓글을 남겨보세요!</p>
+                  </div>
+                )}
+              </div>
+
+                             <div className="border-t dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+                 <div className="flex items-center space-x-3">
+                   <div className="flex-1 px-4 py-3  transition-colors">
+                     <input
+                       type="text"
+                       value={commentText}
+                       onChange={(e) => setCommentText(e.target.value)}
+                       placeholder="댓글을 입력하세요..."
+                       className="w-full bg-transparent focus:outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                       onKeyPress={(e) => {
+                         if (e.key === 'Enter') {
+                           handleCommentSubmit();
+                         }
+                       }}
+                     />
+                   </div>
+                   <button 
+                     onClick={handleCommentSubmit}
+                     disabled={!commentText.trim()}
+                     className=" text-blue-500  hover:text-blue-700  disabled:text-gray-500 dark:disabled:text-gray-400 px-4 py-3  font-bold text-sm transition-colors min-w-[60px] cursor-pointer disabled:cursor-not-allowed"
+                   >
+                     게시
+                   </button>
+                 </div>
+               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         .swiper-pagination-bullet {

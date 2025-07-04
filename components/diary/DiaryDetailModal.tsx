@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,6 +14,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { DiaryDetail } from '@/types/diary';
+import type { Comment } from '@/types/comment';
+import { createComment } from '@/api/comment';
+import { formatTimeAgo, formatYearMonthDay } from '@/lib/utils/date';
+import { getServerURL } from '@/lib/utils/url';
+import useAuthStore from '@/components/store/authStore';
 
 interface DiaryDetailModalProps {
   diary: DiaryDetail;
@@ -21,8 +28,15 @@ interface DiaryDetailModalProps {
 const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  // 인증 상태 및 사용자 정보
+  const { isLoggedIn, user } = useAuthStore();
+  const serverUrl = getServerURL();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,8 +52,95 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
     };
   }, [isMenuOpen]);
 
+  // 더미 댓글 데이터 (실제 댓글만)
+  const dummyComments: Comment[] = [
+    {
+      commentId: 1,
+      member: {
+        memberId: '2',
+        nickname: 'friend_1',
+        avatar: '/next.svg',
+      },
+      content: '와 사진 정말 멋지다! ✨',
+      createdAt: '2023-10-27T10:00:00Z',
+      updatedAt: '2023-10-27T10:00:00Z',
+    },
+    {
+      commentId: 2,
+      member: {
+        memberId: '3',
+        nickname: 'user_123',
+        avatar: '/globe.svg',
+      },
+      content: '여기 어디야? 나도 가보고 싶어!',
+      createdAt: '2023-10-27T11:30:00Z',
+      updatedAt: '2023-10-27T11:30:00Z',
+    },
+  ];
+
+  // 일기 데이터를 댓글 형태로 변환
+  const diaryAsComment: Comment = {
+    commentId: 0,
+    member: {
+      memberId: '1', // 임시 ID
+      nickname: diary.nickname,
+      avatar: diary.avatar,
+    },
+    content: diary.content || '작성된 내용이 없습니다.',
+    createdAt: diary.createdAt,
+    updatedAt: diary.updatedAt || diary.createdAt,
+  };
+
+  // 댓글 작성 (낙관적 업데이트)
+  const handleCreateComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !diary.diaryId || isSubmittingComment || !isLoggedIn || !user) return;
+
+    // 임시 댓글 ID 생성 (현재 시간을 기반으로)
+    const tempCommentId = Date.now();
+    
+    // 낙관적 업데이트: UI에 먼저 추가
+    const optimisticComment: Comment = {
+      commentId: tempCommentId,
+      member: {
+        memberId: String(user.id), // user.id를 string으로 변환
+        nickname: user.nickname || '사용자',
+        avatar: user.avatar || `${serverUrl}/globe.svg`, // 사용자 아바타 또는 기본 아바타
+      },
+      content: newComment.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setComments(prev => [...prev, optimisticComment]);
+    setNewComment('');
+    setIsSubmittingComment(true);
+
+    try {
+      // 실제 API 호출
+      const newCommentData = await createComment({
+        diaryId: diary.diaryId,
+        content: newComment.trim(),
+      });
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+      // 실패 시 낙관적으로 추가한 댓글 제거
+      setComments(prev => 
+        prev.filter(comment => comment.commentId !== tempCommentId)
+      );
+      setNewComment(optimisticComment.content); // 입력값 복원
+      alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 더미 댓글 설정
+  useEffect(() => {
+    setComments(dummyComments);
+  }, [diary.diaryId]);
+
   if (!diary) return null;
-	console.log(diary);
 
   const handleEditClick = () => {
     router.push(`/diary/edit/${diary.diaryId}`);
@@ -72,41 +173,11 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
     e.currentTarget.src = DEFAULT_AVATAR;
   };
 
-  const dummyComments = [
-    {
-      commentId: 1,
-      member: {
-        memberId: 2,
-        nickname: 'friend_1',
-        avatar: '/next.svg',
-      },
-      content: '와 사진 정말 멋지다! ✨',
-      createdAt: '2023-10-27T10:00:00Z',
-      updatedAt: '2023-10-27T10:00:00Z',
-    },
-    {
-      commentId: 2,
-      member: {
-        memberId: 3,
-        nickname: 'user_123',
-        avatar: '/globe.svg',
-      },
-      content: '여기 어디야? 나도 가보고 싶어!',
-      createdAt: '2023-10-27T11:30:00Z',
-      updatedAt: '2023-10-27T11:30:00Z',
-    },
-  ];
+
 
   const displayImage = diary.imgUrls?.[currentImageIndex] || '/vercel.svg';
 
-  const displayDate = diary.createdAt
-    ? new Date(diary.createdAt).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '날짜 정보 없음';
-  const displayContent = diary.content || '작성된 내용이 없습니다.';
+  const displayDate = formatYearMonthDay(diary.date);
 
   return (
     <div
@@ -136,13 +207,13 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             <>
               <button
                 onClick={handlePrevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-opacity z-10"
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-opacity z-10 cursor-pointer"
               >
                 <ChevronLeft size={24} />
               </button>
               <button
                 onClick={handleNextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-opacity z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-opacity z-10 cursor-pointer"
               >
                 <ChevronRight size={24} />
               </button>
@@ -197,56 +268,55 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
 
           {/* Comments Section (scrollable) */}
           <div className="flex-grow overflow-y-auto p-4 space-y-4">
-            {/* Diary Content (as first comment) */}
+            {/* 일기 내용 (첫 번째 댓글로 표시) */}
             <div className="flex items-start">
               <img
-                src={diary.avatar || DEFAULT_AVATAR}
-                alt={diary.nickname}
+                src={diaryAsComment.member.avatar || DEFAULT_AVATAR}
+                alt={diaryAsComment.member.nickname}
                 width={32}
                 height={32}
                 className="rounded-full mr-3 mt-1"
                 onError={handleAvatarError}
               />
-              {/* <Image
-                src={diary.avatar}
-                alt={diary.nickname}
-                width={32}
-                height={32}
-                className="rounded-full mr-3 mt-1"
-              /> */}
               <div>
                 <p className="text-sm">
-                  <span className="font-bold">{diary.nickname}</span>{' '}
-                  {displayContent}
+                  <span className="font-bold">{diaryAsComment.member.nickname}</span>{' '}
+                  {diaryAsComment.content}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {new Date(diary.createdAt).toLocaleDateString()}
+                  {formatTimeAgo(diaryAsComment.createdAt)}
                 </p>
               </div>
             </div>
 
-            {/* Dummy Comments */}
-            {dummyComments.map(comment => (
-              <div key={comment.commentId} className="flex items-start">
-                <img
-                  src={comment.member.avatar || DEFAULT_AVATAR}
-                  alt={comment.member.nickname}
-                  width={32}
-                  height={32}
-                  className="rounded-full mr-3 mt-1"
-                  onError={handleAvatarError}
-                />
-                <div>
-                  <p className="text-sm">
-                    <span className="font-bold">{comment.member.nickname}</span>{' '}
-                    {comment.content}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
+            {/* 실제 댓글 목록 */}
+            {comments.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!
               </div>
-            ))}
+            ) : (
+              comments.map((comment: Comment) => (
+                <div key={comment.commentId} className="flex items-start">
+                  <img
+                    src={comment.member.avatar || DEFAULT_AVATAR}
+                    alt={comment.member.nickname}
+                    width={32}
+                    height={32}
+                    className="rounded-full mr-3 mt-1"
+                    onError={handleAvatarError}
+                  />
+                  <div>
+                    <p className="text-sm">
+                      <span className="font-bold">{comment.member.nickname}</span>{' '}
+                      {comment.content}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {formatTimeAgo(comment.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Action Bar */}
@@ -273,16 +343,29 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
 
           {/* Comment Input */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="댓글 달기..."
-                className="w-full bg-transparent focus:outline-none text-sm"
-              />
-              <button className="text-blue-500 font-bold hover:text-blue-700 text-sm">
-                게시
-              </button>
-            </div>
+            {isLoggedIn ? (
+              <form onSubmit={handleCreateComment} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="댓글 달기..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="w-full bg-transparent focus:outline-none text-sm"
+                  disabled={isSubmittingComment}
+                />
+                <button 
+                  type="submit"
+                  disabled={!newComment.trim() || isSubmittingComment}
+                  className="min-w-[40px] text-blue-500 font-bold hover:text-blue-700 text-sm cursor-pointer disabled:text-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingComment ? '전송 중...' : '게시'}
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center justify-center py-3">
+                <p className="text-gray-400 text-sm">댓글을 작성하려면 로그인해주세요.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
