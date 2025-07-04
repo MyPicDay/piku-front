@@ -5,7 +5,7 @@ export interface Friend {
 }
 
 export interface PaginatedFriendsResponse {
-  friends: Friend[];
+  friends: Friend[] | null;
   hasNext: boolean;
   totalElements: number;
 }

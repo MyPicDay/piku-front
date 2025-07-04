@@ -12,6 +12,7 @@ const FriendList = () => {
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
   
   const lastFriendElementRef = useCallback((node: HTMLLIElement | null) => {
@@ -30,12 +31,16 @@ const FriendList = () => {
     setIsLoading(true);
     try {
       const data = await getFriends(pageNum, PAGE_SIZE);
-      setFriends(prevFriends => pageNum === 0 ? data.friends : [...prevFriends, ...data.friends]);
+      const newFriends = data.friends || [];
+      setFriends(prevFriends =>
+        pageNum === 0 ? newFriends : [...prevFriends, ...newFriends],
+      );
       setHasNext(data.hasNext);
     } catch (error) {
-      console.error("친구 목록을 불러오는데 실패했습니다:", error);
+      console.error('친구 목록을 불러오는데 실패했습니다:', error);
     } finally {
       setIsLoading(false);
+      setInitialLoad(true);
     }
   }, [hasNext]);
 
@@ -53,10 +58,10 @@ const FriendList = () => {
     }
   };
 
-  if (friends.length === 0 && !isLoading && !hasNext) {
+  if (initialLoad && friends.length === 0 && !isLoading) {
     return (
       <div className="text-center text-gray-500 py-10">
-        아직 친구가 없습니다.
+        친구 목록이 비었습니다.
       </div>
     );
   }

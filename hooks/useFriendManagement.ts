@@ -19,7 +19,9 @@ export const useFriendManagement = (currentUserId?: string) => {
         
         while (hasNext) {
           const response: PaginatedFriendsResponse = await getFriends(page, 20); // 페이지 크기는 임의로 20으로 설정
-          allFriends = [...allFriends, ...response.friends];
+          if (response.friends) {
+            allFriends = [...allFriends, ...response.friends];
+          }
           hasNext = response.hasNext;
           page += 1;
         }
