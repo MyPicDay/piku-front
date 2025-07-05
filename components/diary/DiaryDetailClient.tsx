@@ -12,6 +12,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import type { CSSProperties } from 'react';
 import { getServerURL } from '@/lib/utils/url';
+import Image from 'next/image';
 
 interface DiaryDetailClientProps {
   diaryId: number;
@@ -82,11 +83,12 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
       <div className="max-w-md mx-auto bg-white dark:bg-neutral-900 shadow-sm flex flex-col min-h-screen">
         <header className="p-4 flex items-center space-x-3 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-neutral-900 z-10">
           <div className="flex-grow flex items-center space-x-3">
-            <img
-              src={diary.avatar ? `${serverUrl}/${diary.avatar}` : '/globe.svg'}
+            <Image
+              src={diary.avatar ? diary.avatar : '/globe.svg'}
               alt={diary.nickname}
               width={40}
               height={40}
+              unoptimized
               className="rounded-full bg-gray-200"
             />
             <div>
@@ -115,10 +117,11 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
               {diary.imgUrls.map((url, index) => (
                 <SwiperSlide key={index}>
                   <div className="relative w-full" style={{ paddingTop: '100%' }}>
-                    <img
+                    <Image
                       src={url}
                       alt={`Diary image ${index + 1}`}
                       className="absolute top-0 left-0 w-full h-full object-cover"
+                      unoptimized
                     />
                   </div>
                 </SwiperSlide>
@@ -202,16 +205,17 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
                         key={comment.commentId}
                         className="flex space-x-3 items-start"
                       >
-                        <img
+                        <Image
                           src={
                             comment.member.avatar
-                              ? `${serverUrl}${comment.member.avatar}`
+                              ? comment.member.avatar
                               : '/globe.svg'
                           }
                           alt={comment.member.nickname}
                           width={32}
                           height={32}
                           className="rounded-full bg-gray-200 mt-1"
+                          unoptimized
                         />
                         <div className="flex-1">
                           <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3">
