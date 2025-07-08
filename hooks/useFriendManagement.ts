@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getFriendshipStatus, sendFriendRequest, cancelFriendRequest, deleteFriend, getFriends } from '@/api/friend';
+import {
+  getProfileInfo,
+  sendFriendRequest,
+  cancelFriendRequest,
+  deleteFriend,
+  getFriends,
+} from '@/api/friend';
 import type { Friend, PaginatedFriendsResponse } from '@/types/friend';
 import { FriendshipStatus } from '@/types/friend';
 
 export const useFriendManagement = (currentUserId?: string) => {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>(FriendshipStatus.NONE);
+  const [friendshipStatus, setFriendshipStatus] =
+    useState<FriendshipStatus>(FriendshipStatus.NONE);
   const [viewedUserIndex, setViewedUserIndex] = useState<number | null>(null);
 
   const viewedUser = viewedUserIndex !== null ? friends[viewedUserIndex] : null;
@@ -16,7 +23,7 @@ export const useFriendManagement = (currentUserId?: string) => {
         let allFriends: Friend[] = [];
         let page = 0;
         let hasNext = true;
-        
+
         while (hasNext) {
           const response: PaginatedFriendsResponse = await getFriends(page, 20); // 페이지 크기는 임의로 20으로 설정
           if (response.friends) {
@@ -25,7 +32,7 @@ export const useFriendManagement = (currentUserId?: string) => {
           hasNext = response.hasNext;
           page += 1;
         }
-        
+
         setFriends(allFriends);
       } catch (error) {
         console.error('Failed to fetch friends:', error);
@@ -34,16 +41,19 @@ export const useFriendManagement = (currentUserId?: string) => {
     fetchAllFriends();
   }, []);
 
-  const fetchFriendStatus = useCallback(async (targetUserId: string) => {
-    if (!currentUserId || targetUserId === currentUserId) return;
-    
-    try {
-      const status = await getFriendshipStatus(targetUserId);
-      setFriendshipStatus(status);
-    } catch (error) {
-      console.error('Failed to fetch friendship status:', error);
-    }
-  }, [currentUserId]);
+  const fetchFriendStatus = useCallback(
+    async (targetUserId: string) => {
+      if (!currentUserId || targetUserId === currentUserId) return;
+
+      try {
+        const profile = await getProfileInfo(targetUserId);
+        setFriendshipStatus(profile.friendshipStatus);
+      } catch (error) {
+        console.error('Failed to fetch friendship status:', error);
+      }
+    },
+    [currentUserId],
+  );
 
   const handleFriendAction = async (targetUserId: string) => {
     try {
@@ -51,7 +61,7 @@ export const useFriendManagement = (currentUserId?: string) => {
         case FriendshipStatus.NONE:
           await sendFriendRequest(targetUserId);
           break;
-        case FriendshipStatus.REQUEST_SENT:
+        case FriendshipStatus.SENT:
           await cancelFriendRequest(targetUserId);
           break;
         case FriendshipStatus.FRIEND:

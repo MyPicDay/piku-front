@@ -2,19 +2,24 @@ import api from './api';
 import type {
   Comment,
   CommentCreateRequest,
+  CommentCreateResponse,
   CommentUpdateRequest,
-  CommentListResponse,
+  CommentPage,
 } from '@/types/comment';
 
-// 특정 일기의 댓글 목록 조회
-export const getComments = async (diaryId: number): Promise<Comment[]> => {
+// 특정 일기의 루트 댓글 목록 조회 (페이징)
+export const getRootComments = async (
+  diaryId: number,
+  page: number,
+  size: number,
+): Promise<CommentPage> => {
   try {
-    const response = await api.get<CommentListResponse>(`/comments`, {
-      params: { diaryId },
+    const response = await api.get<CommentPage>('/comments', {
+      params: { diaryId, page, size },
     });
-    return response.data.comments || [];
+    return response.data;
   } catch (error) {
-    console.error('댓글 조회 실패:', error);
+    console.error('루트 댓글 조회 실패:', error);
     throw error;
   }
 };
@@ -22,9 +27,9 @@ export const getComments = async (diaryId: number): Promise<Comment[]> => {
 // 댓글 작성
 export const createComment = async (
   data: CommentCreateRequest,
-): Promise<Comment> => {
+): Promise<CommentCreateResponse> => {
   try {
-    const response = await api.post<Comment>('/comments', data);
+    const response = await api.post<CommentCreateResponse>('/comments', data);
     return response.data;
   } catch (error) {
     console.error('댓글 작성 실패:', error);

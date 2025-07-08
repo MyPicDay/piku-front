@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '../store/authStore';
 import { logout } from '@/api/auth';
 
@@ -25,36 +25,38 @@ const BottomNav = () => {
   const todayDate = `${year}-${month}-${day}`;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     await logout();
   };
 
+  const getLinkClass = (path: string, exact = true) => {
+    const isActive = exact ? pathname === path : pathname.startsWith(path);
+    return `flex flex-col items-center text-sm w-16 ${
+      isActive ? '' : 'text-gray-400'
+    }`;
+  };
+
   return (
     <>
       <footer className="flex justify-around items-center p-2 border-t xl:hidden sticky bottom-0 bg-white z-10">
-        <Link href="/" className="flex flex-col items-center text-sm w-16">
+        <Link href="/" className={getLinkClass('/')}>
           <Home className="w-6 h-6" />
           <span className="text-xs">홈</span>
         </Link>
-        <Link
-          href="/feed"
-          className="flex flex-col items-center text-sm w-16"
-        >
+        <Link href="/feed" className={getLinkClass('/feed')}>
           <Compass className="w-6 h-6" />
           <span className="text-xs">피드</span>
         </Link>
         <Link
           href={`/diary/new/${todayDate}`}
-          className="flex flex-col items-center text-sm text-gray-400 w-16"
+          className={getLinkClass('/diary/new', false)}
         >
           <PlusSquare className="w-6 h-6" />
           <span className="text-xs">일기 작성</span>
         </Link>
-        <Link
-          href="/friends"
-          className="flex flex-col items-center text-sm text-gray-400 w-16"
-        >
+        <Link href="/friends" className={getLinkClass('/friends')}>
           <Users className="w-6 h-6" />
           <span className="text-xs">친구</span>
         </Link>

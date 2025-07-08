@@ -36,19 +36,19 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (shouldHideNav) {
-    return <main className="w-full">{children}</main>;
+    return <main className="w-full min-h-screen">{children}</main>;
   }
 
   return (
-    <>
-      <div className="flex">
+    <div className="flex flex-col min-h-screen">
+      <div className="flex flex-1">
         <Sidebar />
         <main className="w-full xl:ml-64 transition-all duration-300 xl:grid xl:grid-cols-6 xl:gap-4">
           <div className="md:col-span-4 md:col-start-2">{children}</div>
         </main>
       </div>
       <BottomNav />
-    </>
+    </div>
   );
 };
 

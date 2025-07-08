@@ -53,7 +53,6 @@ const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => {
         return (state, error) => {
           if (state && typeof window !== 'undefined') {
-            // console.log('Rehydrated, calling checkAuth. Current accessToken:', state.accessToken);
             state.checkAuth();
           } else if (error) {
             console.error("Failed to rehydrate auth store", error);

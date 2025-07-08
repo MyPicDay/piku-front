@@ -15,8 +15,17 @@ export type FriendRequest = Friend;
 export enum FriendshipStatus {
   NONE = 'NONE',
   FRIEND = 'FRIEND',
-  REQUEST_SENT = 'REQUEST_SENT',
-  REQUEST_RECEIVED = 'REQUEST_RECEIVED',
+  SENT = 'SENT',
+  RECEIVED = 'RECEIVED',
+  SELF = 'SELF',
+}
+
+export interface UserProfile {
+  nickname: string;
+  avatar: string;
+  diaryCount: number;
+  friendCount: number;
+  friendshipStatus: FriendshipStatus;
 }
 
 // 백엔드 API 요청/응답 타입들

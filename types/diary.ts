@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FriendshipStatus } from './friend';
 
 export const diarySchema = z.object({
   content: z.string().min(1, '내용을 입력해주세요.'),
@@ -74,6 +75,7 @@ export interface FeedDiary {
   avatar: string;
   userId: string;
   createdAt: string; // LocalDateTime -> ISO String
+  friendshipStatus: FriendshipStatus;
 }
 
 export interface Page<T> {

@@ -1,4 +1,12 @@
-import { Friend, FriendRequest, FriendshipStatus, FriendRequestDto, FriendRequestResponseDto, PaginatedFriendsResponse } from '@/types/friend';
+import {
+  Friend,
+  FriendRequest,
+  FriendRequestDto,
+  FriendRequestResponseDto,
+  PaginatedFriendsResponse,
+  UserProfile,
+  FriendshipStatus,
+} from '@/types/friend';
 import api from '@/api/api';
 
 // 친구 목록
@@ -66,29 +74,18 @@ export const rejectFriendRequest = async (userId: string): Promise<FriendRequest
 };
 
 export const deleteFriend = async (userId: string): Promise<void> => {
-  console.log(`Deleting friend ${userId}`);
-  await new Promise(resolve => setTimeout(resolve, 500));
-};
-
-// 특정 사용자와의 친구 상태를 가져오는 모의 함수
-export const getFriendshipStatus = async (
-  userId: string,
-): Promise<FriendshipStatus> => {
-  console.log(`Checking friendship status with user ${userId}`);
-  const numericUserId = parseInt(userId, 10);
-  // 실제 애플리케이션에서는 API 호출을 통해 상태를 가져옵니다.
-  // 여기서는 userId에 따라 다른 상태를 반환하도록 간단히 구현합니다.
-  if (numericUserId % 3 === 0) {
-    return FriendshipStatus.FRIEND;
+  try {
+    await api.delete(`/relation/${userId}`);
+  } catch (error) {
+    console.error('친구 삭제 오류:', error);
+    throw error;
   }
-  if (numericUserId % 3 === 1) {
-    return FriendshipStatus.REQUEST_SENT;
-  }
-  return FriendshipStatus.NONE;
 };
 
 // 보낸 친구 요청 취소
-export const cancelFriendRequest = async (userId: string): Promise<FriendRequestResponseDto> => {
+export const cancelFriendRequest = async (
+  userId: string,
+): Promise<FriendRequestResponseDto> => {
   try {
     const response = await api.delete(`/relation/cancel/${userId}`);
     return response.data;
@@ -96,4 +93,11 @@ export const cancelFriendRequest = async (userId: string): Promise<FriendRequest
     console.error('친구 요청 취소 오류:', error);
     throw error;
   }
+};
+
+export const getProfileInfo = async (
+  userId: string,
+): Promise<UserProfile> => {
+  const response = await api.get(`/users/${userId}/profile`);
+  return response.data;
 }; 

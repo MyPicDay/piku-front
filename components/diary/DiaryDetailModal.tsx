@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { DiaryDetail } from '@/types/diary';
 import type { Comment } from '@/types/comment';
-import { createComment } from '@/api/comment';
+import { createComment, getRootComments } from '@/api/comment';
 import { formatTimeAgo, formatYearMonthDay } from '@/lib/utils/date';
 import { getServerURL } from '@/lib/utils/url';
 import useAuthStore from '@/components/store/authStore';
@@ -25,18 +25,51 @@ interface DiaryDetailModalProps {
   onClose: () => void;
 }
 
-const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
+const DiaryDetailModal = ({
+  diary,
+  onClose,
+}: DiaryDetailModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [totalComments, setTotalComments] = useState(diary.commentCount);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
   
-  // 인증 상태 및 사용자 정보
   const { isLoggedIn, user } = useAuthStore();
   const serverUrl = getServerURL();
+
+  const fetchComments = async (isNewFetch: boolean = false) => {
+    if (isLoadingComments || (!hasMore && !isNewFetch)) return;
+
+    setIsLoadingComments(true);
+    const pageToFetch = isNewFetch ? 0 : page;
+    
+    try {
+      const data = await getRootComments(diary.diaryId, pageToFetch, 10);
+      setComments(prev => (isNewFetch ? data.content : [...data.content, ...prev]));
+      setPage(pageToFetch + 1);
+      setHasMore(!data.last);
+      if (isNewFetch) {
+        setTotalComments(data.totalElements);
+      }
+    } catch (error) {
+      console.error('댓글을 불러오는데 실패했습니다:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  useEffect(() => {
+    if (diary.diaryId) {
+      fetchComments(true);
+    }
+  }, [diary.diaryId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,93 +85,67 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
     };
   }, [isMenuOpen]);
 
-  // 더미 댓글 데이터 (실제 댓글만)
-  const dummyComments: Comment[] = [
-    {
-      commentId: 1,
-      member: {
-        memberId: '2',
-        nickname: 'friend_1',
-        avatar: '/next.svg',
-      },
-      content: '와 사진 정말 멋지다! ✨',
-      createdAt: '2023-10-27T10:00:00Z',
-      updatedAt: '2023-10-27T10:00:00Z',
-    },
-    {
-      commentId: 2,
-      member: {
-        memberId: '3',
-        nickname: 'user_123',
-        avatar: '/globe.svg',
-      },
-      content: '여기 어디야? 나도 가보고 싶어!',
-      createdAt: '2023-10-27T11:30:00Z',
-      updatedAt: '2023-10-27T11:30:00Z',
-    },
-  ];
-
   // 일기 데이터를 댓글 형태로 변환
-  const diaryAsComment: Comment = {
-    commentId: 0,
-    member: {
-      memberId: '1', // 임시 ID
-      nickname: diary.nickname,
-      avatar: diary.avatar,
-    },
+  const diaryAsComment = {
+    id: 0,
+    nickname: diary.nickname || '알 수 없음',
+    avatar: diary.avatar,
     content: diary.content || '작성된 내용이 없습니다.',
     createdAt: diary.createdAt,
-    updatedAt: diary.updatedAt || diary.createdAt,
   };
 
   // 댓글 작성 (낙관적 업데이트)
   const handleCreateComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !diary.diaryId || isSubmittingComment || !isLoggedIn || !user) return;
+    const trimmedComment = newComment.trim();
+    if (!trimmedComment || !diary.diaryId || isSubmittingComment || !isLoggedIn || !user)
+      return;
 
-    // 임시 댓글 ID 생성 (현재 시간을 기반으로)
-    const tempCommentId = Date.now();
-    
-    // 낙관적 업데이트: UI에 먼저 추가
+    const tempId = Date.now();
     const optimisticComment: Comment = {
-      commentId: tempCommentId,
-      member: {
-        memberId: String(user.id), // user.id를 string으로 변환
-        nickname: user.nickname || '사용자',
-        avatar: user.avatar || `${serverUrl}/globe.svg`, // 사용자 아바타 또는 기본 아바타
-      },
-      content: newComment.trim(),
+      id: tempId,
+      diaryId: diary.diaryId,
+      userId: String(user.id),
+      nickname: user.nickname || '사용자',
+      avatar: user.avatar || `${serverUrl}/globe.svg`,
+      content: trimmedComment,
+      parentId: null,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      replyCount: 0,
     };
 
     setComments(prev => [...prev, optimisticComment]);
+    setTotalComments(prev => prev + 1);
     setNewComment('');
     setIsSubmittingComment(true);
 
     try {
-      // 실제 API 호출
       const newCommentData = await createComment({
         diaryId: diary.diaryId,
-        content: newComment.trim(),
+        content: trimmedComment,
       });
+      setComments(prev =>
+        prev.map(comment =>
+          comment.id === tempId
+            ? {
+                ...comment,
+                id: newCommentData.id,
+                content: newCommentData.content,
+                createdAt: newCommentData.createdAt,
+              }
+            : comment,
+        ),
+      );
     } catch (error) {
       console.error('댓글 작성 실패:', error);
-      // 실패 시 낙관적으로 추가한 댓글 제거
-      setComments(prev => 
-        prev.filter(comment => comment.commentId !== tempCommentId)
-      );
-      setNewComment(optimisticComment.content); // 입력값 복원
+      setComments(prev => prev.filter(comment => comment.id !== tempId));
+      setTotalComments(prev => prev - 1);
+      setNewComment(trimmedComment);
       alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmittingComment(false);
     }
   };
-
-  // 컴포넌트 마운트 시 더미 댓글 설정
-  useEffect(() => {
-    setComments(dummyComments);
-  }, [diary.diaryId]);
 
   if (!diary) return null;
 
@@ -173,8 +180,6 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
     e.currentTarget.src = DEFAULT_AVATAR;
   };
 
-
-
   const displayImage = diary.imgUrls?.[currentImageIndex] || '/vercel.svg';
 
   const displayDate = formatYearMonthDay(diary.date);
@@ -199,7 +204,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
           <Image
             src={displayImage}
             alt="Diary image"
-            layout="fill"
+            fill
             objectFit="contain"
             unoptimized
           />
@@ -271,8 +276,8 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             {/* 일기 내용 (첫 번째 댓글로 표시) */}
             <div className="flex items-start">
               <img
-                src={diaryAsComment.member.avatar || DEFAULT_AVATAR}
-                alt={diaryAsComment.member.nickname}
+                src={diaryAsComment.avatar || DEFAULT_AVATAR}
+                alt={diaryAsComment.nickname}
                 width={32}
                 height={32}
                 className="rounded-full mr-3 mt-1"
@@ -280,7 +285,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
               />
               <div>
                 <p className="text-sm">
-                  <span className="font-bold">{diaryAsComment.member.nickname}</span>{' '}
+                  <span className="font-bold">{diaryAsComment.nickname}</span>{' '}
                   {diaryAsComment.content}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -289,33 +294,62 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
               </div>
             </div>
 
+            {/* 댓글 더보기 버튼 */}
+            {isLoadingComments && (
+              <div className="text-center text-gray-500 py-2">
+                댓글을 불러오는 중...
+              </div>
+            )}
+            {!isLoadingComments && hasMore && (
+              <div className="text-center py-2">
+                <button
+                  onClick={() => fetchComments()}
+                  className="text-sm text-gray-500 hover:text-gray-800 font-semibold"
+                >
+                  이전 댓글 더 보기 ({totalComments})
+                </button>
+              </div>
+            )}
+
             {/* 실제 댓글 목록 */}
-            {comments.length === 0 ? (
+            {comments.length > 0 &&
+              !isLoadingComments &&
+              comments.map((comment: Comment) => (
+                <div
+                  key={comment.id}
+                  className="flex items-start justify-between w-full"
+                >
+                  <div className="flex items-start space-x-3">
+                    <img
+                      src={comment.avatar || DEFAULT_AVATAR}
+                      alt={comment.nickname}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                      onError={handleAvatarError}
+                    />
+                    <div>
+                      <p className="text-sm">
+                        <span className="font-bold">{comment.nickname}</span>{' '}
+                        {comment.content}
+                      </p>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1">
+                        <span>{formatTimeAgo(comment.createdAt)}</span>
+                        <button className="font-semibold hover:text-gray-700">
+                          답글 달기
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="text-gray-400 hover:text-red-500 pl-4">
+                    <Heart size={16} />
+                  </button>
+                </div>
+              ))}
+            {comments.length === 0 && !isLoadingComments && (
               <div className="text-center text-gray-500 py-4">
                 아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!
               </div>
-            ) : (
-              comments.map((comment: Comment) => (
-                <div key={comment.commentId} className="flex items-start">
-                  <img
-                    src={comment.member.avatar || DEFAULT_AVATAR}
-                    alt={comment.member.nickname}
-                    width={32}
-                    height={32}
-                    className="rounded-full mr-3 mt-1"
-                    onError={handleAvatarError}
-                  />
-                  <div>
-                    <p className="text-sm">
-                      <span className="font-bold">{comment.member.nickname}</span>{' '}
-                      {comment.content}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {formatTimeAgo(comment.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              ))
             )}
           </div>
 
@@ -337,7 +371,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 <Bookmark size={24} />
               </button>
             </div>
-            <p className="font-bold text-sm mt-2">좋아요 1,234개</p>
+            <p className="font-bold text-sm mt-2">좋아요 {diary.likeCount}개</p>
             <p className="text-gray-500 text-xs mt-1 uppercase">{displayDate}</p>
           </div>
 
