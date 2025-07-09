@@ -98,6 +98,6 @@ export const cancelFriendRequest = async (
 export const getProfileInfo = async (
   userId: string,
 ): Promise<UserProfile> => {
-  const response = await api.get(`/users/${userId}/profile`);
+  const response = await api.get(`/users/${userId}/profile-preview`);
   return response.data;
 }; 

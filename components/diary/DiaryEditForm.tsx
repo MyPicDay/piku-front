@@ -15,6 +15,7 @@ import {
 } from '@/types/diary';
 import { X, Globe, Lock, Users, Camera, Sparkles, XCircle } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import ImagePreviewModal from '../common/ImagePreviewModal';
 
 const MAX_AI_PHOTOS = 3;
 const MAX_TOTAL_PHOTOS = 5;
@@ -32,6 +33,8 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
   const [tempPrivacy, setTempPrivacy] = useState<PrivacyStatus>(privacy);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +70,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
   }, [initialDiaryData]);
 
   useEffect(() => {
+    // 컴포넌트가 언마운트될 때만 blob URL을 해제하도록 수정
     return () => {
       allPhotos.forEach(photo => {
         if (photo.type === 'user' && photo.url.startsWith('blob:')) {
@@ -74,7 +78,8 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
         }
       });
     };
-  }, [allPhotos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (data: DiaryFormValues) => {
     setIsSubmitting(true);
@@ -162,6 +167,11 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsPreviewModalOpen(true);
   };
 
   const removePhoto = (photoToRemove: UnifiedPhoto) => {
@@ -262,7 +272,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                 <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml"
                     ref={fileInputRef}
                     onChange={handlePhotoUpload}
                     className="hidden"
@@ -282,7 +292,8 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                 key={photo.id}
                                 value={photo}
                                 as="div"
-                                className="relative flex-shrink-0 w-24 h-24 rounded-md overflow-hidden cursor-grab active:cursor-grabbing"
+                                className="relative flex-shrink-0 w-24 h-24 rounded-md overflow-hidden cursor-pointer"
+                                onClick={() => handleImageClick(photo.url)}
                             >
                                 <img
                                     src={photo.url}
@@ -290,7 +301,10 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                     className="w-full h-full object-cover pointer-events-none"
                                 />
                                 <button
-                                    onClick={() => removePhoto(photo)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removePhoto(photo);
+                                    }}
                                     className="absolute top-1 right-1 bg-black/50 rounded-full text-white z-10 cursor-pointer"
                                 >
                                     <XCircle size={16} />
@@ -435,6 +449,11 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                 </motion.div>
             )}
         </AnimatePresence>
+        <ImagePreviewModal
+            isOpen={isPreviewModalOpen}
+            onClose={() => setIsPreviewModalOpen(false)}
+            imageUrl={selectedImageUrl}
+        />
     </div>
   );
 };

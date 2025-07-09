@@ -2,17 +2,25 @@ import { FeedDiary } from '@/types/diary';
 import { FriendshipStatus } from '@/types/friend';
 import Image from 'next/image';
 import { formatTimeAgo, formatYearMonthDayDots } from '@/lib/utils/date';
-import { BookmarkIcon, CommentIcon, MoreIcon, ShareIcon } from '../icons/FeedIcons';
+import {
+  BookmarkIcon,
+  CommentIcon,
+  MoreIcon,
+  ShareIcon,
+} from '../icons/FeedIcons';
 import { useState, useRef } from 'react';
 import useAuthStore from '../store/authStore';
 import { createComment } from '@/api/comment';
 import { useRouter } from 'next/navigation';
 import ProfileHoverCard from './ProfileHoverCard';
+import FriendActionConfirmModal from './FriendActionConfirmModal';
 import {
   cancelFriendRequest,
   deleteFriend,
   sendFriendRequest,
 } from '@/api/friend';
+import { ChevronLeft, ChevronRight, DotIcon } from 'lucide-react';
+import { useSwipeable } from 'react-swipeable';
 
 interface FeedCardProps {
   post: FeedDiary;
@@ -31,6 +39,13 @@ const FeedCard = ({
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalState, setConfirmModalState] = useState<{
+    actionType: 'cancel' | 'unfriend';
+    onConfirm: () => void;
+  } | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const { user } = useAuthStore();
   const router = useRouter();
   const [isHovering, setIsHovering] = useState(false);
@@ -38,12 +53,39 @@ const FeedCard = ({
 
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setIsHovering(true);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovering(true);
+    }, 500);
   };
 
   const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => setIsHovering(false), 200);
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setIsHovering(false);
   };
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (post.imgUrls && post.imgUrls.length > 0) {
+      setCurrentImageIndex(prev =>
+        prev === 0 ? post.imgUrls.length - 1 : prev - 1,
+      );
+    }
+  };
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (post.imgUrls && post.imgUrls.length > 0) {
+      setCurrentImageIndex(prev =>
+        prev === post.imgUrls.length - 1 ? 0 : prev + 1,
+      );
+    }
+  };
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNextImage(),
+    onSwipedRight: () => handlePrevImage(),
+    trackMouse: true,
+  });
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +117,7 @@ const FeedCard = ({
     try {
       await action();
       onFriendshipStatusChange(post.diaryId, newStatus);
+      setIsConfirmModalOpen(false);
     } catch (error) {
       console.error('Friend action failed:', error);
       alert('요청 처리 중 오류가 발생했습니다.');
@@ -102,21 +145,30 @@ const FeedCard = ({
       case FriendshipStatus.FRIEND:
         text = '친구 끊기';
         action = () => {
-          if (window.confirm('정말로 친구를 끊으시겠습니까?')) {
-            handleFriendAction(
-              () => deleteFriend(post.userId),
-              FriendshipStatus.NONE,
-            );
-          }
+          setConfirmModalState({
+            actionType: 'unfriend',
+            onConfirm: () =>
+              handleFriendAction(
+                () => deleteFriend(post.userId),
+                FriendshipStatus.NONE,
+              ),
+          });
+          setIsConfirmModalOpen(true);
         };
         break;
       case FriendshipStatus.SENT:
         text = '요청 취소';
-        action = () =>
-          handleFriendAction(
-            () => cancelFriendRequest(post.userId),
-            FriendshipStatus.NONE,
-          );
+        action = () => {
+          setConfirmModalState({
+            actionType: 'cancel',
+            onConfirm: () =>
+              handleFriendAction(
+                () => cancelFriendRequest(post.userId),
+                FriendshipStatus.NONE,
+              ),
+          });
+          setIsConfirmModalOpen(true);
+        };
         break;
       case FriendshipStatus.RECEIVED:
         text = '요청 확인';
@@ -141,120 +193,173 @@ const FeedCard = ({
   };
 
   const photoUrl =
-    post.imgUrls?.length > 0 ? post.imgUrls[0] : 'https://via.placeholder.com/600';
+    post.imgUrls?.[currentImageIndex] || 'https://via.placeholder.com/600';
   const avatarUrl = post.avatar || 'https://via.placeholder.com/32';
 
   return (
-    <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex items-center justify-between p-3">
-        <div
-          className="relative flex items-center"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Image
-            src={avatarUrl}
-            alt={post.nickname}
-            width={50}
-            height={50}
-            className="rounded-full object-cover"
-            unoptimized
-          />
-          <div className="ml-3">
+    <>
+      <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center justify-between p-3">
+          <div
+            className="relative flex items-center"
+          >
+            <div className="flex items-center"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Image
+                src={avatarUrl}
+                alt={post.nickname}
+                width={50}
+                height={50}
+                className="rounded-full object-cover"
+                unoptimized
+              />
+              <div>
+                  <p className="text-sm font-semibold">{post.nickname}</p>
+              </div>
+            </div>
             <div className="flex items-center">
-              <p className="text-sm font-semibold">{post.nickname}</p>
+              <DotIcon />
+                <span
+                  className="text-xs text-gray-500"
+                  title={new Date(post.createdAt).toLocaleString()}
+                >
+                  {formatTimeAgo(post.createdAt)}
+                </span>
+            </div>
+            <div>
               {renderFriendButton()}
             </div>
-            <p className="text-xs text-gray-500">
-              {formatYearMonthDayDots(post.date)}
-            </p>
-          </div>
-          {isHovering && (
-            <ProfileHoverCard
-              userId={post.userId}
-              nickname={post.nickname}
-              avatar={post.avatar}
-              onStatusChange={() =>
-                onFriendshipStatusChange(post.diaryId, post.friendshipStatus)
-              }
-            />
-          )}
-        </div>
-        <button>
-          <MoreIcon />
-        </button>
-      </div>
 
-      <div
-        className="relative aspect-square w-full cursor-pointer"
-        onClick={onContentClick}
-      >
-        <Image
-          src={photoUrl}
-          alt="Diary image"
-          fill
-          style={{ objectFit: 'cover' }}
-          unoptimized
-          priority 
-        />
-      </div>
-
-      <div className="p-3">
-        <div className="flex justify-between">
-          <div className="flex space-x-4">
-            <button onClick={onContentClick}>
-              <CommentIcon />
-            </button>
-            <button>
-              <ShareIcon />
-            </button>
+            {isHovering && (
+              <ProfileHoverCard
+                userId={post.userId}
+                nickname={post.nickname}
+                avatar={post.avatar}
+                onStatusChange={() =>
+                  onFriendshipStatusChange(post.diaryId, post.friendshipStatus)
+                }
+              />
+            )}
           </div>
           <button>
-            <BookmarkIcon />
+            <MoreIcon />
           </button>
         </div>
-      </div>
 
-      <div className="px-3">
-        <p className="truncate text-sm">
-          <span className="mr-1 font-semibold">{post.nickname}</span>
-          {post.content}
-        </p>
-      </div>
-
-      <div className="px-3 pt-1">
-        <div onClick={onContentClick} className="cursor-pointer">
-          <p className="text-sm text-gray-500">View comments</p>
+        <div {...swipeHandlers} className="relative aspect-square w-full">
+          <div
+            className="h-full w-full cursor-pointer"
+            onClick={onContentClick}
+          >
+            <Image
+              src={photoUrl}
+              alt="Diary image"
+              fill
+              style={{ objectFit: 'cover' }}
+              unoptimized
+              priority
+            />
+          </div>
+          {post.imgUrls && post.imgUrls.length > 1 && (
+            <>
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={handleNextImage}
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
+              >
+                <ChevronRight size={20} />
+              </button>
+              <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 space-x-1.5">
+                {post.imgUrls.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-2 w-2 rounded-full transition-colors ${
+                      index === currentImageIndex
+                        ? 'bg-white'
+                        : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      </div>
 
-      <div className="px-3 pt-1">
-        <p className="text-xs text-gray-500">{formatTimeAgo(post.createdAt)}</p>
-      </div>
-
-      <form
-        onSubmit={handleCommentSubmit}
-        className="mt-2 flex items-center justify-between border-t border-gray-200 p-3 dark:border-gray-700"
-      >
-        <div className="flex flex-1 items-center space-x-2">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            value={comment}
-            onChange={e => setComment(e.target.value)}
-            className="w-full border-none bg-transparent text-sm focus:outline-none"
-            disabled={isSubmitting}
-          />
+        <div className="p-3">
+          <div className="flex justify-between">
+            <div className="flex space-x-4">
+              <button onClick={onContentClick}>
+                <CommentIcon />
+              </button>
+              <button>
+                <ShareIcon />
+              </button>
+            </div>
+            <button>
+              <BookmarkIcon />
+            </button>
+          </div>
         </div>
-        <button
-          type="submit"
-          disabled={!comment.trim() || isSubmitting}
-          className="text-sm font-semibold text-blue-500 disabled:text-gray-400"
+
+        <div className="px-3">
+          <p className="truncate text-sm">
+            <span className="mr-1 font-semibold">{post.nickname}</span>
+            {post.content}
+          </p>
+        </div>
+
+        <div className="px-3 pt-1">
+          <div onClick={onContentClick} className="cursor-pointer">
+            <p className="text-sm text-gray-500">View comments</p>
+          </div>
+        </div>
+
+        <div className="px-3 pt-1">
+          <p className="text-xs text-gray-500">{formatTimeAgo(post.createdAt)}</p>
+        </div>
+
+        <form
+          onSubmit={handleCommentSubmit}
+          className="mt-2 flex items-center justify-between border-t border-gray-200 p-3 dark:border-gray-700"
         >
-          {isSubmitting ? '게시 중...' : '게시'}
-        </button>
-      </form>
-    </div>
+          <div className="flex flex-1 items-center space-x-2">
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              className="w-full border-none bg-transparent text-sm focus:outline-none"
+              disabled={isSubmitting}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!comment.trim() || isSubmitting}
+            className="text-sm font-semibold text-blue-500 disabled:text-gray-400"
+          >
+            {isSubmitting ? '게시 중...' : '게시'}
+          </button>
+        </form>
+      </div>
+      {confirmModalState && (
+        <FriendActionConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={confirmModalState.onConfirm}
+          actionType={confirmModalState.actionType}
+          nickname={post.nickname}
+          avatar={post.avatar || 'https://via.placeholder.com/96'}
+          isLoading={isActionLoading}
+        />
+      )}
+    </>
   );
 };
 
