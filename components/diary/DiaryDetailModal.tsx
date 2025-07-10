@@ -440,7 +440,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 onError={handleAvatarError}
               />
               <div>
-                <p className="text-sm dark:text-white">
+                <p className="text-sm dark:text-white whitespace-pre-wrap">
                   <span className="font-bold">{diary.nickname}</span>{' '}
                   {diary.content}
                 </p>
