@@ -24,6 +24,23 @@ export const getRootComments = async (
   }
 };
 
+// 특정 댓글의 대댓글 목록 조회 (페이징)
+export const getReplies = async (
+  commentId: number,
+  page: number,
+  size: number,
+): Promise<CommentPage> => {
+  try {
+    const response = await api.get<CommentPage>(`/comments/${commentId}/replies`, {
+      params: { page, size },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('대댓글 조회 실패:', error);
+    throw error;
+  }
+};
+
 // 댓글 작성
 export const createComment = async (
   data: CommentCreateRequest,

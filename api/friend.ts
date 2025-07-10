@@ -4,6 +4,7 @@ import {
   FriendRequestDto,
   FriendRequestResponseDto,
   PaginatedFriendsResponse,
+  PaginatedFriendRequestsResponse,
   UserProfile,
   FriendshipStatus,
 } from '@/types/friend';
@@ -40,15 +41,24 @@ export const sendFriendRequest = async (userId: string): Promise<FriendRequestRe
 };
 
 // 받은 친구 요청 목록 조회
-export const getFriendRequests = async (): Promise<FriendRequest[]> => {
+export const getFriendRequests = async (
+  page: number,
+  size: number,
+): Promise<PaginatedFriendRequestsResponse> => {
   try {
-    const response = await api.get('/relation/requests');
-    return response.data;
+    const response = await api.get('/relation/requests', {
+      params: { page, size },
+    });
+    return {
+      requests: response.data.content,
+      hasNext: !response.data.last,
+      totalElements: response.data.totalElements,
+    };
   } catch (error) {
     console.error('받은 친구 요청 목록 조회 오류:', error);
     throw error;
   }
-  };
+};
 
 // 친구 요청 수락
 export const acceptFriendRequest = async (userId: string): Promise<FriendRequestResponseDto> => {

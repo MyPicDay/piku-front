@@ -52,15 +52,16 @@ const FeedCard = ({
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsHovering(true);
-    }, 500);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setIsHovering(true);
   };
 
   const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setIsHovering(false);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+    }, 200);
   };
 
   const handlePrevImage = (e?: React.MouseEvent) => {
@@ -198,8 +199,8 @@ const FeedCard = ({
 
   return (
     <>
-      <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex items-center justify-between p-3">
+    <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex items-center justify-between p-3">
           <div
             className="relative flex items-center"
           >
@@ -207,16 +208,16 @@ const FeedCard = ({
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <Image
-                src={avatarUrl}
-                alt={post.nickname}
+          <Image
+            src={avatarUrl}
+            alt={post.nickname}
                 width={50}
                 height={50}
-                className="rounded-full object-cover"
-                unoptimized
-              />
-              <div>
-                  <p className="text-sm font-semibold">{post.nickname}</p>
+            className="rounded-full object-cover"
+            unoptimized
+          />
+          <div>
+            <p className="text-sm font-semibold">{post.nickname}</p>
               </div>
             </div>
             <div className="flex items-center">
@@ -233,34 +234,36 @@ const FeedCard = ({
             </div>
 
             {isHovering && (
-              <ProfileHoverCard
-                userId={post.userId}
-                nickname={post.nickname}
-                avatar={post.avatar}
-                onStatusChange={() =>
-                  onFriendshipStatusChange(post.diaryId, post.friendshipStatus)
-                }
-              />
-            )}
+              <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+                <ProfileHoverCard
+                  userId={post.userId}
+                  nickname={post.nickname}
+                  avatar={post.avatar}
+                  onStatusChange={() =>
+                    onFriendshipStatusChange(post.diaryId, post.friendshipStatus)
+                  }
+                />
           </div>
-          <button>
-            <MoreIcon />
-          </button>
+            )}
         </div>
+        <button>
+          <MoreIcon />
+        </button>
+      </div>
 
         <div {...swipeHandlers} className="relative aspect-square w-full">
           <div
             className="h-full w-full cursor-pointer"
             onClick={onContentClick}
           >
-            <Image
-              src={photoUrl}
-              alt="Diary image"
+        <Image
+          src={photoUrl}
+          alt="Diary image"
               fill
               style={{ objectFit: 'cover' }}
-              unoptimized
+          unoptimized
               priority
-            />
+        />
           </div>
           {post.imgUrls && post.imgUrls.length > 1 && (
             <>
@@ -290,64 +293,64 @@ const FeedCard = ({
               </div>
             </>
           )}
-        </div>
+      </div>
 
-        <div className="p-3">
-          <div className="flex justify-between">
-            <div className="flex space-x-4">
+      <div className="p-3">
+        <div className="flex justify-between">
+          <div className="flex space-x-4">
               <button onClick={onContentClick}>
-                <CommentIcon />
+              <CommentIcon />
               </button>
-              <button>
-                <ShareIcon />
-              </button>
-            </div>
             <button>
-              <BookmarkIcon />
+              <ShareIcon />
             </button>
           </div>
+          <button>
+            <BookmarkIcon />
+          </button>
         </div>
+      </div>
 
-        <div className="px-3">
-          <p className="truncate text-sm">
-            <span className="mr-1 font-semibold">{post.nickname}</span>
-            {post.content}
-          </p>
-        </div>
+      <div className="px-3">
+        <p className="truncate text-sm">
+          <span className="mr-1 font-semibold">{post.nickname}</span>
+          {post.content}
+        </p>
+      </div>
 
-        <div className="px-3 pt-1">
+      <div className="px-3 pt-1">
           <div onClick={onContentClick} className="cursor-pointer">
             <p className="text-sm text-gray-500">View comments</p>
           </div>
-        </div>
-
-        <div className="px-3 pt-1">
-          <p className="text-xs text-gray-500">{formatTimeAgo(post.createdAt)}</p>
-        </div>
-
-        <form
-          onSubmit={handleCommentSubmit}
-          className="mt-2 flex items-center justify-between border-t border-gray-200 p-3 dark:border-gray-700"
-        >
-          <div className="flex flex-1 items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              value={comment}
-              onChange={e => setComment(e.target.value)}
-              className="w-full border-none bg-transparent text-sm focus:outline-none"
-              disabled={isSubmitting}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={!comment.trim() || isSubmitting}
-            className="text-sm font-semibold text-blue-500 disabled:text-gray-400"
-          >
-            {isSubmitting ? '게시 중...' : '게시'}
-          </button>
-        </form>
       </div>
+
+      <div className="px-3 pt-1">
+        <p className="text-xs text-gray-500">{formatTimeAgo(post.createdAt)}</p>
+      </div>
+
+      <form
+        onSubmit={handleCommentSubmit}
+        className="mt-2 flex items-center justify-between border-t border-gray-200 p-3 dark:border-gray-700"
+      >
+        <div className="flex flex-1 items-center space-x-2">
+          <input
+            type="text"
+            placeholder="Add a comment..."
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            className="w-full border-none bg-transparent text-sm focus:outline-none"
+            disabled={isSubmitting}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!comment.trim() || isSubmitting}
+            className="text-sm font-semibold text-blue-500 disabled:text-gray-400"
+        >
+          {isSubmitting ? '게시 중...' : '게시'}
+        </button>
+      </form>
+    </div>
       {confirmModalState && (
         <FriendActionConfirmModal
           isOpen={isConfirmModalOpen}

@@ -20,6 +20,7 @@ export interface Comment {
   content: string;
   parentId: number | null;
   createdAt: string;
+  updatedAt?: string;
   replyCount: number;
 }
 

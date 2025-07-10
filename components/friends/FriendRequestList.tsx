@@ -7,12 +7,14 @@ interface FriendRequestListProps {
   requests: FriendRequest[];
   onAccept: (userId: string) => void;
   onReject: (userId: string) => void;
+  lastRequestElementRef: (node: HTMLLIElement) => void;
 }
 
 const FriendRequestList = ({
   requests,
   onAccept,
   onReject,
+  lastRequestElementRef,
 }: FriendRequestListProps) => {
   if (requests.length === 0) {
     return (
@@ -24,38 +26,42 @@ const FriendRequestList = ({
 
   return (
     <ul>
-      {requests.map(request => (
-        <li
-          key={request.userId}
-          className="flex items-center justify-between py-3 border-b"
-        >
-          <div className="flex items-center">
-            <Image
-              src={request.avatar}
-              alt={request.nickname}
-              width={40}
-              height={40}
-              className="rounded-full mr-4"
-              unoptimized
-            />
-            <span>{request.nickname}</span>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => onAccept(request.userId)}
-              className="border rounded-md px-3 py-1 text-sm font-semibold border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
-            >
-              수락
-            </button>
-            <button
-              onClick={() => onReject(request.userId)}
-              className="border rounded-md px-3 py-1 text-sm font-semibold border-gray-300 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-            >
-              거절
-            </button>
-          </div>
-        </li>
-      ))}
+      {requests.map((request, index) => {
+        const isLastElement = index === requests.length - 1;
+        return (
+          <li
+            key={request.userId}
+            ref={isLastElement ? lastRequestElementRef : null}
+            className="flex items-center justify-between py-3 border-b"
+          >
+            <div className="flex items-center">
+              <Image
+                src={request.avatar}
+                alt={request.nickname}
+                width={40}
+                height={40}
+                className="rounded-full mr-4"
+                unoptimized
+              />
+              <span>{request.nickname}</span>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => onAccept(request.userId)}
+                className="border rounded-md px-3 py-1 text-sm font-semibold border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+              >
+                수락
+              </button>
+              <button
+                onClick={() => onReject(request.userId)}
+                className="border rounded-md px-3 py-1 text-sm font-semibold border-gray-300 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                거절
+              </button>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 };

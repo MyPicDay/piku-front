@@ -182,8 +182,14 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
             />
           ) : (
             <CommentModal
-              diary={diary}
+              diaryId={diary.diaryId}
+              initialCommentCount={diary.commentCount}
               onClose={() => setIsCommentModalOpen(false)}
+              onUpdateCommentCount={newCount => {
+                setDiary(prevDiary =>
+                  prevDiary ? { ...prevDiary, commentCount: newCount } : null,
+                );
+              }}
             />
           ))}
       </AnimatePresence>

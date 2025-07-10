@@ -5,7 +5,13 @@ export interface Friend {
 }
 
 export interface PaginatedFriendsResponse {
-  friends: Friend[] | null;
+  friends: Friend[];
+  hasNext: boolean;
+  totalElements: number;
+}
+
+export interface PaginatedFriendRequestsResponse {
+  requests: FriendRequest[];
   hasNext: boolean;
   totalElements: number;
 }
@@ -14,18 +20,18 @@ export type FriendRequest = Friend;
 
 export enum FriendshipStatus {
   NONE = 'NONE',
-  FRIEND = 'FRIEND',
-  SENT = 'SENT',
+  FRIEND = 'FRIENDS',
+  SENT = 'REQUESTED',
   RECEIVED = 'RECEIVED',
-  SELF = 'SELF',
 }
 
 export interface UserProfile {
+  userId: string;
   nickname: string;
   avatar: string;
   diaryCount: number;
   friendCount: number;
-  friendshipStatus: FriendshipStatus;
+  friendStatus: FriendshipStatus;
 }
 
 // 백엔드 API 요청/응답 타입들

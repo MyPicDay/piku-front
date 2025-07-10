@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import FriendList from './FriendList';
 import FriendRequestList from './FriendRequestList';
 import {
@@ -11,23 +11,57 @@ import {
 import { FriendRequest } from '@/types/friend';
 
 const FriendsClient = () => {
-  const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'requests'
+  const [activeTab, setActiveTab] = useState('friends');
   const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [requestsPage, setRequestsPage] = useState(0);
+  const [requestsHasMore, setRequestsHasMore] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [totalRequests, setTotalRequests] = useState(0);
+  const observer = useRef<IntersectionObserver | null>(null);
+
+  const loadMoreRequests = useCallback(async () => {
+    if (requestsLoading || !requestsHasMore) return;
+    setRequestsLoading(true);
+
+    try {
+      const data = await getFriendRequests(requestsPage, 10);
+      setRequests(prev => [...prev, ...data.requests]);
+      setRequestsHasMore(data.hasNext);
+      setTotalRequests(data.totalElements);
+      setRequestsPage(prev => prev + 1);
+    } catch (error) {
+      console.error('친구 요청 목록을 불러오는데 실패했습니다:', error);
+    } finally {
+      setRequestsLoading(false);
+    }
+  }, [requestsPage, requestsLoading, requestsHasMore]);
+
+  const lastRequestElementRef = useCallback(
+    (node: HTMLLIElement) => {
+      if (requestsLoading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && requestsHasMore) {
+          loadMoreRequests();
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [requestsLoading, requestsHasMore, loadMoreRequests],
+  );
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      const data = await getFriendRequests();
-      setRequests(data);
-    };
-    fetchRequests();
-  }, []);
+    loadMoreRequests();
+  }, [loadMoreRequests]);
 
   const handleAccept = async (userId: string) => {
     await acceptFriendRequest(userId);
     setRequests(currentRequests =>
       currentRequests.filter(req => req.userId !== userId),
     );
-    // You might want to refresh the main friend list here as well
+    setTotalRequests(prev => prev - 1);
   };
 
   const handleReject = async (userId: string) => {
@@ -35,6 +69,7 @@ const FriendsClient = () => {
     setRequests(currentRequests =>
       currentRequests.filter(req => req.userId !== userId),
     );
+    setTotalRequests(prev => prev - 1);
   };
 
   return (
@@ -61,10 +96,10 @@ const FriendsClient = () => {
             onClick={() => setActiveTab('requests')}
           >
             친구 요청
-            {requests.length > 0 && (
+            {totalRequests > 0 && (
               <span className="absolute top-1 right-0 transform translate-x-1/2 -translate-y-1/2">
                 <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
-                  {requests.length}
+                  {totalRequests}
                 </span>
               </span>
             )}
@@ -79,7 +114,13 @@ const FriendsClient = () => {
               requests={requests}
               onAccept={handleAccept}
               onReject={handleReject}
+              lastRequestElementRef={lastRequestElementRef}
             />
+          )}
+          {requestsLoading && (
+            <div className="text-center p-4">
+              <p>요청 목록을 불러오는 중...</p>
+            </div>
           )}
         </div>
       </div>

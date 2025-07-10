@@ -47,7 +47,7 @@ export const useFriendManagement = (currentUserId?: string) => {
 
       try {
         const profile = await getProfileInfo(targetUserId);
-        setFriendshipStatus(profile.friendshipStatus);
+        setFriendshipStatus(profile.friendStatus);
       } catch (error) {
         console.error('Failed to fetch friendship status:', error);
       }

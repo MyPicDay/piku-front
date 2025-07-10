@@ -74,7 +74,7 @@ const ProfileHoverCard = ({
     if (!profile) return null;
     if (userId === currentUserId) return null;
 
-    const friendshipStatus = profile.friendshipStatus ?? FriendshipStatus.NONE;
+    const friendshipStatus = profile.friendStatus ?? FriendshipStatus.NONE;
 
     const buttonProps = {
       base: 'w-full px-4 py-2 text-sm font-semibold text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 transition-colors',
@@ -104,8 +104,6 @@ const ProfileHoverCard = ({
         buttonProps.text = '요청 확인';
         buttonProps.action = () => router.push('/friends');
         break;
-      case FriendshipStatus.SELF:
-        return null;
       default:
         return null;
     }
