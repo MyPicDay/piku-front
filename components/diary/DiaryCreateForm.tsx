@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDiary, generateAiPhotos } from '@/api/diary';
 import useAuthStore from '../store/authStore';
+import imageCompression from 'browser-image-compression';
 import {
   diarySchema,
   DiaryFormValues,
@@ -33,6 +34,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { user, isLoggedIn } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +108,10 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   }
 
   const onSubmit = async (data: DiaryFormValues) => {
+    if (allPhotos.length === 0) {
+      alert('사진을 1장 이상 등록해주세요.');
+      return;
+    }
     setIsSubmitting(true);
 
     const userPhotos = allPhotos.filter(p => p.type === 'user' && p.file);
@@ -175,17 +181,44 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const availableSlots = MAX_TOTAL_PHOTOS - allPhotos.length;
     if (e.target.files && availableSlots > 0) {
-      const newFiles = Array.from(e.target.files).slice(0, availableSlots);
-      const newUserPhotos: UnifiedPhoto[] = newFiles.map(file => ({
-        id: `${file.name}-${file.lastModified}-${Math.random()}`,
-        url: URL.createObjectURL(file),
-        type: 'user',
-        file,
-      }));
-      setAllPhotos(prev => [...prev, ...newUserPhotos]);
+      setIsUploading(true);
+      try {
+        const newFiles = Array.from(e.target.files).slice(0, availableSlots);
+
+        const newUserPhotosPromises = newFiles.map(async file => {
+          try {
+            const options = {
+              maxSizeMB: 1,
+              useWebWorker: true,
+            };
+            const compressedFile = await imageCompression(file, options);
+            return {
+              id: `${compressedFile.name}-${Date.now()}-${Math.random()}`,
+              url: URL.createObjectURL(compressedFile),
+              type: 'user' as const,
+              file: compressedFile,
+            };
+          } catch (error) {
+            console.error('Image compression failed:', error);
+            // 압축 실패 시 원본 파일 사용
+            return {
+              id: `${file.name}-${file.lastModified}-${Math.random()}`,
+              url: URL.createObjectURL(file),
+              type: 'user' as const,
+              file,
+            };
+          }
+        });
+
+        const newUserPhotos = await Promise.all(newUserPhotosPromises);
+
+        setAllPhotos(prev => [...prev, ...newUserPhotos]);
+      } finally {
+        setIsUploading(false);
+      }
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -255,7 +288,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
             </button>
         </header>
 
-        <main className="flex-grow p-4 overflow-y-auto text-black dark:text-white">
+        <main className="flex-grow p-4 overflow-y-auto text-black dark:text-white flex flex-col">
             <div className="flex items-center space-x-2 overflow-x-auto pb-2">
                 <button
                     onClick={handleGenerateAiPhotos}
@@ -281,12 +314,18 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
 
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={totalPhotosCount >= MAX_TOTAL_PHOTOS}
+                    disabled={totalPhotosCount >= MAX_TOTAL_PHOTOS || isUploading}
                     className="flex-shrink-0 w-24 h-24 border-2 border-dashed rounded-md flex flex-col justify-center items-center text-gray-400 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-800 dark:disabled:bg-gray-700 dark:border-gray-600"
                 >
-                    <Camera size={24} />
-                    <span className="text-sm mt-1">사진 추가</span>
-                    <span className="text-xs">({userPhotosCount}장)</span>
+                    {isUploading ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                    ) : (
+                        <>
+                            <Camera size={24} />
+                            <span className="text-sm mt-1">사진 추가</span>
+                            <span className="text-xs">({userPhotosCount}장)</span>
+                        </>
+                    )}
                 </button>
                 <input
                     type="file"
@@ -364,11 +403,13 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                 <span>{formattedDate}</span>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="space-y-4 flex flex-col flex-grow"
+            >
                 <textarea
                     {...register('content')}
-                    rows={10}
-                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white"
+                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white flex-grow"
                     placeholder="오늘의 하루를 기록해보세요..."
                 />
                 {errors.content && (
