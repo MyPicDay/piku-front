@@ -194,7 +194,11 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
               maxSizeMB: 1,
               useWebWorker: true,
             };
-            const compressedFile = await imageCompression(file, options);
+            const compressedBlob = await imageCompression(file, options);
+            const compressedFile = new File([compressedBlob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
             return {
               id: `${compressedFile.name}-${Date.now()}-${Math.random()}`,
               url: URL.createObjectURL(compressedFile),
