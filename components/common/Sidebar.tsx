@@ -115,7 +115,7 @@ const Sidebar = () => {
           className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
         >
           <PlusSquare className="w-6 h-6 mr-4" />
-          <span className="inline">일기 작성</span>
+          <span className="inline">오늘의 일기</span>
         </Link>
         <Link
           href="/friends"

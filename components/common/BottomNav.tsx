@@ -54,7 +54,7 @@ const BottomNav = () => {
           className={getLinkClass('/diary/new', false)}
         >
           <PlusSquare className="w-6 h-6" />
-          <span className="text-xs">일기 작성</span>
+          <span className="text-xs">오늘의 일기</span>
         </Link>
         <Link href="/friends" className={getLinkClass('/friends')}>
           <Users className="w-6 h-6" />
