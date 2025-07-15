@@ -101,7 +101,7 @@ const FeedClient = () => {
     setFeed(prevFeed =>
       prevFeed.map(post =>
         post.diaryId === diaryId
-          ? { ...post, friendshipStatus: newStatus }
+          ? { ...post, friendStatus: newStatus }
           : post,
       ),
     );

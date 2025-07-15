@@ -130,7 +130,7 @@ const FeedCard = ({
   const renderFriendButton = () => {
     if (!user || user.id === post.userId) return null;
 
-    const friendshipStatus = post.friendshipStatus ?? FriendshipStatus.NONE;
+    const friendshipStatus = post.friendStatus ?? FriendshipStatus.NONE;
     let text = '';
     let action: (() => void) | null = null;
 
@@ -240,7 +240,7 @@ const FeedCard = ({
                   nickname={post.nickname}
                   avatar={post.avatar}
                   onStatusChange={() =>
-                    onFriendshipStatusChange(post.diaryId, post.friendshipStatus)
+                    onFriendshipStatusChange(post.diaryId, post.friendStatus)
                   }
                 />
           </div>

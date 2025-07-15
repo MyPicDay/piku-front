@@ -75,7 +75,7 @@ export interface FeedDiary {
   avatar: string;
   userId: string;
   createdAt: string; // LocalDateTime -> ISO String
-  friendshipStatus: FriendshipStatus;
+  friendStatus: FriendshipStatus;
 }
 
 export interface Page<T> {
