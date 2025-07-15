@@ -9,6 +9,7 @@ import useAuthStore from '@/components/store/authStore';
 import PikuCalendar from '@/components/calendar/PikuCalendar';
 import HomeCalendarHeader from '@/components/home/HomeCalendarHeader';
 import DiaryDetailModal from '@/components/diary/DiaryDetailModal';
+import DiaryStoryModal from '@/components/diary/DiaryStoryModal';
 import { useFriendManagement } from '@/hooks/useFriendManagement';
 import { useDiaryData } from '@/hooks/useDiaryData';
 import { useCalendarNavigation } from '@/hooks/useCalendarNavigation';
@@ -62,11 +63,7 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
   }, [viewedUser, user, fetchFriendStatus]);
 
   const handleDayClick = async (diaryId: number) => {
-    if (isDesktopOrLaptop) {
-      await loadDiaryDetail(diaryId);
-    } else {
-      router.push(`/diary/${diaryId}`);
-    }
+    await loadDiaryDetail(diaryId);
   };
 
   const today = startOfDay(new Date());
@@ -138,9 +135,12 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
         </motion.div>
       </AnimatePresence>
 
-      {selectedDiary && (
-        <DiaryDetailModal diary={selectedDiary} onClose={closeDiaryDetail} />
-      )}
+      {selectedDiary &&
+        (isDesktopOrLaptop ? (
+          <DiaryDetailModal diary={selectedDiary} onClose={closeDiaryDetail} />
+        ) : (
+          <DiaryStoryModal diary={selectedDiary} onClose={closeDiaryDetail} />
+        ))}
 
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
