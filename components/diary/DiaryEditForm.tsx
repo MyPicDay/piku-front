@@ -200,14 +200,14 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
     const PrivacyIcon =
         {
             PUBLIC: <Globe size={16} />,
-            FOLLOWERS_ONLY: <Users size={16} />,
+            FRIENDS: <Users size={16} />,
             PRIVATE: <Lock size={16} />,
         }[privacy] || null;
 
     const privacyText =
         {
             PUBLIC: '전체 공개',
-            FOLLOWERS_ONLY: '친구 공개',
+            FRIENDS: '친구 공개',
             PRIVATE: '나만 보기',
         }[privacy] || '';
 
@@ -216,7 +216,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
     const totalPhotosCount = allPhotos.length;
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-black">
+    <div className="flex flex-col bg-white dark:bg-black">
         <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900 dark:border-gray-700">
             <button
                 onClick={() => router.back()}
@@ -236,7 +236,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
             </button>
         </header>
 
-        <main className="flex-grow p-4 overflow-y-auto text-black dark:text-white">
+        <main className="p-4 overflow-y-auto text-black dark:text-white">
             <div className="flex items-center space-x-2 overflow-x-auto pb-2">
                 <button
                     onClick={handleGenerateAiPhotos}
@@ -334,7 +334,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                 <div className="flex-grow" />
                 <button
                     onClick={() => setIsPrivacyModalOpen(true)}
-                    className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400"
+                    className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
                 >
                     {PrivacyIcon}
                     <span>{privacyText}</span>
@@ -383,7 +383,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                         </h2>
                         <div className="space-y-3">
                             {(
-                                ['PUBLIC', 'FOLLOWERS_ONLY', 'PRIVATE'] as PrivacyStatus[]
+                                ['PUBLIC', 'FRIENDS', 'PRIVATE'] as PrivacyStatus[]
                             ).map(status => (
                                 <button
                                     key={status}
@@ -404,7 +404,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                         {
                                             {
                                                 PUBLIC: <Globe size={24} />,
-                                                FOLLOWERS_ONLY: <Users size={24}/>,
+                                                FRIENDS: <Users size={24}/>,
                                                 PRIVATE: <Lock size={24}/>,
                                             }[status]
                                         }
@@ -414,7 +414,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                             {
                                                 {
                                                     PUBLIC: '전체 공개',
-                                                    FOLLOWERS_ONLY: '친구 공개',
+                                                    FRIENDS: '친구 공개',
                                                     PRIVATE: '나만 보기',
                                                 }[status]
                                             }
@@ -429,7 +429,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                                             {
                                                 {
                                                     PUBLIC: '모든 사용자가 볼 수 있습니다.',
-                                                    FOLLOWERS_ONLY:
+                                                    FRIENDS:
                                                         '나를 팔로우하는 친구들만 볼 수 있습니다.',
                                                     PRIVATE: '나만 볼 수 있습니다.',
                                                 }[status]
@@ -441,7 +441,7 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                         </div>
                         <button
                             onClick={handleConfirmPrivacy}
-                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600"
+                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer"
                         >
                             확인
                         </button>

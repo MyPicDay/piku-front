@@ -14,7 +14,7 @@ export type UnifiedPhoto = {
   file?: File;
 };
 
-export type PrivacyStatus = 'PUBLIC' | 'FOLLOWERS_ONLY' | 'PRIVATE';
+export type PrivacyStatus = 'PUBLIC' | 'FRIENDS' | 'PRIVATE';
 export type CoverPhotoType = 'AI_IMAGE' | 'USER_IMAGE';
 
 export interface DiaryCreateRequest {

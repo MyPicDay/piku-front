@@ -74,7 +74,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
 
   if (!isLoggedIn || !user) {
     return (
-      <div className="flex flex-col h-screen bg-white dark:bg-black">
+      <div className="flex flex-col bg-white dark:bg-black">
         <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900 dark:border-gray-700">
           <button
             onClick={() => router.back()}
@@ -134,8 +134,12 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
 
     try {
+      let status = privacy;
+      if (privacy === 'FRIENDS') {
+        status = 'FRIENDS';
+      }
       await createDiary({
-        status: privacy,
+        status: status,
         content: data.content,
         aiPhotos: aiPhotoIdsForUpload,
         photos: userPhotosForUpload,
@@ -251,14 +255,14 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const PrivacyIcon =
     {
       PUBLIC: <Globe size={16} />,
-      FOLLOWERS_ONLY: <Users size={16} />,
+      FRIENDS: <Users size={16} />,
       PRIVATE: <Lock size={16} />,
     }[privacy] || null;
 
   const privacyText =
     {
       PUBLIC: '전체 공개',
-      FOLLOWERS_ONLY: '친구 공개',
+      FRIENDS: '친구 공개',
       PRIVATE: '나만 보기',
     }[privacy] || '';
 
@@ -396,7 +400,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                 <div className="flex-grow" />
                 <button
                     onClick={() => setIsPrivacyModalOpen(true)}
-                    className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400"
+                    className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
                 >
                     {PrivacyIcon}
                     <span>{privacyText}</span>
@@ -409,7 +413,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
 
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="space-y-4 flex flex-col flex-grow"
+                className="space-y-4 flex flex-col"
             >
                 <textarea
                     {...register('content')}
@@ -447,12 +451,12 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                         </h2>
                         <div className="space-y-3">
                             {(
-                                ['PUBLIC', 'FOLLOWERS_ONLY', 'PRIVATE'] as PrivacyStatus[]
+                                ['PUBLIC', 'FRIENDS', 'PRIVATE'] as PrivacyStatus[]
                             ).map(status => (
                                 <button
                                     key={status}
                                     onClick={() => setTempPrivacy(status)}
-                                    className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors ${
+                                    className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors cursor-pointer ${
                                         tempPrivacy === status
                                             ? 'bg-black text-white dark:bg-white dark:text-black'
                                             : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -468,7 +472,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                         {
                                             {
                                                 PUBLIC: <Globe size={24} />,
-                                                FOLLOWERS_ONLY: <Users size={24}/>,
+                                                FRIENDS: <Users size={24}/>,
                                                 PRIVATE: <Lock size={24}/>,
                                             }[status]
                                         }
@@ -478,7 +482,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                             {
                                                 {
                                                     PUBLIC: '전체 공개',
-                                                    FOLLOWERS_ONLY: '친구 공개',
+                                                    FRIENDS: '친구 공개',
                                                     PRIVATE: '나만 보기',
                                                 }[status]
                                             }
@@ -493,7 +497,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                             {
                                                 {
                                                     PUBLIC: '모든 사용자가 볼 수 있습니다.',
-                                                    FOLLOWERS_ONLY:
+                                                    FRIENDS:
                                                         '나를 팔로우하는 친구들만 볼 수 있습니다.',
                                                     PRIVATE: '나만 볼 수 있습니다.',
                                                 }[status]
@@ -505,7 +509,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                         </div>
                         <button
                             onClick={handleConfirmPrivacy}
-                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600"
+                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer"
                         >
                             확인
                         </button>
