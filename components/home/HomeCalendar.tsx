@@ -106,7 +106,7 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
 
   return (
     <div
-      className="flex flex-col h-screen overflow-hidden xl:pb-0"
+      className="flex flex-col overflow-hidden xl:pb-0 h-full"
       ref={containerRef}
     >
       <AnimatePresence initial={false} custom={direction}>

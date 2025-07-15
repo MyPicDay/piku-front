@@ -43,8 +43,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-1">
         <Sidebar />
-        <main className="w-full xl:ml-64 transition-all duration-300 xl:grid xl:grid-cols-6 xl:gap-4">
-          <div className="md:col-span-4 md:col-start-2">{children}</div>
+        <main className="w-full xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4">
+          <div className="md:col-span-4 md:col-start-3 h-full">{children}</div>
         </main>
       </div>
       <BottomNav />
