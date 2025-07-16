@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { DiaryDetail } from '@/types/diary';
 import type { Comment } from '@/types/comment';
+import NotReadyModal from '@/components/common/NotReadyModal';
 import {
   createComment,
   getRootComments,
@@ -57,6 +58,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
   const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
     null,
   );
+  const [isNotReadyModalOpen, setIsNotReadyModalOpen] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -315,6 +317,16 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
     onClose();
   };
 
+  const handleShareClick = () => {
+    setIsMenuOpen(false);
+    setIsNotReadyModalOpen(true);
+  };
+
+  const handleReportClick = () => {
+    setIsMenuOpen(false);
+    setIsNotReadyModalOpen(true);
+  };
+
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (diary.imgUrls && diary.imgUrls.length > 0) {
@@ -350,6 +362,9 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={onClose}
     >
+      {isNotReadyModalOpen && (
+        <NotReadyModal onClose={() => setIsNotReadyModalOpen(false)} />
+      )}
       <button
         onClick={onClose}
         className="absolute right-4 top-4 text-white hover:text-gray-300"
@@ -416,11 +431,25 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                   ref={menuRef}
                   className="absolute right-0 z-20 mt-2 w-32 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
                 >
+                  {user?.id === diary.userId && (
+                    <button
+                      onClick={handleEditClick}
+                      className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      일기 수정
+                    </button>
+                  )}
                   <button
-                    onClick={handleEditClick}
+                    onClick={handleShareClick}
                     className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
-                    일기 수정
+                    공유하기
+                  </button>
+                  <button
+                    onClick={handleReportClick}
+                    className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    신고
                   </button>
                 </div>
               )}

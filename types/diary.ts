@@ -51,6 +51,7 @@ export interface Diary {
   imgUrls: string[];
   nickname: string;
   avatar: string;
+  userId: string;
 }
 
 export interface Comment {

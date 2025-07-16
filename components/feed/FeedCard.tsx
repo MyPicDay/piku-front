@@ -301,13 +301,13 @@ const FeedCard = ({
               <button onClick={onContentClick}>
               <CommentIcon />
               </button>
-            <button>
+            {/* <button>
               <ShareIcon />
-            </button>
+            </button> */}
           </div>
-          <button>
+          {/* <button>
             <BookmarkIcon />
-          </button>
+          </button> */}
         </div>
       </div>
 
