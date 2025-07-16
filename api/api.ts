@@ -63,7 +63,9 @@ api.interceptors.response.use(
     };
 
     // 401 에러이고, 재시도한 요청이 아닐 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry &&
+      originalRequest.url !== '/auth/login' &&
+      originalRequest.url !== '/auth/reissue') {
       // 이미 토큰 재발급이 진행 중인 경우, 현재 요청을 큐에 추가
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
