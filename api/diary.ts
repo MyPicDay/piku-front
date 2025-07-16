@@ -1,28 +1,36 @@
 import api from './api';
-import { DiaryCreateRequest, DiaryContent, DiaryDetail } from '@/types/diary';
+import { DiaryContent, DiaryDetail } from '@/types/diary';
+
+interface DiaryImageInfo {
+  type: 'AI_IMAGE' | 'USER_IMAGE';
+  order: number;
+  aiPhotoId?: number;
+  photoIndex?: number;
+}
+
+interface DiaryDTO {
+  status: string;
+  content: string;
+  imageInfos: DiaryImageInfo[];
+  date: string;
+}
+
+export interface DiaryCreateRequest {
+  diary: DiaryDTO;
+  photos?: File[];
+}
 
 export const createDiary = async (diaryData: DiaryCreateRequest) => {
   const formData = new FormData();
 
+  // DiaryDTO를 JSON 문자열로 변환하여 추가
+  formData.append('diary', JSON.stringify(diaryData.diary));
+
+  // 사용자 사진 파일 추가
   if (diaryData.photos) {
-    diaryData.photos.forEach((photoFile: File) => {
+    diaryData.photos.forEach(photoFile => {
       formData.append('photos', photoFile);
     });
-  }
-  
-  if (diaryData.aiPhotos) {
-    diaryData.aiPhotos.forEach((aiPhoto: string) => {
-      formData.append('aiPhotos', aiPhoto);
-    });
-  }
-
-  formData.append('status', diaryData.status);
-  formData.append('content', diaryData.content);
-  formData.append('date', diaryData.date);
-
-  if (diaryData.coverPhotoType && diaryData.coverPhotoIndex !== undefined) {
-    formData.append('coverPhotoType', diaryData.coverPhotoType);
-    formData.append('coverPhotoIndex', String(diaryData.coverPhotoIndex));
   }
 
   const response = await api.post('/diary', formData, {
@@ -33,45 +41,49 @@ export const createDiary = async (diaryData: DiaryCreateRequest) => {
   return response.data;
 };
 
-export const updateDiary = async (diaryId: number, diaryData: DiaryCreateRequest) => {
+export const updateDiary = async (
+  diaryId: number,
+  diaryData: any, // DiaryCreateRequest,
+) => {
   const formData = new FormData();
 
-  if (diaryData.photos) {
-    diaryData.photos.forEach(photoFile => {
-      formData.append('photos', photoFile);
-    });
-  }
+  // if (diaryData.photos) {
+  //   diaryData.photos.forEach(photoFile => {
+  //     formData.append('photos', photoFile);
+  //   });
+  // }
 
-  if (diaryData.aiPhotos) {
-    diaryData.aiPhotos.forEach(aiPhoto => {
-      formData.append('aiPhotos', aiPhoto);
-    });
-  }
-  
-  if (diaryData.deletedUrls) {
-    diaryData.deletedUrls.forEach(url => {
-      formData.append('deletedUrls', url);
-    });
-  }
+  // if (diaryData.aiPhotos) {
+  //   diaryData.aiPhotos.forEach(aiPhoto => {
+  //     formData.append('aiPhotos', aiPhoto);
+  //   });
+  // }
 
-  formData.append('status', diaryData.status);
-  formData.append('content', diaryData.content);
+  // if (diaryData.deletedUrls) {
+  //   diaryData.deletedUrls.forEach(url => {
+  //     formData.append('deletedUrls', url);
+  //   });
+  // }
 
-  // TODO: Let's consider whether to allow date changes
-  // formData.append('date', diaryData.date); 
-  
-  if (diaryData.coverPhotoType && diaryData.coverPhotoIndex !== undefined) {
-    formData.append('coverPhotoType', diaryData.coverPhotoType);
-    formData.append('coverPhotoIndex', String(diaryData.coverPhotoIndex));
-  }
+  // formData.append('status', diaryData.status);
+  // formData.append('content', diaryData.content);
 
-  const response = await api.put(`/diary/${diaryId}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
-}
+  // // TODO: Let's consider whether to allow date changes
+  // // formData.append('date', diaryData.date);
+
+  // if (diaryData.coverPhotoType && diaryData.coverPhotoIndex !== undefined) {
+  //   formData.append('coverPhotoType', diaryData.coverPhotoType);
+  //   formData.append('coverPhotoIndex', String(diaryData.coverPhotoIndex));
+  // }
+
+  // const response = await api.put(`/diary/${diaryId}`, formData, {
+  //   headers: {
+  //     'Content-Type': 'multipart/form-data',
+  //   },
+  // });
+  // return response.data;
+  return Promise.resolve(); // 임시 반환
+};
 
 export const generateAiPhotos = async (content: string) => {
    if (!content || content.trim().length === 0) {
