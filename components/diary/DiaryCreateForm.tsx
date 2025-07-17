@@ -114,42 +114,45 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
     setIsSubmitting(true);
 
-    const userPhotos = allPhotos.filter(p => p.type === 'user' && p.file);
-    const userPhotosForUpload = userPhotos.map(p => p.file as File);
-    const aiPhotos = allPhotos.filter(p => p.type === 'ai');
-    const aiPhotoIdsForUpload = aiPhotos.map(p => p.id);
+    const userPhotoFiles: File[] = [];
+    const imageInfos: {
+      type: 'AI_IMAGE' | 'USER_IMAGE';
+      order: number;
+      aiPhotoId?: number;
+      photoIndex?: number;
+    }[] = [];
 
-    let coverPhotoType: 'AI_IMAGE' | 'USER_IMAGE' | undefined;
-    let coverPhotoIndex: number | undefined;
-
-    if (allPhotos.length > 0) {
-      const coverPhoto = allPhotos[0];
-      if (coverPhoto.type === 'ai') {
-        coverPhotoType = 'AI_IMAGE';
-        coverPhotoIndex = aiPhotos.findIndex(p => p.id === coverPhoto.id);
-      } else {
-        coverPhotoType = 'USER_IMAGE';
-        coverPhotoIndex = userPhotos.findIndex(p => p.id === coverPhoto.id);
+    allPhotos.forEach((photo, index) => {
+      if (photo.type === 'ai') {
+        imageInfos.push({
+          type: 'AI_IMAGE',
+          order: index,
+          aiPhotoId: Number(photo.id),
+        });
+      } else if (photo.type === 'user' && photo.file) {
+        imageInfos.push({
+          type: 'USER_IMAGE',
+          order: index,
+          photoIndex: userPhotoFiles.length,
+        });
+        userPhotoFiles.push(photo.file);
       }
-    }
+    });
 
     try {
-      let status = privacy;
-      if (privacy === 'FRIENDS') {
-        status = 'FRIENDS';
-      }
       await createDiary({
-        status: status,
-        content: data.content,
-        aiPhotos: aiPhotoIdsForUpload,
-        photos: userPhotosForUpload,
-        date,
-        coverPhotoType,
-        coverPhotoIndex,
+        diary: {
+          status: privacy,
+          content: data.content,
+          date,
+          imageInfos,
+        },
+        photos: userPhotoFiles,
       });
       router.push('/');
     } catch (error) {
       console.error('Failed to create diary:', error);
+      alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
