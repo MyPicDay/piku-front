@@ -314,7 +314,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
         <AnimatePresence initial={false}>
           <motion.div
             key={currentImageIndex}
-            className="h-full w-full"
+            className="absolute inset-x-0 top-20 bottom-24"
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0.8 }}
