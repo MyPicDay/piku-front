@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import useAuthStore from '@/components/store/authStore';
 import HomeCalendar from '@/components/home/HomeCalendar';
 import LandingClient from '@/components/home/LandingClient';
+import { AUTH_TOKEN_KEY } from '@/lib/constants';
 
 export default function HomeRoot() {
   const { user } = useAuthStore();
@@ -12,7 +13,7 @@ export default function HomeRoot() {
 
   useEffect(() => {
     setIsClient(true);
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     setIsLoggedIn(!!token && !!user);
   }, [user]);
 
