@@ -142,16 +142,24 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
 
     try {
       const data = await getReplies(commentId, currentState.page, 5);
-      setCommentReplies(prev => ({
-        ...prev,
-        [commentId]: {
-          ...prev[commentId],
-          list: [...prev[commentId].list, ...data.content],
-          page: prev[commentId].page + 1,
-          hasMore: !data.last,
-          isLoading: false,
-        },
-      }));
+      setCommentReplies(prev => {
+        const currentReplies = prev[commentId]?.list || [];
+        const existingReplyIds = new Set(currentReplies.map(c => c.id));
+        const newUniqueReplies = data.content.filter(
+          c => !existingReplyIds.has(c.id),
+        );
+
+        return {
+          ...prev,
+          [commentId]: {
+            ...prev[commentId],
+            list: [...currentReplies, ...newUniqueReplies],
+            page: prev[commentId].page + 1,
+            hasMore: !data.last,
+            isLoading: false,
+          },
+        };
+      });
     } catch (error) {
       console.error('답글을 불러오는데 실패했습니다:', error);
       setCommentReplies(prev => ({
