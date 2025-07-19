@@ -57,23 +57,17 @@ export const createComment = async (
 // 댓글 수정
 export const updateComment = async (
   commentId: number,
-  data: CommentUpdateRequest,
+  content: string,
 ): Promise<Comment> => {
-  try {
-    const response = await api.patch<Comment>(`/comments/${commentId}`, data);
-    return response.data;
-  } catch (error) {
-    console.error('댓글 수정 실패:', error);
-    throw error;
-  }
+  const commentUpdateDto = { content };
+  const response = await api.patch<Comment>(
+    `/comments/${commentId}`,
+    commentUpdateDto,
+  );
+  return response.data;
 };
 
 // 댓글 삭제 (백엔드에 API가 없지만 향후 추가를 위해 준비)
 export const deleteComment = async (commentId: number): Promise<void> => {
-  try {
-    await api.delete(`/comments/${commentId}`);
-  } catch (error) {
-    console.error('댓글 삭제 실패:', error);
-    throw error;
-  }
+  await api.delete(`/comments/${commentId}`);
 }; 

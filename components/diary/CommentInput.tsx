@@ -10,7 +10,7 @@ interface CommentInputProps {
   placeholder?: string;
   isSubmitting: boolean;
   inputRef?: React.RefObject<HTMLInputElement>;
-  onCancelReply?: () => void;
+  onCancel?: () => void;
 }
 
 const CommentInput = ({
@@ -20,7 +20,7 @@ const CommentInput = ({
   placeholder = '댓글을 입력하세요...',
   isSubmitting,
   inputRef,
-  onCancelReply,
+  onCancel,
 }: CommentInputProps) => {
   const { isLoggedIn } = useAuthStore();
 
@@ -51,15 +51,16 @@ const CommentInput = ({
         className="w-full bg-transparent text-sm focus:outline-none"
         disabled={isSubmitting}
       />
-      <button
-        type="button"
-        onClick={onCancelReply}
-        className="mr-2 text-gray-500 hover:text-gray-700 transition-opacity duration-200"
-        style={{ opacity: onCancelReply ? 1 : 0 }}
-        disabled={!onCancelReply}
-      >
-        <XCircle size={18} />
-      </button>
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mr-2 text-gray-500 transition-opacity duration-200 hover:text-gray-700"
+          disabled={!onCancel}
+        >
+          <XCircle size={18} />
+        </button>
+      )}
       <button
         type="submit"
         disabled={!value.trim() || isSubmitting}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { UserProfile, FriendshipStatus } from '@/types/friend';
 import {
   sendFriendRequest,
@@ -141,7 +142,7 @@ const ProfileHoverCard = ({
   };
 
   return (
-    <div className="absolute left-0 top-full z-10 mt-2 w-64 rounded-lg border bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+    <div className="w-64 rounded-xl border border-gray-200 bg-white/80 p-4 shadow-2xl backdrop-blur-lg dark:border-gray-700 dark:bg-gray-900/80 dark:shadow-black/50">
       <div className="flex items-center space-x-3">
         <Image
           src={avatar || 'https://via.placeholder.com/48'}
@@ -160,4 +161,16 @@ const ProfileHoverCard = ({
   );
 };
 
-export default ProfileHoverCard; 
+const MotionProfileHoverCard = (props: ProfileHoverCardProps) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 10 }}
+    transition={{ duration: 0.2, ease: 'easeInOut' }}
+    className="absolute left-0 top-full z-10 mt-2"
+  >
+    <ProfileHoverCard {...props} />
+  </motion.div>
+);
+
+export default MotionProfileHoverCard; 
