@@ -1,6 +1,7 @@
 // api.ts
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getServerURL } from '@/lib/utils/url';
+import { AUTH_TOKEN_KEY } from '@/lib/constants';
 
 /**
  * 프로젝트 전역으로 사용될 Axios 인스턴스.
@@ -21,7 +22,7 @@ api.interceptors.request.use(config => {
   if (typeof window === 'undefined') {
     return config;
   }
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -99,7 +100,7 @@ api.interceptors.response.use(
           throw new Error('New access token not found in response header.');
         }
         const newAccessToken = authHeader.slice(7);
-        localStorage.setItem('accessToken', newAccessToken);
+        localStorage.setItem(AUTH_TOKEN_KEY, newAccessToken);
 
         // 새로 발급받은 토큰으로 원래 요청의 헤더를 수정
         if (originalRequest.headers) {
@@ -114,7 +115,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // 토큰 재발급 실패 시
         processQueue(refreshError as Error, null);
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem(AUTH_TOKEN_KEY);
         if (typeof window !== 'undefined') {
           // 로그인 페이지로 리다이렉트
           window.location.href = '/login';

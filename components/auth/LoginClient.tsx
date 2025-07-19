@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { login } from '@/api/auth';
 import Link from 'next/link';
 import useAuthStore from '@/components/store/authStore';
+import { AUTH_TOKEN_KEY } from '@/lib/constants';
 
 const LoginClient = () => {
   const [email, setEmail] = useState('');
@@ -28,7 +29,7 @@ const LoginClient = () => {
       if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.slice(7);
         if (token != null) {
-          localStorage.setItem('accessToken', token);
+          localStorage.setItem(AUTH_TOKEN_KEY, token);
         }
       } else {
         console.warn('응답 헤더에 토큰이 없습니다.');

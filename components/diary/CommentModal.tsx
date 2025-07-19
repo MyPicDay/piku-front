@@ -5,7 +5,13 @@ import { X, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import type { Comment } from '@/types/comment';
-import { createComment, getRootComments, getReplies } from '@/api/comment';
+import {
+  createComment,
+  getRootComments,
+  getReplies,
+  deleteComment,
+  updateComment,
+} from '@/api/comment';
 import useAuthStore from '@/components/store/authStore';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
@@ -22,7 +28,7 @@ interface CommentModalProps {
   diaryId: number;
   initialCommentCount: number;
   onClose: () => void;
-  onUpdateCommentCount: (newCount: number) => void;
+  onUpdateCommentCount: (count: number) => void;
 }
 
 const CommentModal = ({
@@ -42,6 +48,7 @@ const CommentModal = ({
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
     null,
   );
@@ -275,6 +282,92 @@ const CommentModal = ({
     }
   };
 
+  const handleStartEdit = (comment: Comment) => {
+    setEditingComment(comment);
+    setReplyTo(null);
+    setNewComment(comment.content);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingComment(null);
+    setNewComment('');
+  };
+
+  const handleSubmitComment = async () => {
+    if (editingComment) {
+      await handleUpdateComment(editingComment.id, newComment);
+      setEditingComment(null);
+      setNewComment('');
+    } else {
+      await handleCreateComment();
+    }
+  };
+
+  const handleUpdateComment = async (commentId: number, content: string) => {
+    if (!content.trim()) return;
+
+    const originalComments = comments;
+    const originalReplies = commentReplies;
+
+    const updateInList = (list: Comment[]) =>
+      list.map(c => (c.id === commentId ? { ...c, content } : c));
+
+    setComments(updateInList);
+    setCommentReplies(prev => {
+      const newReplies = { ...prev };
+      for (const parentId in newReplies) {
+        newReplies[parentId] = {
+          ...newReplies[parentId],
+          list: updateInList(newReplies[parentId].list),
+        };
+      }
+      return newReplies;
+    });
+
+    try {
+      await updateComment(commentId, content);
+    } catch (error) {
+      console.error('댓글 수정 실패:', error);
+      alert('댓글 수정에 실패했습니다.');
+      setComments(originalComments);
+      setCommentReplies(originalReplies);
+    }
+  };
+
+  const handleDeleteComment = async (
+    commentId: number,
+    parentId: number | null,
+  ) => {
+    if (parentId) {
+      setCommentReplies(prev => ({
+        ...prev,
+        [parentId]: {
+          ...prev[parentId],
+          list: prev[parentId].list.filter(c => c.id !== commentId),
+        },
+      }));
+      setComments(prev =>
+        prev.map(c =>
+          c.id === parentId ? { ...c, replyCount: c.replyCount - 1 } : c,
+        ),
+      );
+    } else {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    }
+    const newTotal = totalComments - 1;
+    setTotalComments(newTotal);
+    onUpdateCommentCount(newTotal);
+
+    try {
+      await deleteComment(commentId);
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      alert('댓글 삭제에 실패했습니다.');
+      // Revert logic can be complex, for now, we just show an alert
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end bg-black/60"
@@ -310,6 +403,8 @@ const CommentModal = ({
               replyState={commentReplies[comment.id]}
               onToggleReplies={() => handleToggleReplies(comment)}
               onFetchMoreReplies={() => handleFetchReplies(comment.id)}
+              onDeleteComment={handleDeleteComment}
+              onStartEdit={handleStartEdit}
             />
           ))}
           {isLoading && <p className="text-center">댓글 로딩 중...</p>}
@@ -333,12 +428,22 @@ const CommentModal = ({
             inputRef={inputRef as React.RefObject<HTMLInputElement>}
             value={newComment}
             onChange={setNewComment}
-            onSubmit={handleCreateComment}
+            onSubmit={handleSubmitComment}
             placeholder={
-              replyTo ? `@${replyTo.nickname}님에게 답글 남기기` : '댓글 달기...'
+              editingComment
+                ? '댓글 수정...'
+                : replyTo
+                  ? `@${replyTo.nickname}님에게 답글 남기기`
+                  : '댓글 달기...'
             }
             isSubmitting={isSubmitting}
-            onCancelReply={replyTo ? cancelReply : undefined}
+            onCancel={
+              editingComment
+                ? handleCancelEdit
+                : replyTo
+                  ? cancelReply
+                  : undefined
+            }
           />
         </div>
       </motion.div>

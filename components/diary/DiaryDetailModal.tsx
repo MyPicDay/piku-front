@@ -21,6 +21,8 @@ import {
   createComment,
   getRootComments,
   getReplies,
+  deleteComment,
+  updateComment,
 } from '@/api/comment';
 import { formatTimeAgo, formatYearMonthDay } from '@/lib/utils/date';
 import { getServerURL } from '@/lib/utils/url';
@@ -55,6 +57,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
     null,
   );
@@ -142,16 +145,24 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
 
     try {
       const data = await getReplies(commentId, currentState.page, 5);
-      setCommentReplies(prev => ({
-        ...prev,
-        [commentId]: {
-          ...prev[commentId],
-          list: [...prev[commentId].list, ...data.content],
-          page: prev[commentId].page + 1,
-          hasMore: !data.last,
-          isLoading: false,
-        },
-      }));
+      setCommentReplies(prev => {
+        const currentReplies = prev[commentId]?.list || [];
+        const existingReplyIds = new Set(currentReplies.map(c => c.id));
+        const newUniqueReplies = data.content.filter(
+          c => !existingReplyIds.has(c.id),
+        );
+
+        return {
+          ...prev,
+          [commentId]: {
+            ...prev[commentId],
+            list: [...currentReplies, ...newUniqueReplies],
+            page: prev[commentId].page + 1,
+            hasMore: !data.last,
+            isLoading: false,
+          },
+        };
+      });
     } catch (error) {
       console.error('답글을 불러오는데 실패했습니다:', error);
       setCommentReplies(prev => ({
@@ -190,6 +201,30 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
   const cancelReply = () => {
     setReplyTo(null);
     setNewComment('');
+  };
+
+  const handleStartEdit = (comment: Comment) => {
+    setEditingComment(comment);
+    setReplyTo(null); // 답글 모드와 수정 모드는 동시에 될 수 없음
+    setNewComment(comment.content);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingComment(null);
+    setNewComment('');
+  };
+
+  const handleSubmitComment = async () => {
+    if (editingComment) {
+      // 수정 로직
+      await handleUpdateComment(editingComment.id, newComment);
+      setEditingComment(null);
+      setNewComment('');
+    } else {
+      // 생성 로직
+      await handleCreateComment();
+    }
   };
 
   const handleCreateComment = async () => {
@@ -307,6 +342,70 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
       alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (
+    commentId: number,
+    parentId: number | null,
+  ) => {
+    // Optimistic update
+    if (parentId) {
+      setCommentReplies(prev => ({
+        ...prev,
+        [parentId]: {
+          ...prev[parentId],
+          list: prev[parentId].list.filter(c => c.id !== commentId),
+        },
+      }));
+      setComments(prev =>
+        prev.map(c =>
+          c.id === parentId ? { ...c, replyCount: c.replyCount - 1 } : c,
+        ),
+      );
+    } else {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    }
+    setTotalComments(prev => prev - 1);
+
+    try {
+      await deleteComment(commentId);
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      alert('댓글 삭제에 실패했습니다.');
+      // Revert optimistic update is complex, so we'll just log the error for now
+    }
+  };
+
+  const handleUpdateComment = async (commentId: number, content: string) => {
+    if (!content.trim()) return;
+
+    let originalComments = comments;
+    let originalReplies = commentReplies;
+
+    const updateInComments = (list: Comment[]): Comment[] =>
+      list.map(c => (c.id === commentId ? { ...c, content } : c));
+
+    setComments(prev => updateInComments(prev));
+
+    setCommentReplies(prev => {
+      const newReplies = { ...prev };
+      for (const parentId in newReplies) {
+        newReplies[parentId] = {
+          ...newReplies[parentId],
+          list: updateInComments(newReplies[parentId].list),
+        };
+      }
+      return newReplies;
+    });
+
+    try {
+      await updateComment(commentId, content);
+    } catch (error) {
+      console.error('댓글 수정 실패:', error);
+      alert('댓글 수정에 실패했습니다.');
+      setComments(originalComments);
+      setCommentReplies(originalReplies);
     }
   };
 
@@ -507,6 +606,8 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 replyState={commentReplies[comment.id]}
                 onToggleReplies={() => handleToggleReplies(comment)}
                 onFetchMoreReplies={() => handleFetchReplies(comment.id)}
+                onDeleteComment={handleDeleteComment}
+                onStartEdit={handleStartEdit}
               />
             ))}
             {comments.length === 0 && !isLoadingComments && (
@@ -546,16 +647,24 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
           <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
             <CommentInput
               inputRef={inputRef as React.RefObject<HTMLInputElement>}
-              onSubmit={handleCreateComment}
+              onSubmit={handleSubmitComment}
               placeholder={
-                replyTo
-                  ? `@${replyTo.nickname}님에게 답글 남기기`
-                  : '댓글 달기...'
+                editingComment
+                  ? '댓글 수정...'
+                  : replyTo
+                    ? `@${replyTo.nickname}님에게 답글 남기기`
+                    : '댓글 달기...'
               }
               value={newComment}
               onChange={setNewComment}
               isSubmitting={isSubmitting}
-              onCancelReply={replyTo ? cancelReply : undefined}
+              onCancel={
+                editingComment
+                  ? handleCancelEdit
+                  : replyTo
+                    ? cancelReply
+                    : undefined
+              }
             />
           </div>
         </div>
