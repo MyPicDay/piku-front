@@ -17,4 +17,15 @@ export interface UserProfileResponseDTO {
   friendStatus: FriendStatus;
   isOwner: boolean;
   monthlyDiaryCount: DiaryMonthCountDTO[];
+}
+
+export interface NicknameAvailabilityResponseDTO {
+  success: boolean;
+  message: string;
+}
+
+export interface NicknameChangeResponseDTO {
+  success: boolean;
+  message: string;
+  newNickname?: string;
 } 

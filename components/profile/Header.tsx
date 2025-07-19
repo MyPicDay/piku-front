@@ -20,7 +20,7 @@ const Header = ({ nickname, isOwner }: HeaderProps) => {
         {isOwner ? 'Profile' : nickname}
       </h1>
       <button>
-        <Menu className="w-6 h-6" />
+        {/* <Menu className="w-6 h-6" /> */}
       </button>
     </header>
   );
