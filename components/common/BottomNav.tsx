@@ -60,23 +60,12 @@ const BottomNav = () => {
           <Users className="w-6 h-6" />
           <span className="text-xs">친구</span>
         </Link>
-        {/* <Link
-          href="#"
-          className="flex flex-col items-center text-sm text-gray-400 w-16 relative"
-        >
-          <Bell className="w-6 h-6" />
-          <span className="absolute top-0 right-4 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-          <span className="text-xs">알림</span>
-        </Link> */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex flex-col items-center text-sm text-gray-400 w-16"
-        >
-          <Menu className="w-6 h-6" />
-          <span className="text-xs">더보기</span>
-        </button>
+        <Link href="/profile" className={getLinkClass('/profile', false)}>
+          <User className="w-6 h-6" />
+          <span className="text-xs">My</span>
+        </Link>
       </footer>
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setIsModalOpen(false)}
@@ -112,7 +101,7 @@ const BottomNav = () => {
             </nav>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 };
