@@ -21,6 +21,7 @@ import {
 } from '@/api/friend';
 import { ChevronLeft, ChevronRight, DotIcon } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
+import UserProfile from '../common/UserProfile';
 
 interface FeedCardProps {
   post: FeedDiary;
@@ -195,34 +196,26 @@ const FeedCard = ({
 
   const photoUrl =
     post.imgUrls?.[currentImageIndex] || 'https://via.placeholder.com/600';
-  const avatarUrl = post.avatar || 'https://via.placeholder.com/32';
 
   return (
     <>
-    <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex items-center justify-between p-3">
-          <div
-            className="relative flex items-center"
-          >
-            <div className="flex items-center"
+      <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center justify-between p-3">
+          <div className="relative flex items-center">
+            <div
+              className="flex cursor-pointer items-center"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-          <Image
-            src={avatarUrl}
-            alt={post.nickname}
-                width={50}
-                height={50}
-            className="rounded-full object-cover"
-            unoptimized
-          />
-          <div>
-            <p className="text-sm font-semibold">{post.nickname}</p>
-              </div>
+              <UserProfile
+                userId={post.userId}
+                nickname={post.nickname}
+                avatar={post.avatar}
+              />
             </div>
             <div className="flex items-center">
               <DotIcon />
-                <span
+              <span
                   className="text-xs text-gray-500"
                   title={new Date(post.createdAt).toLocaleString()}
                 >
@@ -313,7 +306,14 @@ const FeedCard = ({
 
       <div className="px-3">
         <p className="truncate text-sm">
-          <span className="mr-1 font-semibold">{post.nickname}</span>
+          <UserProfile
+            userId={post.userId}
+            nickname={post.nickname}
+            avatar={post.avatar}
+            containerClassName="inline-flex mr-1"
+            imageSize={16}
+            nicknameClassName="font-semibold"
+          />
           {post.content}
         </p>
       </div>

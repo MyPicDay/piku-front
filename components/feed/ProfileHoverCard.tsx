@@ -167,7 +167,7 @@ const MotionProfileHoverCard = (props: ProfileHoverCardProps) => (
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: 10 }}
     transition={{ duration: 0.2, ease: 'easeInOut' }}
-    className="absolute left-0 top-full z-10 mt-2"
+    className="absolute left-0 top-full z-10"
   >
     <ProfileHoverCard {...props} />
   </motion.div>

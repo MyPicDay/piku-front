@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Heart, MoreHorizontal } from 'lucide-react';
+import Link from 'next/link';
 import { AnimatePresence } from 'framer-motion';
 import useAuthStore from '@/components/store/authStore';
 import type { Comment } from '@/types/comment';
@@ -62,6 +63,8 @@ const CommentItem = ({
   const hasMore = replyState?.hasMore ?? false;
 
   const isOwner = user ? String(user.id) === comment.userId : false;
+
+  const profileUrl = `/profile/${comment.userId}`;
 
   const handleReport = () => {
     setIsActionModalOpen(false);
@@ -123,20 +126,22 @@ const CommentItem = ({
         onMouseEnter={() => setIsCommentHovered(true)}
         onMouseLeave={() => setIsCommentHovered(false)}
       >
-        <div className="flex flex-1 items-start space-x-3">
+        <div className="flex flex-1 items-start space-x-3 cursor-pointer">
           <div
             className="relative"
             onMouseEnter={() => handleProfileMouseEnter('avatar')}
             onMouseLeave={handleProfileMouseLeave}
           >
-            <Image
-              src={comment.avatar || '/globe.svg'}
-              alt={comment.nickname}
-              width={32}
-              height={32}
-              className="mt-1 rounded-full bg-gray-200"
-              unoptimized
-            />
+            <Link href={profileUrl}>
+              <Image
+                src={comment.avatar || '/globe.svg'}
+                alt={comment.nickname}
+                width={32}
+                height={32}
+                className="mt-1 rounded-full bg-gray-200"
+                unoptimized
+              />
+            </Link>
             <AnimatePresence>
               {hoveredElement === 'avatar' && (
                 <div
@@ -156,8 +161,9 @@ const CommentItem = ({
           </div>
           <div className="flex-1">
             <div className="text-sm dark:text-gray-100">
+              <Link href={profileUrl}>
               <span
-                className="relative inline-block font-semibold dark:text-white"
+                className="relative inline-block font-semibold dark:text-white cursor-pointer"
                 onMouseEnter={() => handleProfileMouseEnter('nickname')}
                 onMouseLeave={handleProfileMouseLeave}
               >
@@ -178,7 +184,8 @@ const CommentItem = ({
                     </div>
                   )}
                 </AnimatePresence>
-              </span>{' '}
+              </span>
+              </Link>
               {comment.content}
             </div>
             <div className="mt-1 flex items-center space-x-3 text-xs text-gray-500">
@@ -254,11 +261,11 @@ const CommentItem = ({
             )}
           </div>
         </div>
-        <div className="flex items-center pl-4">
+        {/* <div className="flex items-center pl-4">
           <button className="text-gray-400 hover:text-red-500">
             <Heart size={16} />
           </button>
-        </div>
+        </div> */}
       </div>
       {isActionModalOpen && (
         <CommentActionModal

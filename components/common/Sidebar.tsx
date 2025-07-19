@@ -124,19 +124,26 @@ const Sidebar = () => {
           <Users className="w-6 h-6 mr-4" />
           <span className="inline">친구 목록</span>
         </Link>
+        <Link
+          href="/profile"
+          className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
+        >
+          <User className="w-6 h-6 mr-4" />
+          <span className="inline">프로필</span>
+        </Link>
       </nav>
       <div className="p-4 mt-auto relative" ref={menuRef}>
         {isMenuOpen && (
           <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10">
             <nav className="flex flex-col p-1">
-              <Link
+              {/* <Link
                 href="/profile"
                 className="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <User className="w-5 h-5 mr-3" />
                 <span className="inline">프로필</span>
-              </Link>
+              </Link> */}
               <Link
                 href="/settings"
                 className="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"

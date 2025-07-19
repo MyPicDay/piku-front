@@ -1,14 +1,28 @@
-const ProfilePage = () => {
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import useAuthStore from '@/components/store/authStore';
+
+const ProfileRedirectPage = () => {
+  const router = useRouter();
+  const user = useAuthStore(state => state.user);
+
+  useEffect(() => {
+    if (user?.id) {
+      router.replace(`/profile/${user.id}`);
+    } else {
+      // 로그인되어 있지 않은 경우 로그인 페이지로 보낼 수 있습니다.
+      // 또는 단순히 로딩 상태를 표시할 수도 있습니다.
+      router.replace('/login');
+    }
+  }, [user, router]);
+
   return (
-    <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">프로필</h1>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <p>프로필 페이지입니다. 추후 기능이 추가될 예정입니다.</p>
-        </div>
-      </div>
+    <div className="flex items-center justify-center h-screen">
+      <p>프로필 페이지로 이동 중입니다...</p>
     </div>
   );
 };
 
-export default ProfilePage; 
+export default ProfileRedirectPage; 

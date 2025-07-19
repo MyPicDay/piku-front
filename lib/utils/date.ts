@@ -73,4 +73,8 @@ export const formatYearMonthDayDots = (dateString?: string): string => {
   } catch (error) {
     return '날짜 변환 오류';
   }
+};
+
+export const getDaysInMonth = (year: number, month: number) => {
+  return new Date(year, month, 0).getDate();
 }; 

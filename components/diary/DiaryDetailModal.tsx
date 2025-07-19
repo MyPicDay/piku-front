@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   X,
   Heart,
@@ -29,6 +30,7 @@ import { getServerURL } from '@/lib/utils/url';
 import useAuthStore from '@/components/store/authStore';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
+import MotionProfileHoverCard from '@/components/feed/ProfileHoverCard';
 
 interface DiaryDetailModalProps {
   diary: DiaryDetail;
@@ -68,6 +70,28 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
 
   const { isLoggedIn, user } = useAuthStore();
   const serverUrl = getServerURL();
+  const profileUrl = `/profile/${diary.userId}`;
+
+  // Hover states and handlers
+  const [isHeaderHovering, setIsHeaderHovering] = useState(false);
+  const headerHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isContentHovering, setIsContentHovering] = useState(false);
+  const contentHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleHeaderMouseEnter = () => {
+    if (headerHoverTimeoutRef.current) clearTimeout(headerHoverTimeoutRef.current);
+    setIsHeaderHovering(true);
+  };
+  const handleHeaderMouseLeave = () => {
+    headerHoverTimeoutRef.current = setTimeout(() => setIsHeaderHovering(false), 200);
+  };
+  const handleContentMouseEnter = () => {
+    if (contentHoverTimeoutRef.current) clearTimeout(contentHoverTimeoutRef.current);
+    setIsContentHovering(true);
+  };
+  const handleContentMouseLeave = () => {
+    contentHoverTimeoutRef.current = setTimeout(() => setIsContentHovering(false), 200);
+  };
 
   const fetchComments = async (isNewFetch: boolean = false) => {
     if (isLoadingComments || (!hasMore && !isNewFetch)) return;
@@ -505,18 +529,36 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
         <div className="flex h-full w-2/5 flex-col bg-white dark:bg-gray-900">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-            <div className="flex items-center">
-              <img
-                src={diary.avatar || DEFAULT_AVATAR}
-                alt={diary.nickname}
-                width={32}
-                height={32}
-                className="rounded-full"
-                onError={handleAvatarError}
-              />
-              <p className="ml-3 text-sm font-bold dark:text-white">
-                {diary.nickname}
-              </p>
+            <div
+              className="relative"
+              onMouseEnter={handleHeaderMouseEnter}
+              onMouseLeave={handleHeaderMouseLeave}
+            >
+              <div className="flex items-center">
+                <Link href={profileUrl}>
+                  <img
+                    src={diary.avatar || DEFAULT_AVATAR}
+                    alt={diary.nickname}
+                    width={32}
+                    height={32}
+                    className="rounded-full cursor-pointer"
+                    onError={handleAvatarError}
+                  />
+                </Link>
+                <Link href={profileUrl}>
+                  <p className="ml-3 text-sm font-bold dark:text-white cursor-pointer">
+                    {diary.nickname}
+                  </p>
+                </Link>
+              </div>
+              {isHeaderHovering && (
+                <MotionProfileHoverCard
+                  userId={diary.userId}
+                  nickname={diary.nickname}
+                  avatar={diary.avatar}
+                  onStatusChange={() => {}}
+                />
+              )}
             </div>
             <div className="relative">
               <button
@@ -558,24 +600,52 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
           {/* Comments Section (scrollable) */}
           <div className="flex-grow space-y-4 overflow-y-auto p-4">
             {/* 일기 내용 (첫 번째 댓글로 표시) */}
-            <div className="flex items-start">
-              <img
-                src={diary.avatar || DEFAULT_AVATAR}
-                alt={diary.nickname}
-                width={32}
-                height={32}
-                className="mr-3 mt-1 rounded-full"
-                onError={handleAvatarError}
-              />
-              <div>
-                <p className="text-sm dark:text-white whitespace-pre-wrap">
-                  <span className="font-bold">{diary.nickname}</span>{' '}
-                  {diary.content}
-                </p>
-                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  {formatTimeAgo(diary.createdAt)}
-                </p>
+            <div className="relative">
+              <div className="flex items-start">
+                <div>
+                  <Link href={profileUrl}>
+                    <img
+                      src={diary.avatar || DEFAULT_AVATAR}
+                      alt={diary.nickname}
+                      width={32}
+                      height={32}
+                      className="mr-3 mt-1 rounded-full cursor-pointer"
+                      onError={handleAvatarError}
+                      onMouseEnter={handleContentMouseEnter}
+                      onMouseLeave={handleContentMouseLeave}
+                    />
+                  </Link>
+                </div>
+                <div>
+                  <p className="text-sm dark:text-white whitespace-pre-wrap">
+                    <span
+                      
+                      className="inline-block"
+                    >
+                      <Link href={profileUrl}>
+                        <span className="font-bold cursor-pointer"
+                          onMouseEnter={handleContentMouseEnter} 
+                          onMouseLeave={handleContentMouseLeave}
+                        >
+                          {diary.nickname}
+                        </span>
+                      </Link>
+                    </span>{' '}
+                    {diary.content}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    {formatTimeAgo(diary.createdAt)}
+                  </p>
+                </div>
               </div>
+              {isContentHovering && (
+                <MotionProfileHoverCard
+                  userId={diary.userId}
+                  nickname={diary.nickname}
+                  avatar={diary.avatar}
+                  onStatusChange={() => {}}
+                />
+              )}
             </div>
 
             {/* 댓글 더보기 버튼 */}
@@ -635,9 +705,9 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 <Bookmark size={24} />
               </button>
             </div>
-            <p className="mt-2 text-sm font-bold dark:text-white">
+            {/* <p className="mt-2 text-sm font-bold dark:text-white">
               좋아요 {diary.likeCount}개
-            </p>
+            </p> */}
             <p className="mt-1 text-xs uppercase text-gray-500 dark:text-gray-400">
               {displayDate}
             </p>
