@@ -24,6 +24,8 @@ export const checkNicknameAvailability = async (
 export const updateUserNickname = async (
   nickname: string,
 ): Promise<NicknameChangeResponseDTO> => {
-  const response = await api.patch(`/users/nickname`, { nickname });
+  const response = await api.patch(`/users/nickname`, null, {
+    params: { newNickname: nickname },
+  });
   return response.data;
 }; 
