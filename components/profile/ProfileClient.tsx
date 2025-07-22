@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/components/store/authStore';
@@ -22,6 +23,9 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
   const isMyProfile = currentUser?.id === profileData.userId;
+  
+  // 친구 상태를 로컬 상태로 관리
+  const [currentFriendStatus, setCurrentFriendStatus] = useState(profileData.friendStatus);
 
   const handleEditProfile = () => {
     router.push('/profile/edit');
@@ -32,9 +36,10 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
       return null;
     }
 
-    const handleApiCall = async (apiCall: () => Promise<any>) => {
+    const handleApiCall = async (apiCall: () => Promise<any>, newStatus: FriendshipStatus) => {
       try {
         await apiCall();
+        setCurrentFriendStatus(newStatus); // 상태 즉시 업데이트
         router.refresh();
       } catch (error) {
         console.error('친구 관련 작업 실패:', error);
@@ -43,22 +48,22 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
     };
 
     const handleAddFriend = () =>
-      handleApiCall(() => sendFriendRequest(profileData.userId!));
+      handleApiCall(() => sendFriendRequest(profileData.userId!), FriendshipStatus.SENT);
     const handleRemoveFriend = () =>
-      handleApiCall(() => deleteFriend(profileData.userId!));
+      handleApiCall(() => deleteFriend(profileData.userId!), FriendshipStatus.NONE);
     const handleCancelRequest = () =>
-      handleApiCall(() => cancelFriendRequest(profileData.userId!));
+      handleApiCall(() => cancelFriendRequest(profileData.userId!), FriendshipStatus.NONE);
     const handleAcceptRequest = () =>
-      handleApiCall(() => acceptFriendRequest(profileData.userId!));
+      handleApiCall(() => acceptFriendRequest(profileData.userId!), FriendshipStatus.FRIEND);
     const handleRejectRequest = () =>
-      handleApiCall(() => rejectFriendRequest(profileData.userId!));
+      handleApiCall(() => rejectFriendRequest(profileData.userId!), FriendshipStatus.NONE);
 
-    switch (profileData.friendStatus) {
+    switch (currentFriendStatus) {
       case FriendshipStatus.FRIEND:
         return (
           <button
             onClick={handleRemoveFriend}
-            className="py-2 px-6 bg-gray-200 text-black rounded-full font-semibold text-sm"
+            className="py-2 px-6 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold text-sm transition-colors"
           >
             친구 끊기
           </button>
@@ -67,7 +72,7 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
         return (
           <button
             onClick={handleAddFriend}
-            className="py-2 px-6 bg-blue-500 text-white rounded-full font-semibold text-sm"
+            className="py-2 px-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold text-sm transition-colors"
           >
             친구 추가
           </button>
@@ -76,7 +81,7 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
         return (
           <button
             onClick={handleCancelRequest}
-            className="py-2 px-6 bg-gray-200 text-black rounded-full font-semibold text-sm"
+            className="py-2 px-6 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold text-sm transition-colors"
           >
             요청 취소
           </button>
@@ -86,13 +91,13 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
           <div className="flex justify-center space-x-2">
             <button
               onClick={handleAcceptRequest}
-              className="py-2 px-6 bg-blue-500 text-white rounded-full font-semibold text-sm"
+              className="py-2 px-6 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full font-semibold text-sm transition-colors"
             >
               수락
             </button>
             <button
               onClick={handleRejectRequest}
-              className="py-2 px-6 bg-gray-200 text-black rounded-full font-semibold text-sm"
+              className="py-2 px-6 bg-gray-200 hover:bg-gray-300 text-black rounded-full font-semibold text-sm transition-colors"
             >
               거절
             </button>
@@ -114,7 +119,7 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
             alt="Profile Picture"
             width={128}
             height={128}
-            className="rounded-full object-cover border-4 border-white bg-white"
+            className="w-full h-full rounded-full object-cover border-4 border-white bg-white"
           />
         </div>
         <h2 className="text-center text-2xl font-bold mt-4">

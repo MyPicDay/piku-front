@@ -630,8 +630,8 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                           {diary.nickname}
                         </span>
                       </Link>
-                    </span>{' '}
-                    {diary.content}
+                    </span>
+                    <span className="ml-2">{diary.content}</span>
                   </p>
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                     {formatTimeAgo(diary.createdAt)}

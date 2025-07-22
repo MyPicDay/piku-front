@@ -159,7 +159,7 @@ const CommentItem = ({
               )}
             </AnimatePresence>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 ">
             <div className="text-sm dark:text-gray-100">
               <Link href={profileUrl}>
               <span
@@ -186,7 +186,7 @@ const CommentItem = ({
                 </AnimatePresence>
               </span>
               </Link>
-              {comment.content}
+              <span className="ml-2">{comment.content}</span>
             </div>
             <div className="mt-1 flex items-center space-x-3 text-xs text-gray-500">
               <span>{formatTimeAgo(comment.createdAt)}</span>

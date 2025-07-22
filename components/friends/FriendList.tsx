@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import Image from 'next/image';
+import UserProfile from '@/components/common/UserProfile';
 import { Friend } from '@/types/friend';
 import { deleteFriend, getFriends } from '@/api/friend';
 
@@ -78,15 +78,13 @@ const FriendList = () => {
               className="flex items-center justify-between py-3 border-b"
             >
               <div className="flex items-center">
-                <Image
-                  src={friend.avatar}
-                  alt={friend.nickname}
-                  width={40}
-                  height={40}
-                  className="rounded-full mr-4"
-                  unoptimized
+                <UserProfile
+                  userId={friend.userId}
+                  nickname={friend.nickname}
+                  avatar={friend.avatar}
+                  imageSize={40}
+                  containerClassName="flex-grow"
                 />
-                <span>{friend.nickname}</span>
               </div>
               <button
                 onClick={() => handleDeleteFriend(friend.userId)}

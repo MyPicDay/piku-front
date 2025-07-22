@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import UserProfile from '@/components/common/UserProfile';
 import { FriendRequest } from '@/types/friend';
 
 interface FriendRequestListProps {
@@ -35,15 +35,13 @@ const FriendRequestList = ({
             className="flex items-center justify-between py-3 border-b"
           >
             <div className="flex items-center">
-              <Image
-                src={request.avatar}
-                alt={request.nickname}
-                width={40}
-                height={40}
-                className="rounded-full mr-4"
-                unoptimized
+              <UserProfile
+                userId={request.userId}
+                nickname={request.nickname}
+                avatar={request.avatar}
+                imageSize={40}
+                containerClassName="flex-grow"
               />
-              <span>{request.nickname}</span>
             </div>
             <div className="flex space-x-2">
               <button
