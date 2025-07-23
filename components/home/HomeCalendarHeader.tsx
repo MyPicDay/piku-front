@@ -29,18 +29,17 @@ const HomeCalendarHeader = ({
     <header className="space-y-4 p-4 md:p-6">
       <div className="flex items-center justify-between md:hidden">
         <h1 className="text-2xl font-bold">PikU</h1>
-        <Send className="w-6 h-6" />
+        {/* <Send className="w-6 h-6" /> */}
       </div>
       
       <div className="flex items-center justify-between space-x-4">
-        <div className="flex min-w-0 flex-1 items-center space-x-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Image
             src={(viewedUser ? viewedUser.avatar : user?.avatar) || '/vercel.svg'}
             alt="profile"
             width={48}
             height={48}
             className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 md:h-12 md:w-12"
-            unoptimized
           />
           <div className="min-w-0">
             <p className="truncate font-bold md:text-lg">

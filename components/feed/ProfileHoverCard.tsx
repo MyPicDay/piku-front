@@ -143,14 +143,13 @@ const ProfileHoverCard = ({
 
   return (
     <div className="w-64 rounded-xl border border-gray-200 bg-white/80 p-4 shadow-2xl backdrop-blur-lg dark:border-gray-700 dark:bg-gray-900/80 dark:shadow-black/50">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center gap-3">
         <Image
           src={avatar || 'https://via.placeholder.com/48'}
           alt={nickname}
           width={60}
           height={60}
-          className="rounded-full object-cover"
-          unoptimized
+          className="rounded-full w-12 h-12"
         />
         <div>
           <p className="font-semibold">{nickname}</p>

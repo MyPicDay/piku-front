@@ -46,7 +46,6 @@ const ImagePreviewModal = ({
               alt="Image preview"
               layout="fill"
               objectFit="contain"
-              unoptimized
             />
           </motion.div>
         </motion.div>

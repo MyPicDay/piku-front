@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateDiary, generateAiPhotos } from '@/api/diary';
 import useAuthStore from '../store/authStore';
+import TextareaAutosize from 'react-textarea-autosize';
 import {
   diarySchema,
   DiaryFormValues,
@@ -345,11 +346,11 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                 <span>{formattedDate}</span>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <textarea
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 flex flex-col">
+                <TextareaAutosize
                     {...register('content')}
-                    rows={10}
-                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white"
+                    minRows={10}
+                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white rounded-md resize-none flex-grow"
                     placeholder="오늘의 하루를 기록해보세요..."
                 />
                 {errors.content && (
