@@ -47,7 +47,6 @@ const FriendActionConfirmModal = ({
             width={96}
             height={96}
             className="rounded-full object-cover"
-            unoptimized
           />
           <p className="mt-4 px-4 text-base">{messages[actionType]}</p>
         </div>

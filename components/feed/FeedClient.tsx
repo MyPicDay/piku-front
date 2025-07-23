@@ -2,13 +2,13 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useMediaQuery } from 'react-responsive';
-import { useRouter } from 'next/navigation';
 import FeedCard from './FeedCard';
 import { getFeed } from '@/api/feed';
 import { getDiaryById } from '@/api/diary';
 import { FeedDiary, DiaryDetail } from '@/types/diary';
 import { FriendshipStatus } from '@/types/friend';
 import DiaryDetailModal from '../diary/DiaryDetailModal';
+import DiaryStoryModal from '../diary/DiaryStoryModal';
 
 const FeedClient = () => {
   const [feed, setFeed] = useState<FeedDiary[]>([]);
@@ -20,7 +20,6 @@ const FeedClient = () => {
   const [isClient, setIsClient] = useState(false);
   const [selectedDiary, setSelectedDiary] = useState<DiaryDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const router = useRouter();
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
   useEffect(() => {
@@ -28,7 +27,7 @@ const FeedClient = () => {
   }, []);
 
   const handleContentClick = async (diaryId: number) => {
-    if (isClient && isDesktop) {
+    if (isClient) {
       setIsLoadingDetail(true);
       try {
         const diaryDetail = await getDiaryById(diaryId);
@@ -39,8 +38,6 @@ const FeedClient = () => {
       } finally {
         setIsLoadingDetail(false);
       }
-    } else if (isClient) {
-      router.push(`/diary/${diaryId}`);
     }
   };
 
@@ -145,9 +142,12 @@ const FeedClient = () => {
           <p>모든 피드를 다 봤어요!</p>
         </div>
       )}
-      {selectedDiary && (
-        <DiaryDetailModal diary={selectedDiary} onClose={handleCloseModal} />
-      )}
+      {selectedDiary &&
+        (isDesktop ? (
+          <DiaryDetailModal diary={selectedDiary} onClose={handleCloseModal} />
+        ) : (
+          <DiaryStoryModal diary={selectedDiary} onClose={handleCloseModal} />
+        ))}
     </div>
   );
 };

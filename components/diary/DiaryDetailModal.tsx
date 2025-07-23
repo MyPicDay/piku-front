@@ -505,7 +505,6 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             alt="Diary image"
             fill
             style={{ objectFit: 'contain' }}
-            unoptimized
           />
           {diary.imgUrls && diary.imgUrls.length > 1 && (
             <>

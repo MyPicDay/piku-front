@@ -426,7 +426,6 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
               alt="Diary image"
               fill
               style={{ objectFit: 'contain' }}
-              unoptimized
             />
           </motion.div>
         </AnimatePresence>

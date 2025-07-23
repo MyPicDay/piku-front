@@ -93,7 +93,6 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
               alt={diary.nickname}
               width={40}
               height={40}
-              unoptimized
               className="rounded-full bg-gray-200"
             />
             <div>
@@ -128,7 +127,6 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
                       src={url}
                       alt={`Diary image ${index + 1}`}
                       className="absolute top-0 left-0 w-full h-full object-cover"
-                      unoptimized
                     />
                   </div>
                 </SwiperSlide>

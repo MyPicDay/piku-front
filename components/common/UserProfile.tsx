@@ -32,17 +32,16 @@ const UserProfile = ({
   return (
     <Link
       href={profileUrl}
-      className={`inline-flex items-start ${containerClassName}`}
+      className={`inline-flex items-center gap-2 ${containerClassName}`}
     >
       <Image
         src={avatarUrl}
         alt={nickname}
         width={imageSize}
         height={imageSize}
-        className={`flex-shrink-0 rounded-full object-cover ${imageClassName}`}
-        unoptimized
+        className={`flex-shrink-0 rounded-full ${imageClassName}`}
       />
-      <span className="ml-2">
+      <span className="">
         <span className={`text-sm font-semibold ${nicknameClassName}`}>
           {nickname}
         </span>

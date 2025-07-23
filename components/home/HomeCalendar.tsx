@@ -17,12 +17,18 @@ import type { Friend } from '@/types/friend';
 
 interface HomeCalendarProps {
   viewedUser?: Friend;
+  initialDate?: Date;
 }
 
-const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
+const HomeCalendar = ({
+  viewedUser: initialViewedUser,
+  initialDate,
+}: HomeCalendarProps) => {
   const router = useRouter();
   const { user } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
+  const isMyCalendar =
+    !initialViewedUser || user?.id === initialViewedUser.userId;
 
   // 친구 관리 훅
   const {
@@ -35,6 +41,9 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
   // 실제로 표시할 유저 결정
   const viewedUser = selectedViewedUser || initialViewedUser;
 
+  // 빈 함수 추가
+  const noop = () => {};
+
   // 캘린더 네비게이션 훅
   const {
     currentDate,
@@ -44,7 +53,12 @@ const HomeCalendar = ({ viewedUser: initialViewedUser }: HomeCalendarProps) => {
     direction,
     containerRef,
     swipeHandlers,
-  } = useCalendarNavigation(isDesktopOrLaptop, nextFriend, prevFriend);
+  } = useCalendarNavigation(
+    isDesktopOrLaptop,
+    isMyCalendar ? nextFriend : noop,
+    isMyCalendar ? prevFriend : noop,
+    initialDate,
+  );
 
   // 다이어리 데이터 훅
   const {

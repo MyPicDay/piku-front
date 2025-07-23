@@ -24,6 +24,7 @@
     "react-responsive": "^10.0.1",
     "react-sortablejs": "^6.1.4",
     "react-swipeable": "^7.0.2",
+    "react-textarea-autosize": "^8.5.9",
     "sortablejs": "^1.15.6",
     "swiper": "^11.2.8",
     "zod": "^3.25.64",

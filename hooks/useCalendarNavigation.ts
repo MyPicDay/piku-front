@@ -5,9 +5,10 @@ import { addMonths, subMonths } from 'date-fns';
 export const useCalendarNavigation = (
   isDesktopOrLaptop: boolean,
   onNextUser: () => void,
-  onPrevUser: () => void
+  onPrevUser: () => void,
+  initialDate?: Date,
 ) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(initialDate || new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [direction, setDirection] = useState<'up' | 'down'>('down');
   const containerRef = useRef<HTMLDivElement>(null);

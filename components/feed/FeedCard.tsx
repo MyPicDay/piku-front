@@ -239,9 +239,9 @@ const FeedCard = ({
           </div>
             )}
         </div>
-        <button>
+        {/* <button>
           <MoreIcon />
-        </button>
+        </button> */}
       </div>
 
         <div {...swipeHandlers} className="relative aspect-square w-full">
@@ -252,10 +252,9 @@ const FeedCard = ({
         <Image
           src={photoUrl}
           alt="Diary image"
-              fill
-              style={{ objectFit: 'cover' }}
-          unoptimized
-              priority
+          fill
+          style={{ objectFit: 'cover' }}
+          priority
         />
           </div>
           {post.imgUrls && post.imgUrls.length > 1 && (
@@ -305,17 +304,19 @@ const FeedCard = ({
       </div>
 
       <div className="px-3">
-        <p className="truncate text-sm">
+        <div className="flex items-center gap-1">
           <UserProfile
             userId={post.userId}
             nickname={post.nickname}
             avatar={post.avatar}
             containerClassName="inline-flex mr-1"
-            imageSize={16}
+            imageSize={20}
             nicknameClassName="font-semibold"
           />
-          {post.content}
-        </p>
+          <p className="truncate text-sm text-center">
+            {post.content}
+          </p>
+        </div>
       </div>
 
       <div className="px-3 pt-1">

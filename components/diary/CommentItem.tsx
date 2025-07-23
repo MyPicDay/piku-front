@@ -139,7 +139,6 @@ const CommentItem = ({
                 width={32}
                 height={32}
                 className="mt-1 rounded-full bg-gray-200"
-                unoptimized
               />
             </Link>
             <AnimatePresence>
