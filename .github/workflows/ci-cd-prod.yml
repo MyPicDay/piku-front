@@ -1,0 +1,45 @@
+name: Nextjs CI/CD (Dev)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up latest Node.js LTS version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Configure AWS Credentials for OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.AWS_ACCOUNT_ID_PROD}}:role/GitHubActionsDeploymentRole
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
+
+      - name: Deploy to EC2 (Main) by running deploy.sh
+        env:
+          # 이 환경 변수는 GitHub Actions 환경에서만 사용됩니다.
+          DEPLOY_LOG_PATH: /home/ubuntu/piku-frontend/piku-front/deploy-logs
+        run: |
+          echo "${{ secrets.PROD_EC2_SSH_PRIVATE_KEY_PROD }}" > private_key.pem
+          chmod 400 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ secrets.PROD_EC2_PUBLIC_IP }} 'cd /home/ubuntu/piku-frontend/piku-front && ./deploy.sh'
