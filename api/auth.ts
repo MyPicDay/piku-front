@@ -18,6 +18,16 @@ export const signup = async (data: SignupData) => {
   return response.data;
 };
 
+export const sendSignUpVerificationEmail = async (email: string) => {
+  const response = await api.post('/auth/send-verification/sign-up', { email });
+  return response.data;
+};
+
+export const verifyCode = async (email: string, code: string) => {
+  const response = await api.post('/auth/verify-code', { email, code });
+  return response.data;
+};
+
 interface LoginData {
   email: string;
   password: string;

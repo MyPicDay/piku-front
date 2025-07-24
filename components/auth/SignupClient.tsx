@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useMediaQuery } from 'react-responsive';
-import { signup } from '@/api/auth';
+import { signup, sendSignUpVerificationEmail, verifyCode } from '@/api/auth';
 import { useRouter } from 'next/navigation';
 import MobileView from './signup/MobileView';
 import DesktopView from './signup/DesktopView';
@@ -16,11 +16,19 @@ const SignupClient = () => {
     password: '',
     nickname: '',
     character: '',
+    verificationCode: '',
   });
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const router = useRouter();
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [agreements, setAgreements] = useState({
+    terms: false,
+    privacy: false,
+  });
 
   useEffect(() => {
     setIsHydrated(true);
@@ -28,23 +36,95 @@ const SignupClient = () => {
 
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
-  const nextStep = () => setStep(step + 1);
+  const nextStep = () => {
+    if (!isEmailVerified) {
+      setMessage('이메일 인증을 완료해주세요.');
+      return;
+    }
+    setMessage('');
+    setStep(step + 1);
+  };
   const prevStep = () => setStep(step - 1);
 
   const handleChange = (input: string) => (e: { target: { value: string } }) => {
     setMessage('');
+    if (input === 'verificationCode') {
+      setVerificationMessage('');
+    }
     setValues({ ...values, [input]: e.target.value });
+  };
+  
+  const handleAgreeAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target;
+    setAgreements({
+      terms: checked,
+      privacy: checked,
+    });
+  };
+
+  const handleAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setAgreements((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
+
+  const handleSendVerification = async () => {
+    if (!values.email) {
+      setMessage('이메일을 입력해주세요.');
+      return;
+    }
+    setIsLoading(true);
+    setMessage('');
+    try {
+      await sendSignUpVerificationEmail(values.email);
+      setIsVerificationSent(true);
+      setMessage('인증코드가 발송되었습니다.');
+    } catch (error: any) {
+      setMessage(error.response?.data?.message || '인증코드 발송에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!values.verificationCode) {
+      setVerificationMessage('인증코드를 입력해주세요.');
+      return;
+    }
+    setIsLoading(true);
+    setVerificationMessage('');
+    try {
+      await verifyCode(values.email, values.verificationCode);
+      setIsEmailVerified(true);
+      setMessage('이메일 인증이 완료되었습니다.');
+      setIsVerificationSent(false); // 인증 성공 시 입력창 숨김
+    } catch (error: any) {
+      setVerificationMessage(error.response?.data?.message || '인증코드가 올바르지 않습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
+    if (!isEmailVerified) {
+      setMessage('이메일 인증을 완료해주세요.');
+      return;
+    }
     if (!values.character) {
       setMessage('캐릭터를 선택해주세요.');
+      return;
+    }
+    if (!agreements.terms || !agreements.privacy) {
+      setMessage('이용약관에 동의해주세요.');
       return;
     }
     setMessage('');
     setIsLoading(true);
     try {
-      await signup(values);
+      const { verificationCode, ...signupData } = values;
+      await signup(signupData);
       setMessage('회원가입이 완료되었습니다! 잠시 후 로그인 페이지로 이동합니다.');
       setTimeout(() => {
         router.push('/login');
@@ -74,7 +154,20 @@ const SignupClient = () => {
 
         <div className={`w-full ${isDesktop && isHydrated ? 'flex items-center' : 'flex'}`}>
           {isDesktop && isHydrated ? (
-            <DesktopView handleChange={handleChange} values={values} handleSubmit={handleSubmit} isLoading={isLoading} />
+            <DesktopView 
+              handleChange={handleChange} 
+              values={values} 
+              handleSubmit={handleSubmit} 
+              isLoading={isLoading} 
+              isEmailVerified={isEmailVerified}
+              isVerificationSent={isVerificationSent}
+              handleSendVerification={handleSendVerification}
+              handleVerifyCode={handleVerifyCode}
+              verificationMessage={verificationMessage}
+              agreements={agreements}
+              handleAgreementChange={handleAgreementChange}
+              handleAgreeAllChange={handleAgreeAllChange}
+            />
           ) : (
             <MobileView
               step={step}
@@ -83,13 +176,21 @@ const SignupClient = () => {
               values={values}
               handleSubmit={handleSubmit}
               isLoading={isLoading}
+              isEmailVerified={isEmailVerified}
+              isVerificationSent={isVerificationSent}
+              handleSendVerification={handleSendVerification}
+              handleVerifyCode={handleVerifyCode}
+              verificationMessage={verificationMessage}
+              agreements={agreements}
+              handleAgreementChange={handleAgreementChange}
+              handleAgreeAllChange={handleAgreeAllChange}
             />
           )}
         </div>
         {message && (
           <p
             className={`mt-4 text-center ${
-              message.includes('성공') || message.includes('완료') ? 'text-green-600' : 'text-red-600'
+              message.includes('완료') || message.includes('발송') ? 'text-green-600' : 'text-red-600'
             }`}
           >
             {message}
