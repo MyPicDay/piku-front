@@ -1,23 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getUserProfile } from '@/api/user';
 import HomeCalendar from '@/components/home/HomeCalendar';
 import type { UserProfile } from '@/types/friend';
 import useAuthStore from '../store/authStore';
+import { getSeoulDate } from '@/lib/utils/date';
 
-interface CalendarClientProps {
-  userId: string;
-  dateStr?: string;
-}
+const getInitialDate = (dateStr: string | null): Date => {
+  if (dateStr) {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  return getSeoulDate();
+};
 
-const CalendarClient = ({ userId, dateStr }: CalendarClientProps) => {
+const CalendarClient = ({ userId }: { userId: string }) => {
   const [viewedUser, setViewedUser] = useState<
     Pick<UserProfile, 'userId' | 'nickname' | 'avatar'> | undefined
   >(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-	const { user } = useAuthStore();
+  const { user } = useAuthStore();
+  const dateStr = useSearchParams().get('date');
+  const initialDate = getInitialDate(dateStr);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,16 +48,6 @@ const CalendarClient = ({ userId, dateStr }: CalendarClientProps) => {
 
     fetchProfile();
   }, [userId]);
-
-  let initialDate;
-  if (dateStr) {
-    initialDate = new Date(dateStr);
-    if (isNaN(initialDate.getTime())) {
-      initialDate = new Date();
-    }
-  } else {
-    initialDate = new Date();
-  }
 
   if (isLoading) {
     return (
@@ -74,7 +73,12 @@ const CalendarClient = ({ userId, dateStr }: CalendarClientProps) => {
     );
   }
 
-  return <HomeCalendar viewedUser={viewedUser as UserProfile} initialDate={initialDate} />;
+  return (
+    <HomeCalendar
+      viewedUser={viewedUser as UserProfile}
+      initialDate={initialDate}
+    />
+  );
 };
 
 export default CalendarClient; 

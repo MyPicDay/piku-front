@@ -1,15 +1,9 @@
 import CalendarClient from '@/components/profile/CalendarClient';
 
-interface CalendarPageProps {
-  params: { userId: string };
-  searchParams: { date?: string };
-}
+const CalendarPage = async ({ params }: { params: Promise<{ userId: string }>}) => {
+  const { userId } = await params;
 
-const CalendarPage = ({ params, searchParams }: CalendarPageProps) => {
-  const { userId } = params;
-  const { date } = searchParams;
-
-  return <CalendarClient userId={userId} dateStr={date} />;
+  return <CalendarClient userId={userId}/>;
 };
 
 export default CalendarPage;
