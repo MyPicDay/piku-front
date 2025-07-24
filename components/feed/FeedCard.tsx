@@ -199,7 +199,8 @@ const FeedCard = ({
 
   return (
     <>
-      <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      {/* <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"> */}
+      <div className="w-full rounded-xl border border-gray-200 bg-white shadow-md p-4 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center justify-between p-3">
           <div className="relative flex items-center">
             <div
@@ -253,6 +254,7 @@ const FeedCard = ({
           src={photoUrl}
           alt="Diary image"
           fill
+          className='rounded'
           style={{ objectFit: 'cover' }}
           priority
         />
@@ -311,7 +313,7 @@ const FeedCard = ({
             avatar={post.avatar}
             containerClassName="inline-flex mr-1"
             imageSize={20}
-            nicknameClassName="font-semibold"
+            nicknameClassName="font-semibold truncate"
           />
           <p className="truncate text-sm text-center">
             {post.content}

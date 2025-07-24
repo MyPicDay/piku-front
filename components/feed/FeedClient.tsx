@@ -114,7 +114,7 @@ const FeedClient = () => {
   }
 
   return (
-    <div className="mx-auto max-w-[600px] space-y-8 py-8">
+    <div className="mx-auto max-w-[600px] space-y-8">
       {feed.map((post, index) => (
         <div
           key={post.diaryId}
