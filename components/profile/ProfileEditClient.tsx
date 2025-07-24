@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Camera } from 'lucide-react';
-import { UserProfileResponseDTO } from '@/types/profile';
 import { useRouter } from 'next/navigation';
+import { UserProfileResponseDTO } from '@/types/profile';
 import {
   checkNicknameAvailability,
-  updateUserNickname,
+  updateUserProfile,
 } from '@/api/user';
 import useAuthStore from '../store/authStore';
+import CharacterSelection from '../auth/CharacterSelection';
+import { getFixedCharacters } from '@/api/character';
 
 interface ProfileEditClientProps {
   profileData: UserProfileResponseDTO;
-  onSave: (formData: { nickname: string; profileImage: File | null }) => void;
 }
 
 const ProfileEditClient = ({
@@ -26,10 +25,30 @@ const ProfileEditClient = ({
     null,
   );
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState('');
-  const [profileImage, setProfileImage] = useState<string | null>(
-    profileData.avatar,
-  );
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<string | undefined>(undefined);
+  
+  const [characters, setCharacters] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      try {
+        const data = await getFixedCharacters();
+        if (data && Array.isArray(data)) {
+            setCharacters(data);
+            const currentCharacter = data.find(c => user?.avatar?.includes(c.displayImageUrl));
+            if (currentCharacter) {
+                setSelectedCharacter(String(currentCharacter.id));
+            }
+        }
+      } catch (error) {
+        console.error('Failed to fetch characters:', error);
+      }
+    };
+    if(user?.avatar) {
+        fetchCharacters();
+    }
+  }, [user?.avatar]);
+
 
   const originalNickname = profileData.nickname;
 
@@ -47,6 +66,12 @@ const ProfileEditClient = ({
     setNickname(e.target.value);
   };
 
+  const handleCharacterChange = (field: string) => (e: { target: { value: string }}) => {
+      if (field === 'character') {
+        setSelectedCharacter(e.target.value);
+      }
+  }
+
   const handleCheckNickname = async () => {
     if (!nickname.trim() || nickname === originalNickname) return;
     try {
@@ -61,69 +86,57 @@ const ProfileEditClient = ({
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      setProfileImage(URL.createObjectURL(file));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (nickname !== originalNickname && isNicknameAvailable !== true) {
       alert('닉네임 중복 확인을 통과해야 합니다.');
       return;
     }
-    
+
+    const payload: { newNickname?: string; characterId?: number } = {};
+    const currentCharacter = characters.find(c => user?.avatar?.includes(c.displayImageUrl));
+
     if (nickname !== originalNickname) {
-        try {
-            const { success, message, newNickname } = await updateUserNickname(nickname);
-            if (success && user) {
-                const updatedUser = { ...user, nickname: newNickname || nickname };
-                updateUserInStore(updatedUser);
-                alert('닉네임이 성공적으로 변경되었습니다.');
-                router.push(`/profile/${user.id}`);
-            } else {
-                alert(`닉네임 변경 실패: ${message}`);
-            }
-        } catch (error: any) {
-            alert(`닉네임 변경 중 오류 발생: ${error.response?.data?.message || error.message}`);
-        }
+      payload.newNickname = nickname;
     }
-    
-    // TODO: 이미지 업로드 로직 추가
-    console.log('이미지 파일:', imageFile);
+
+    if (selectedCharacter && currentCharacter && String(currentCharacter.id) !== selectedCharacter) {
+      payload.characterId = Number(selectedCharacter);
+    }
+
+    if (Object.keys(payload).length === 0) {
+      router.back();
+      return;
+    }
+
+    try {
+      const updatedProfile = await updateUserProfile(payload);
+      if (user) {
+        const updatedUser = {
+          ...user,
+          nickname: updatedProfile.nickname,
+          avatar: updatedProfile.avatar,
+        };
+        updateUserInStore(updatedUser);
+        alert('프로필이 성공적으로 변경되었습니다.');
+        router.push(`/profile/${user.id}`);
+      }
+    } catch (error: any) {
+      alert(`프로필 업데이트 중 오류 발생: ${error.response?.data?.message || error.message}`);
+    }
   };
 
 
   return (
     <div className="w-full max-w-md mx-auto p-6">
       <form onSubmit={handleSubmit}>
-        <div className="relative w-32 h-32 mx-auto mb-8">
-          <Image
-            src={profileImage || '/default-avatar.png'}
-            alt="Profile Picture"
-            width={128}
-            height={128}
-            className="rounded-full object-cover border"
-          />
-          <label
-            htmlFor="profile-image-upload"
-            className="absolute bottom-0 right-0 bg-white rounded-full p-2 cursor-pointer border shadow-sm"
-          >
-            <Camera className="w-5 h-5" />
-            <input
-              id="profile-image-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-            />
-          </label>
-        </div>
 
-        <div className="space-y-6">
+        {selectedCharacter !== undefined && <CharacterSelection 
+          handleChange={handleCharacterChange}
+          values={{ character: selectedCharacter }}
+        />}
+        
+        <div className="space-y-6 mt-8">
           <div>
             <label
               htmlFor="nickname"

@@ -20,7 +20,9 @@ const useAuthStore = create<AuthState>()(
       user: null,
 
       login: (user) => {
-        const avatarUrl = user.avatar && `${getServerURL()}/${user.avatar}`;
+        const avatarUrl = user.avatar && !user.avatar.startsWith('http') 
+            ? `${getServerURL()}/${user.avatar}` 
+            : user.avatar;
         set({isLoggedIn: true , user: { ...user, avatar: avatarUrl }});
       },
       logout: () => {

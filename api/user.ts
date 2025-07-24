@@ -21,11 +21,14 @@ export const checkNicknameAvailability = async (
   return response.data;
 };
 
-export const updateUserNickname = async (
-  nickname: string,
-): Promise<NicknameChangeResponseDTO> => {
-  const response = await api.patch(`/users/nickname`, null, {
-    params: { newNickname: nickname },
-  });
+interface UpdateProfilePayload {
+  newNickname?: string;
+  characterId?: number;
+}
+
+export const updateUserProfile = async (
+  data: UpdateProfilePayload,
+): Promise<UserProfileResponseDTO> => {
+  const response = await api.patch(`/users/profile`, data);
   return response.data;
 }; 
