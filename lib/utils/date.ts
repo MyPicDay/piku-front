@@ -78,3 +78,10 @@ export const formatYearMonthDayDots = (dateString?: string): string => {
 export const getDaysInMonth = (year: number, month: number) => {
   return new Date(year, month, 0).getDate();
 }; 
+
+export const getSeoulDate = (): Date => {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
+  const kstOffset = 9 * 60 * 60 * 1000;
+  return new Date(utc + kstOffset);
+}; 
