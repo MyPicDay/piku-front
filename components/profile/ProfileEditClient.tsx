@@ -29,13 +29,17 @@ const ProfileEditClient = ({
   
   const [characters, setCharacters] = useState<any[]>([]);
 
+  const stripProtocol = (url: string) => {
+    return url.replace(/^(https?):\/\//, '');
+  };
+
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
         const data = await getFixedCharacters();
         if (data && Array.isArray(data)) {
             setCharacters(data);
-            const currentCharacter = data.find(c => user?.avatar?.includes(c.displayImageUrl));
+            const currentCharacter = data.find(c => user?.avatar && stripProtocol(user.avatar).includes(stripProtocol(c.displayImageUrl)));
             if (currentCharacter) {
                 setSelectedCharacter(String(currentCharacter.id));
             }
@@ -94,7 +98,7 @@ const ProfileEditClient = ({
     }
 
     const payload: { newNickname?: string; characterId?: number } = {};
-    const currentCharacter = characters.find(c => user?.avatar?.includes(c.displayImageUrl));
+    const currentCharacter = characters.find(c => user?.avatar && stripProtocol(user.avatar).includes(stripProtocol(c.displayImageUrl)));
 
     if (nickname !== originalNickname) {
       payload.newNickname = nickname;
@@ -222,7 +226,7 @@ const ProfileEditClient = ({
         <div className="flex gap-4 mt-8">
           <button
             type="submit"
-            className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600"
+            className="w-full py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800"
           >
             저장
           </button>
