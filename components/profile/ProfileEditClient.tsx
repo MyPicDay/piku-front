@@ -114,8 +114,8 @@ const ProfileEditClient = ({
       if (user) {
         const updatedUser = {
           ...user,
-          nickname: updatedProfile.nickname,
-          avatar: updatedProfile.avatar,
+          nickname: updatedProfile.newNickname || user.nickname,
+          avatar: updatedProfile.avatar || user.avatar,
         };
         updateUserInStore(updatedUser);
         alert('프로필이 성공적으로 변경되었습니다.');
