@@ -55,12 +55,12 @@ const CharacterSelection = ({ handleChange, values }: CharacterSelectionProps) =
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
               </div>
             )}
-            <img
+            <Image
               src={char.displayImageUrl}
               alt={`캐릭터 ${char.type}`}
               width={700}
               height={150}
-              className="object-contain"
+              className="object-contain w-full h-full"
               loading={index < 2 ? "eager" : "lazy"}
               // priority={index < 2}
             />
