@@ -38,8 +38,29 @@ const BottomNav = () => {
     }`;
   };
 
+  const getMoreLinkClass = () => {
+    const isActive =
+      pathname.startsWith('/profile') || pathname.startsWith('/settings');
+    return `flex flex-col items-center text-sm w-16 ${
+      isActive ? '' : 'text-gray-400'
+    }`;
+  };
+
   return (
     <>
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.25s ease-out;
+        }
+      `}</style>
       <footer className="flex justify-around items-center p-2 border-t xl:hidden sticky bottom-0 bg-white z-10">
         <Link href="/" className={getLinkClass('/')}>
           <Home className="w-6 h-6" />
@@ -60,12 +81,12 @@ const BottomNav = () => {
           <Users className="w-6 h-6" />
           <span className="text-xs">친구</span>
         </Link>
-        <Link href="/profile" className={getLinkClass('/profile', false)}>
-          <User className="w-6 h-6" />
-          <span className="text-xs">My</span>
-        </Link>
+        <button onClick={() => setIsModalOpen(true)} className={getMoreLinkClass()}>
+          <Menu className="w-6 h-6" />
+          <span className="text-xs">더보기</span>
+        </button>
       </footer>
-      {/* {isModalOpen && (
+      {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setIsModalOpen(false)}
@@ -101,7 +122,7 @@ const BottomNav = () => {
             </nav>
           </div>
         </div>
-      )} */}
+      )}
     </>
   );
 };
