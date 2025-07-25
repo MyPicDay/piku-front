@@ -107,6 +107,11 @@ const LoginClient = () => {
                 가입하기
               </Link>
             </p>
+            <p className="text-sm text-gray-500 mt-2">
+              <Link href="/password-reset" className="hover:underline">
+                비밀번호를 잊으셨나요?
+              </Link>
+            </p>
           </div>
           {message && (
             <p className={`mt-4 text-center ${message.includes('성공') ? 'text-green-600' : 'text-red-600'}`}>

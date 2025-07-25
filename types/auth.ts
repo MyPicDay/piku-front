@@ -34,4 +34,10 @@ export interface User {
   email: string;
   nickname: string;
   avatar: string;
+}
+
+export interface PwdResetRequest {
+  email: string;
+  code: string;
+  password?: string;
 } 
