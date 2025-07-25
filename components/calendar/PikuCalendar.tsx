@@ -14,21 +14,27 @@ import {
   differenceInCalendarDays,
 } from 'date-fns';
 import type { SwipeableHandlers } from 'react-swipeable';
+import useAuthStore from '../store/authStore';
+import type { Friend } from '@/types/friend';
 
 interface PikuCalendarProps {
+  targetUser: Friend | undefined;
   currentDate: Date;
   pikus: { [key: string]: { id: number; imageUrl: string } };
   handlers: SwipeableHandlers;
   today: Date;
   onDayClick: (diaryId: number) => void;
+  isMyCalendar: boolean;
 }
 
 const PikuCalendar = ({
+  targetUser,
   currentDate,
   pikus,
   handlers,
   today,
   onDayClick,
+  isMyCalendar,
 }: PikuCalendarProps) => {
   const router = useRouter();
   const monthStart = startOfMonth(currentDate);
@@ -36,7 +42,8 @@ const PikuCalendar = ({
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: startDate, end: endDate });
-
+  const { user } = useAuthStore();
+  
   const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
   const getDayClassName = (
@@ -69,7 +76,8 @@ const PikuCalendar = ({
           const isFutureDate = differenceInCalendarDays(day, today) > 0;
 
           const canView = pikuData && isCurrentMonth;
-          const canCreate = !pikuData && isCurrentMonth && !isFutureDate;
+          const canCreate =
+            isMyCalendar && !pikuData && isCurrentMonth && !isFutureDate;
 
           const handleClick = () => {
             if (canView) {
@@ -87,7 +95,7 @@ const PikuCalendar = ({
                 isCurrentDay ? 'border-yellow-400 border-2' : ''
               } ${
                 !isCurrentMonth ? 'bg-gray-50' : 'bg-white'
-              } ${canCreate || canView ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+              } ${((canCreate || canView)) ? 'cursor-pointer hover:bg-gray-100' : ''}`}
             >
               {pikuData && isCurrentMonth ? (
                 <img

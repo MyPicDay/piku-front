@@ -29,7 +29,7 @@ const HomeCalendar = ({
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
   const isMyCalendar =
     !initialViewedUser || user?.id === initialViewedUser.userId;
-
+  
   // 친구 관리 훅
   const {
     viewedUser: selectedViewedUser,
@@ -40,6 +40,8 @@ const HomeCalendar = ({
 
   // 실제로 표시할 유저 결정
   const viewedUser = selectedViewedUser || initialViewedUser;
+
+  const isOwner = !viewedUser || viewedUser.userId === user?.id;
 
   // 빈 함수 추가
   const noop = () => {};
@@ -140,11 +142,13 @@ const HomeCalendar = ({
           />
 
           <PikuCalendar
+            targetUser={viewedUser || undefined}
             currentDate={currentDate}
             pikus={pikus}
             handlers={swipeHandlers}
             today={today}
             onDayClick={handleDayClick}
+            isMyCalendar={isOwner}
           />
         </motion.div>
       </AnimatePresence>
