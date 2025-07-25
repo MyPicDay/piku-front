@@ -2,6 +2,7 @@ import api from '@/api/api';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';
 import generateUUID from '@/lib/utils/uuidGenerator';
 import { PwdResetRequest } from '@/types/auth';
+import { EmailVerificationRequest } from '@/types/auth';
 
 interface SignupData {
   email: string;
@@ -24,17 +25,17 @@ export const sendSignUpVerificationEmail = async (email: string) => {
   return response.data;
 };
 
-export const verifyCode = async (email: string, code: string) => {
-  const response = await api.post('/auth/verify-code', { email, code });
+export const verifyCode = async (data: EmailVerificationRequest) => {
+  const response = await api.post('/auth/verify-code', data);
   return response.data;
 };
 
-export const sendVerificationCode = async (email: string) => {
-  return await api.post('/auth/send-verification/password-reset', { email: email});
+export const sendVerificationCode = async (email: string, type: 'SIGN_UP' | 'PASSWORD_RESET') => {
+  return await api.post('/auth/send-verification/password-reset', { email: email, type });
 }
 
-export const verifyCodeAndResetPassword = async(data: PwdResetRequest) => {
-  return await api.post('/auth/verify-code/password-reset', data);
+export const resetPassword = async(data: PwdResetRequest) => {
+  return await api.post('/auth/password-reset', data);
 }
 
 interface LoginData {

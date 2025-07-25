@@ -96,7 +96,7 @@ const SignupClient = () => {
     setIsLoading(true);
     setVerificationMessage('');
     try {
-      await verifyCode(values.email, values.verificationCode);
+      await verifyCode({ email: values.email, code: values.verificationCode, type: 'SIGN_UP' });
       setIsEmailVerified(true);
       setMessage('이메일 인증이 완료되었습니다.');
       setIsVerificationSent(false); // 인증 성공 시 입력창 숨김

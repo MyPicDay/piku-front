@@ -38,6 +38,11 @@ export interface User {
 
 export interface PwdResetRequest {
   email: string;
+  password: string;
+}
+
+export interface EmailVerificationRequest {
+  email: string;
   code: string;
-  password?: string;
+  type: 'SIGN_UP' | 'PASSWORD_RESET';
 } 

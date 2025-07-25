@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { sendVerificationCode, verifyCodeAndResetPassword } from '@/api/auth';
-import Link from 'next/link';
+import { sendVerificationCode, verifyCode, resetPassword } from '@/api/auth';
 
 const PasswordResetClient = () => {
   const [email, setEmail] = useState('');
@@ -12,7 +11,7 @@ const PasswordResetClient = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [step, setStep] = useState(1); // 1: email, 2: code, 3: password
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -25,8 +24,8 @@ const PasswordResetClient = () => {
     setMessage('');
     setIsLoading(true);
     try {
-      await sendVerificationCode(email);
-      setIsCodeSent(true);
+      await sendVerificationCode(email, 'PASSWORD_RESET');
+      setStep(2);
       setMessage('인증 코드가 발송되었습니다. 이메일을 확인해주세요.');
     } catch (err: any) {
       setError(err.response?.data?.message || '인증 코드 발송에 실패했습니다.');
@@ -35,7 +34,26 @@ const PasswordResetClient = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleVerifyCode = async () => {
+    if (!code) {
+      setError('인증 코드를 입력해주세요.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+    try {
+      await verifyCode({ email, code, type: 'PASSWORD_RESET' });
+      setStep(3);
+      setMessage('인증에 성공했습니다. 새 비밀번호를 입력해주세요.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || '인증에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.');
@@ -46,7 +64,7 @@ const PasswordResetClient = () => {
     setIsLoading(true);
 
     try {
-      await verifyCodeAndResetPassword({ email, code, password });
+      await resetPassword({ email, password });
       setMessage('비밀번호가 성공적으로 변경되었습니다. 로그인 페이지로 이동합니다.');
       setTimeout(() => {
         router.push('/login');
@@ -57,7 +75,6 @@ const PasswordResetClient = () => {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-black">
@@ -69,7 +86,7 @@ const PasswordResetClient = () => {
           </div>
         </div>
 
-        {!isCodeSent ? (
+        {step === 1 && (
           <div>
             <div className="mb-4">
               <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
@@ -88,13 +105,15 @@ const PasswordResetClient = () => {
             <button
               onClick={handleSendCode}
               className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || !email}
             >
               {isLoading ? '전송 중...' : '인증 코드 받기'}
             </button>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
+        )}
+
+        {step === 2 && (
+          <div>
             <div className="mb-4">
               <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="code">
                 인증 코드
@@ -109,6 +128,18 @@ const PasswordResetClient = () => {
                 required
               />
             </div>
+            <button
+              onClick={handleVerifyCode}
+              className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
+              disabled={isLoading || !code}
+            >
+              {isLoading ? '확인 중...' : '인증 코드 확인'}
+            </button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={handleResetPassword}>
             <div className="mb-4">
               <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
                 새 비밀번호
@@ -140,12 +171,13 @@ const PasswordResetClient = () => {
             <button
               className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
             >
               {isLoading ? '변경 중...' : '비밀번호 변경'}
             </button>
           </form>
         )}
+        
         {message && <p className="mt-4 text-center text-green-600">{message}</p>}
         {error && <p className="mt-4 text-center text-red-600">{error}</p>}
       </div>
