@@ -10,12 +10,14 @@ import {
   Settings,
   LogOut,
   X,
+  HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '../store/authStore';
 import { logout } from '@/api/auth';
+import InquiryModal from './InquiryModal';
 
 const BottomNav = () => {
   const today = new Date();
@@ -24,6 +26,7 @@ const BottomNav = () => {
   const day = String(today.getDate()).padStart(2, '0');
   const todayDate = `${year}-${month}-${day}`;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -113,6 +116,16 @@ const BottomNav = () => {
                 <span>설정</span>
               </Link>
               <button
+                onClick={() => {
+                  setIsInquiryModalOpen(true);
+                  setIsModalOpen(false);
+                }}
+                className="flex items-center p-3 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left w-full"
+              >
+                <HelpCircle className="w-6 h-6 mr-4" />
+                <span>피드백</span>
+              </button>
+              <button
                 onClick={handleLogout}
                 className="flex items-center p-3 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left w-full"
               >
@@ -123,6 +136,7 @@ const BottomNav = () => {
           </div>
         </div>
       )}
+      {isInquiryModalOpen && <InquiryModal onClose={() => setIsInquiryModalOpen(false)} />}
     </>
   );
 };
