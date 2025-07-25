@@ -10,6 +10,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { useSwipeable } from 'react-swipeable';
 import type { DiaryDetail } from '@/types/diary';
 import type { Comment } from '@/types/comment';
 import {
@@ -378,6 +379,12 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
     }
   };
 
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNextImage(),
+    onSwipedRight: () => handlePrevImage(),
+    trackMouse: true,
+  });
+
   const DEFAULT_AVATAR = `${serverUrl}/globe.svg`;
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = DEFAULT_AVATAR;
@@ -411,7 +418,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
       </div>
 
       {/* Image Viewer */}
-      <div className="relative h-full w-full">
+      <div {...swipeHandlers} className="relative h-full w-full">
         <AnimatePresence initial={false}>
           <motion.div
             key={currentImageIndex}
