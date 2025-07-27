@@ -24,6 +24,9 @@ const MobileView = ({
   agreements,
   handleAgreeAllChange,
   handleAgreementChange,
+  errors,
+  emailDomains,
+  isSendingVerification,
 }: MobileViewProps) => {
   const isAgreed = agreements.terms && agreements.privacy;
   return (
@@ -41,6 +44,9 @@ const MobileView = ({
             agreements={agreements}
             handleAgreeAllChange={handleAgreeAllChange}
             handleAgreementChange={handleAgreementChange}
+            errors={errors}
+            emailDomains={emailDomains}
+            isSendingVerification={isSendingVerification}
           />
         )}
         {step === 2 && <CharacterSelection handleChange={handleChange} values={values} />}
@@ -49,7 +55,7 @@ const MobileView = ({
         {step === 1 && (
           <button
             onClick={nextStep}
-            className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
+            className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 dark:hover:bg-gray-400 cursor-pointer"
             disabled={!isEmailVerified || !isAgreed}
           >
             다음
@@ -58,8 +64,8 @@ const MobileView = ({
         {step === 2 && (
           <button
             onClick={handleSubmit}
-            className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
-            disabled={isLoading || !values.character}
+            className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 dark:hover:bg-gray-400 cursor-pointer"
+            disabled={isLoading || !values.character || !isAgreed}
           >
             {isLoading ? '가입 중...' : '회원 가입'}
           </button>

@@ -18,6 +18,9 @@ const SignupForm = ({
   agreements,
   handleAgreeAllChange,
   handleAgreementChange,
+  errors,
+  emailDomains = [],
+  isSendingVerification,
 }: AuthFormProps) => {
   const [modalContent, setModalContent] = useState<{ title: string; content: string; type: 'terms' | 'privacy' } | null>(
     null,
@@ -44,30 +47,64 @@ const SignupForm = ({
     }
   };
 
+  const [emailId, setEmailId] = useState('');
+  const [emailDomain, setEmailDomain] = useState(emailDomains?.[0] || '');
+
+  const handleEmailChange = () => {
+    const fullEmail = `${emailId}@${emailDomain}`;
+    handleChange('email')({ target: { value: fullEmail } });
+  };
+
+  React.useEffect(() => {
+    if (emailId && emailDomain) {
+      handleEmailChange();
+    }
+  }, [emailId, emailDomain]);
+
+  React.useEffect(() => {
+    if(emailDomains && emailDomains.length > 0) {
+      setEmailDomain(emailDomains[0]);
+    }
+  }, [emailDomains]);
+
   return (
     <>
       <form className="space-y-6">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <Mail className="text-gray-400" />
-          <div className="flex-grow">
+          <div className="flex-grow flex items-center gap-2">
             <input
-              type="email"
-              placeholder="email@example.com"
-              onChange={handleChange('email')}
-              value={values.email}
-              className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
+              type="text"
+              placeholder="email"
+              onChange={(e) => setEmailId(e.target.value)}
+              value={emailId}
+              className={`w-full border-b-2 ${errors?.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2`}
               disabled={isEmailVerified}
             />
+            <span>@</span>
+            <select
+              value={emailDomain}
+              onChange={(e) => setEmailDomain(e.target.value)}
+              className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
+              disabled={isEmailVerified}
+            >
+              {emailDomains?.map((domain) => (
+                <option key={domain} value={domain}>
+                  {domain}
+                </option>
+              ))}
+            </select>
           </div>
           <button
             type="button"
             onClick={handleSendVerification}
-            disabled={isEmailVerified || !values.email}
-            className="text-sm bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md disabled:opacity-50"
+            disabled={isEmailVerified || !values.email || !!errors?.email || isSendingVerification}
+            className="whitespace-nowrap flex-shrink-0 text-sm bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer"
           >
-            {isEmailVerified ? '인증완료' : '전송'}
+            {isSendingVerification ? '전송 중...' : isEmailVerified ? '인증완료' : '전송'}
           </button>
         </div>
+        {errors?.email && <p className="text-red-500 text-xs mt-1 pl-10">{errors.email}</p>}
 
         {isVerificationSent && (
           <div>
@@ -87,7 +124,7 @@ const SignupForm = ({
               <button
                 type="button"
                 onClick={handleVerifyCode}
-                className="text-sm bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md"
+                className="text-sm bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md cursor-pointer"
               >
                 인증
               </button>
@@ -103,9 +140,10 @@ const SignupForm = ({
             placeholder="비밀번호를 입력해주세요"
             onChange={handleChange('password')}
             value={values.password}
-            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
+            className={`w-full border-b-2 ${errors?.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2`}
           />
         </div>
+        {errors?.password && <p className="text-red-500 text-xs mt-1 pl-10">{errors.password}</p>}
         <div className="flex items-center space-x-4">
           <Lock className="text-gray-400" />
           <input

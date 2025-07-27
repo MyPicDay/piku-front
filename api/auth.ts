@@ -25,6 +25,11 @@ export const sendSignUpVerificationEmail = async (email: string) => {
   return response.data;
 };
 
+export const getAllowedEmailDomains = async () => {
+  const response = await api.get('/auth/email-domains');
+  return response.data;
+};
+
 export const verifyCode = async (data: EmailVerificationRequest) => {
   const response = await api.post('/auth/verify-code', data);
   return response.data;

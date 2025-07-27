@@ -27,6 +27,9 @@ export interface AuthFormProps {
   agreements: Agreements;
   handleAgreeAllChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAgreementChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors?: { email?: string; password?: string };
+  emailDomains?: string[];
+  isSendingVerification?: boolean;
 }
 
 export interface User {
