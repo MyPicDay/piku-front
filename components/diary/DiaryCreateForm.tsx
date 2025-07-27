@@ -63,8 +63,12 @@ const PhotoItem = ({
       dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
       dragElastic={0.1}
       whileDrag={{ scale: 1.05, zIndex: 1000, rotate: 2 }}
-      onTap={() => {
-        if (!isClicked) {
+      onTap={(e: React.MouseEvent<HTMLDivElement>) => {
+        // GripVertical이나 XCircle 버튼을 클릭한 경우 이미지 확대 안함
+        const target = e.target as Element;
+        const isControlButton = target.closest('[data-drag-handle]') || target.closest('[data-remove-button]');
+        
+        if (!isClicked && !isControlButton) {
           onClick(photo.url);
         }
         setIsClicked(false);
@@ -77,6 +81,7 @@ const PhotoItem = ({
       />
 
       <div
+        data-drag-handle
         onPointerDown={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -89,10 +94,11 @@ const PhotoItem = ({
       </div>
 
       <div
+        data-remove-button
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          setIsClicked(true);
+          // setIsClicked(true);
           onRemove(photo);
         }}
         onPointerDown={(e) => {
