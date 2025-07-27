@@ -26,6 +26,17 @@ const FeedClient = () => {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (selectedDiary) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto'; // 컴포넌트 언마운트 시 초기화
+    };
+  }, [selectedDiary]);
+
   const handleContentClick = async (diaryId: number) => {
     if (isClient) {
       setIsLoadingDetail(true);
@@ -114,7 +125,7 @@ const FeedClient = () => {
   }
 
   return (
-    <div className="mx-auto max-w-[600px] space-y-8 py-8">
+    <div className="mx-auto max-w-[600px] space-y-8">
       {feed.map((post, index) => (
         <div
           key={post.diaryId}

@@ -140,7 +140,7 @@ const ProfileClient = ({ profileData }: ProfileClientProps) => {
           {isMyProfile ? (
             <button
               onClick={handleEditProfile}
-              className="py-2 px-6 bg-gray-200 text-gray-800 rounded-full font-semibold text-sm"
+              className="py-2 px-6 bg-gray-200 text-gray-800 rounded-full font-semibold text-sm cursor-pointer hover:bg-gray-300"
             >
               프로필 편집
             </button>

@@ -28,14 +28,14 @@ const CommentActionModal = ({
           {isOwner && (
             <>
               <li className="border-b border-gray-200 dark:border-gray-700">
-                <button onClick={onEdit} className="w-full p-3">
+                <button onClick={onEdit} className="w-full p-3 cursor-pointer">
                   수정
                 </button>
               </li>
               <li className="border-b border-gray-200 dark:border-gray-700">
                 <button
                   onClick={onDelete}
-                  className="w-full p-3 font-bold text-red-500"
+                  className="w-full p-3 font-bold text-red-500 cursor-pointer"
                 >
                   삭제
                 </button>
@@ -43,12 +43,12 @@ const CommentActionModal = ({
             </>
           )}
           <li className="border-b border-gray-200 dark:border-gray-700">
-            <button onClick={onReport} className="w-full p-3">
+            <button onClick={onReport} className="w-full p-3 cursor-pointer">
               신고
             </button>
           </li>
           <li>
-            <button onClick={onClose} className="w-full p-3">
+            <button onClick={onClose} className="w-full p-3 cursor-pointer">
               취소
             </button>
           </li>

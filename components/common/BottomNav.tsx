@@ -10,12 +10,14 @@ import {
   Settings,
   LogOut,
   X,
+  HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '../store/authStore';
 import { logout } from '@/api/auth';
+import InquiryModal from './InquiryModal';
 
 const BottomNav = () => {
   const today = new Date();
@@ -24,6 +26,7 @@ const BottomNav = () => {
   const day = String(today.getDate()).padStart(2, '0');
   const todayDate = `${year}-${month}-${day}`;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -38,8 +41,29 @@ const BottomNav = () => {
     }`;
   };
 
+  const getMoreLinkClass = () => {
+    const isActive =
+      pathname.startsWith('/profile') || pathname.startsWith('/settings');
+    return `flex flex-col items-center text-sm w-16 ${
+      isActive ? '' : 'text-gray-400'
+    }`;
+  };
+
   return (
     <>
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.25s ease-out;
+        }
+      `}</style>
       <footer className="flex justify-around items-center p-2 border-t xl:hidden sticky bottom-0 bg-white z-10">
         <Link href="/" className={getLinkClass('/')}>
           <Home className="w-6 h-6" />
@@ -60,12 +84,12 @@ const BottomNav = () => {
           <Users className="w-6 h-6" />
           <span className="text-xs">친구</span>
         </Link>
-        <Link href="/profile" className={getLinkClass('/profile', false)}>
-          <User className="w-6 h-6" />
-          <span className="text-xs">My</span>
-        </Link>
+        <button onClick={() => setIsModalOpen(true)} className={getMoreLinkClass()}>
+          <Menu className="w-6 h-6" />
+          <span className="text-xs">더보기</span>
+        </button>
       </footer>
-      {/* {isModalOpen && (
+      {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setIsModalOpen(false)}
@@ -92,6 +116,16 @@ const BottomNav = () => {
                 <span>설정</span>
               </Link>
               <button
+                onClick={() => {
+                  setIsInquiryModalOpen(true);
+                  setIsModalOpen(false);
+                }}
+                className="flex items-center p-3 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left w-full"
+              >
+                <HelpCircle className="w-6 h-6 mr-4" />
+                <span>피드백</span>
+              </button>
+              <button
                 onClick={handleLogout}
                 className="flex items-center p-3 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left w-full"
               >
@@ -101,7 +135,8 @@ const BottomNav = () => {
             </nav>
           </div>
         </div>
-      )} */}
+      )}
+      {isInquiryModalOpen && <InquiryModal onClose={() => setIsInquiryModalOpen(false)} />}
     </>
   );
 };

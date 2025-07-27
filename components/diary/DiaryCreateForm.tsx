@@ -14,12 +14,113 @@ import {
   UnifiedPhoto,
   PrivacyStatus,
 } from '@/types/diary';
-import { X, Globe, Lock, Users, Camera, Sparkles, XCircle, LogIn } from 'lucide-react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import {
+  X,
+  Globe,
+  Lock,
+  Users,
+  Camera,
+  Sparkles,
+  XCircle,
+  LogIn,
+  GripVertical,
+} from 'lucide-react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import ImagePreviewModal from '../common/ImagePreviewModal';
 
 const MAX_AI_PHOTOS = 3;
 const MAX_TOTAL_PHOTOS = 5;
+
+// PhotoItem 컴포넌트 분리
+const PhotoItem = ({
+  photo,
+  isCover,
+  onRemove,
+  onClick,
+  onDragStart,
+  onDragEnd,
+}: {
+  photo: UnifiedPhoto;
+  isCover: boolean;
+  onRemove: (photo: UnifiedPhoto) => void;
+  onClick: (url: string) => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}) => {
+  const dragControls = useDragControls();
+  const [isClicked, setIsClicked] = useState(false);
+
+  return (
+    <Reorder.Item
+      key={photo.id}
+      value={photo}
+      as="div"
+      className="relative group flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-md overflow-hidden cursor-pointer touch-pan-x mr-4"
+      dragListener={false}
+      dragControls={dragControls}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
+      dragElastic={0.1}
+      whileDrag={{ scale: 1.05, zIndex: 1000, rotate: 2 }}
+      onTap={(e: React.MouseEvent<HTMLDivElement>) => {
+        // GripVertical이나 XCircle 버튼을 클릭한 경우 이미지 확대 안함
+        const target = e.target as Element;
+        const isControlButton = target.closest('[data-drag-handle]') || target.closest('[data-remove-button]');
+        
+        if (!isClicked && !isControlButton) {
+          onClick(photo.url);
+        }
+        setIsClicked(false);
+      }}
+    >
+      <img
+        src={photo.url}
+        alt="selected photo"
+        className="w-full h-full object-cover"
+      />
+
+      <div
+        data-drag-handle
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragControls.start(e, { snapToCursor: false });
+        }}
+        className="absolute bottom-1 left-1 p-2 bg-black/70 rounded-full text-white cursor-grab active:cursor-grabbing z-10 touch-manipulation select-none"
+        style={{ touchAction: 'none' }}
+      >
+        <GripVertical size={14} />
+      </div>
+
+      <div
+        data-remove-button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // setIsClicked(true);
+          onRemove(photo);
+        }}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        className="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white z-20 cursor-pointer"
+      >
+        <XCircle size={16} />
+      </div>
+      {isCover && (
+        <div className="absolute bottom-0 w-full bg-blue-500 text-white text-xs text-center py-0.5 pointer-events-none">
+          대표 사진
+        </div>
+      )}
+    </Reorder.Item>
+  );
+};
 
 interface DiaryCreateFormProps {
   date: string;
@@ -36,8 +137,11 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const { user, isLoggedIn } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     register,
@@ -72,6 +176,84 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current);
+      autoScrollIntervalRef.current = null;
+    }
+  };
+
+  // 자동 스크롤 기능
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent | TouchEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+
+      const container = scrollContainerRef.current;
+      const rect = container.getBoundingClientRect();
+      const scrollSpeed = 4;
+      const edgeThreshold = 60;
+
+      let clientX: number;
+      if ('touches' in e && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+      } else if ('clientX' in e) {
+        clientX = e.clientX;
+      } else {
+        return;
+      }
+
+      // 왼쪽 경계 근처에서 왼쪽으로 스크롤
+      if (clientX < rect.left + edgeThreshold && clientX > rect.left - 100) {
+        if (!autoScrollIntervalRef.current) {
+          autoScrollIntervalRef.current = setInterval(() => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollLeft = Math.max(0, scrollContainerRef.current.scrollLeft - scrollSpeed);
+            }
+          }, 16);
+        }
+      }
+      // 오른쪽 경계 근처에서 오른쪽으로 스크롤
+      else if (clientX > rect.right - edgeThreshold && clientX < rect.right + 100) {
+        if (!autoScrollIntervalRef.current) {
+          autoScrollIntervalRef.current = setInterval(() => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollLeft = Math.min(
+                scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth,
+                scrollContainerRef.current.scrollLeft + scrollSpeed
+              );
+            }
+          }, 16);
+        }
+      }
+      // 경계를 벗어나면 자동 스크롤 중지
+      else {
+        if (autoScrollIntervalRef.current) {
+          clearInterval(autoScrollIntervalRef.current);
+          autoScrollIntervalRef.current = null;
+        }
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('touchmove', handlePointerMove as any);
+    }
+
+    return () => {
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('touchmove', handlePointerMove as any);
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+        autoScrollIntervalRef.current = null;
+      }
+    };
+  }, [isDragging]);
 
   if (!isLoggedIn || !user) {
     return (
@@ -301,7 +483,8 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
         </header>
 
         <main className="flex-grow p-4 overflow-y-auto text-black dark:text-white flex flex-col">
-            <div className="flex items-center space-x-2 overflow-x-auto pb-2">
+            <div className="flex items-center space-x-3 pb-2">
+                {/* 고정 버튼 영역 */}
                 <button
                     onClick={handleGenerateAiPhotos}
                     disabled={
@@ -309,15 +492,15 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                         aiPhotosCount >= MAX_AI_PHOTOS ||
                         totalPhotosCount >= MAX_TOTAL_PHOTOS
                     }
-                    className="flex-shrink-0 w-24 h-24 border-2 border-dashed rounded-md flex flex-col justify-center items-center text-gray-400 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-800 dark:disabled:bg-gray-700 dark:border-gray-600"
+                    className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-2 border-dashed rounded-md flex flex-col justify-center items-center text-gray-400 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-800 dark:disabled:bg-gray-700 dark:border-gray-600"
                 >
                     {isGeneratingAiPhotos ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
                     ) : (
                         <>
-                            <Sparkles size={24} />
-                            <span className="text-sm mt-1">AI 사진</span>
-                            <span className="text-xs">
+                            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+                            <span className="text-xs sm:text-sm mt-1">AI 사진</span>
+                            <span className="text-[11px] sm:text-xs">
                                 ({aiPhotosCount}/{MAX_AI_PHOTOS})
                             </span>
                         </>
@@ -327,15 +510,15 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                 <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={totalPhotosCount >= MAX_TOTAL_PHOTOS || isUploading}
-                    className="flex-shrink-0 w-24 h-24 border-2 border-dashed rounded-md flex flex-col justify-center items-center text-gray-400 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-800 dark:disabled:bg-gray-700 dark:border-gray-600"
+                    className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-2 border-dashed rounded-md flex flex-col justify-center items-center text-gray-400 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-800 dark:disabled:bg-gray-700 dark:border-gray-600"
                 >
                     {isUploading ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
                     ) : (
                         <>
-                            <Camera size={24} />
-                            <span className="text-sm mt-1">사진 추가</span>
-                            <span className="text-xs">({userPhotosCount}장)</span>
+                            <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+                            <span className="text-xs sm:text-sm mt-1">사진 추가</span>
+                            <span className="text-[11px] sm:text-xs">({userPhotosCount}장)</span>
                         </>
                     )}
                 </button>
@@ -348,46 +531,32 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                     className="hidden"
                 />
 
-                <Reorder.Group
-                    as="div"
-                    axis="x"
-                    values={allPhotos}
-                    onReorder={setAllPhotos}
-                    className="flex space-x-2"
-                >
-                    {allPhotos.map((photo, index) => {
-                        const isCover = index === 0;
-                        return (
-                            <Reorder.Item
-                                key={photo.id}
-                                value={photo}
-                                as="div"
-                                className="relative flex-shrink-0 w-24 h-24 rounded-md overflow-hidden cursor-pointer"
-                                onClick={() => handleImageClick(photo.url)}
-                            >
-                                <img
-                                    src={photo.url}
-                                    alt="selected photo"
-                                    className="w-full h-full object-cover pointer-events-none"
+                {/* 스크롤 가능한 사진 목록 */}
+                <div className="overflow-x-auto flex-grow" ref={scrollContainerRef}>
+                    <Reorder.Group
+                        as="div"
+                        axis="x"
+                        values={allPhotos}
+                        onReorder={setAllPhotos}
+                        className="flex"
+                    >
+                        {allPhotos.map((photo, index) => {
+                            const isCover = index === 0;
+
+                            return (
+                                <PhotoItem
+                                    key={photo.id}
+                                    photo={photo}
+                                    isCover={isCover}
+                                    onRemove={removePhoto}
+                                    onClick={handleImageClick}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
                                 />
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        removePhoto(photo);
-                                    }}
-                                    className="absolute top-1 right-1 bg-black/50 rounded-full text-white z-10 cursor-pointer"
-                                >
-                                    <XCircle size={16} />
-                                </button>
-                                {isCover && (
-                                    <div className="absolute bottom-0 w-full bg-blue-500 text-white text-xs text-center py-0.5 pointer-events-none">
-                                        대표 사진
-                                    </div>
-                                )}
-                            </Reorder.Item>
-                        );
-                    })}
-                </Reorder.Group>
+                            );
+                        })}
+                    </Reorder.Group>
+                </div>
             </div>
 
             <div className="flex items-center my-4">

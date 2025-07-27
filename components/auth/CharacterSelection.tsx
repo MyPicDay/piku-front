@@ -47,20 +47,20 @@ const CharacterSelection = ({ handleChange, values }: CharacterSelectionProps) =
           <div
             key={char.id}
             className={`relative border-2 rounded-lg p-4 cursor-pointer flex justify-center items-center h-32
-              ${selected === String(char.id) ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'}`}
+              ${selected === String(char.id) ? 'border-black' : 'border-gray-300 dark:border-gray-600'}`}
             onClick={() => handleSelect(char.id)}
           >
             {selected === String(char.id) && (
-              <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="absolute top-2 right-2 w-5 h-5 bg-black rounded-full flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
               </div>
             )}
-            <img
+            <Image
               src={char.displayImageUrl}
               alt={`캐릭터 ${char.type}`}
               width={700}
               height={150}
-              className="object-contain"
+              className="object-contain w-full h-full"
               loading={index < 2 ? "eager" : "lazy"}
               // priority={index < 2}
             />

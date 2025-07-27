@@ -1,7 +1,8 @@
 import {
   UserProfileResponseDTO,
   NicknameAvailabilityResponseDTO,
-  NicknameChangeResponseDTO,
+  UpdateProfileResponseDTO,
+  UpdateProfilePayload,
 } from '@/types/profile';
 import api from './api';
 
@@ -21,11 +22,10 @@ export const checkNicknameAvailability = async (
   return response.data;
 };
 
-export const updateUserNickname = async (
-  nickname: string,
-): Promise<NicknameChangeResponseDTO> => {
-  const response = await api.patch(`/users/nickname`, null, {
-    params: { newNickname: nickname },
-  });
+
+export const updateUserProfile = async (
+  data: UpdateProfilePayload,
+): Promise<UpdateProfileResponseDTO> => {
+  const response = await api.patch(`/users/profile`, data);
   return response.data;
 }; 

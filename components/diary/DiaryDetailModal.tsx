@@ -490,7 +490,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
       )}
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 text-white hover:text-gray-300"
+        className="absolute right-4 top-4 text-white hover:text-gray-300 cursor-pointer"
       >
         <X size={32} />
       </button>
@@ -512,13 +512,13 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 onClick={handlePrevImage}
                 className="absolute left-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-opacity hover:bg-black/80"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={24} className="cursor-pointer" />
               </button>
               <button
                 onClick={handleNextImage}
                 className="absolute right-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-opacity hover:bg-black/80"
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={24} className="cursor-pointer" />
               </button>
             </>
           )}
@@ -657,7 +657,7 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
               <div className="py-2 text-center">
                 <button
                   onClick={() => fetchComments()}
-                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
                 >
                   이전 댓글 더 보기 ({totalComments})
                 </button>
@@ -690,19 +690,19 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
           <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex space-x-4">
-                <button className="hover:opacity-60 dark:text-white">
+                {/* <button className="hover:opacity-60 dark:text-white cursor-pointer">
                   <Heart size={24} />
-                </button>
-                <button className="hover:opacity-60 dark:text-white">
+                </button> */}
+                {/* <button className="hover:opacity-60 dark:text-white cursor-pointer">
                   <MessageCircle size={24} />
-                </button>
-                <button className="hover:opacity-60 dark:text-white">
+                </button> */}
+                {/* <button className="hover:opacity-60 dark:text-white cursor-pointer">
                   <Send size={24} />
-                </button>
+                </button> */}
               </div>
-              <button className="hover:opacity-60 dark:text-white">
+              {/* <button className="hover:opacity-60 dark:text-white cursor-pointer">
                 <Bookmark size={24} />
-              </button>
+              </button> */}
             </div>
             {/* <p className="mt-2 text-sm font-bold dark:text-white">
               좋아요 {diary.likeCount}개

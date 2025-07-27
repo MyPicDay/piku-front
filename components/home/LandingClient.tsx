@@ -16,12 +16,12 @@ const LandingClient = () => {
           게스트로 시작
         </button> */}
         <Link href="/login" passHref>
-          <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold">
+          <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold cursor-pointer">
             로그인
           </button>
         </Link>
         <Link href="/signup" passHref>
-          <button className="text-gray-600 w-full">
+          <button className="text-gray-600 w-full cursor-pointer">
             회원가입
           </button>
         </Link>

@@ -17,6 +17,7 @@ import {
 import { X, Globe, Lock, Users, Camera, Sparkles, XCircle } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import ImagePreviewModal from '../common/ImagePreviewModal';
+import NotReadyModal from '../common/NotReadyModal';
 
 const MAX_AI_PHOTOS = 3;
 const MAX_TOTAL_PHOTOS = 5;
@@ -36,6 +37,10 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+  // TODO: 일기 수정 기능 개발 완료 시 이 상태와 관련 로직을 모두 삭제하세요.
+  const [isNotReadyModalOpen, setIsNotReadyModalOpen] = useState(false);
+
   const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -121,6 +126,12 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // TODO: 일기 수정 기능 개발 완료 시 이 핸들러를 삭제하세요.
+  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsNotReadyModalOpen(true);
   };
 
   const handleGenerateAiPhotos = async () => {
@@ -229,7 +240,8 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
                 {'일기 수정'}
             </h1>
             <button
-                onClick={handleSubmit(onSubmit)}
+                // onClick={handleSubmit(onSubmit)} // TODO: 기능 개발 완료 시 이 부분을 복원하세요.
+                onClick={handleEditClick}
                 disabled={isSubmitting}
                 className="font-semibold text-blue-500 disabled:text-gray-400 dark:disabled:text-gray-600 cursor-pointer"
             >
@@ -455,6 +467,10 @@ const DiaryEditForm = ({ initialDiaryData }: DiaryEditFormProps) => {
             onClose={() => setIsPreviewModalOpen(false)}
             imageUrl={selectedImageUrl}
         />
+        {/* TODO: 기능 개발 완료 시 아래 모달을 삭제하세요. */}
+        {isNotReadyModalOpen && (
+            <NotReadyModal onClose={() => setIsNotReadyModalOpen(false)} />
+        )}
     </div>
   );
 };

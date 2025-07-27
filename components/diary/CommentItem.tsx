@@ -126,9 +126,9 @@ const CommentItem = ({
         onMouseEnter={() => setIsCommentHovered(true)}
         onMouseLeave={() => setIsCommentHovered(false)}
       >
-        <div className="flex flex-1 items-start space-x-3 cursor-pointer">
+        <div className="flex flex-1 items-start space-x-3">
           <div
-            className="relative"
+            className="relative cursor-pointer"
             onMouseEnter={() => handleProfileMouseEnter('avatar')}
             onMouseLeave={handleProfileMouseLeave}
           >
@@ -192,7 +192,7 @@ const CommentItem = ({
               {comment.parentId === null && (
                 <button
                   onClick={() => onSetReplyTo(comment)}
-                  className="font-semibold hover:text-gray-700"
+                  className="font-semibold hover:text-gray-700 cursor-pointer"
                 >
                   답글 달기
                 </button>
@@ -201,7 +201,7 @@ const CommentItem = ({
             {(isCommentHovered && !isRepliesHovered) && (
               <button
                 onClick={() => setIsActionModalOpen(true)}
-                className="text-gray-500 transition-opacity hover:text-gray-800 dark:hover:text-white"
+                className="text-gray-500 transition-opacity hover:text-gray-800 dark:hover:text-white cursor-pointer"
               >
                 <MoreHorizontal size={16} />
               </button>
@@ -212,7 +212,7 @@ const CommentItem = ({
             {comment.replyCount > 0 && !showReplies && (
               <button
                 onClick={onToggleReplies}
-                className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-800"
+                className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-800 cursor-pointer"
               >
                 ━━ 답글 보기 ({comment.replyCount}개)
               </button>
@@ -222,7 +222,7 @@ const CommentItem = ({
               <>
                 <button
                   onClick={onToggleReplies}
-                  className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-800"
+                  className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-800 cursor-pointer"
                 >
                   ━━ 답글 숨기기
                 </button>

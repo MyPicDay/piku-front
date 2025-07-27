@@ -22,6 +22,7 @@ import {
 import { ChevronLeft, ChevronRight, DotIcon } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
 import UserProfile from '../common/UserProfile';
+import Link from 'next/link';
 
 interface FeedCardProps {
   post: FeedDiary;
@@ -46,6 +47,7 @@ const FeedCard = ({
     onConfirm: () => void;
   } | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   const { user } = useAuthStore();
   const router = useRouter();
@@ -199,7 +201,8 @@ const FeedCard = ({
 
   return (
     <>
-      <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      {/* <div className="w-full rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"> */}
+      <div className="w-full rounded-xl border border-gray-200 bg-white shadow-md p-4 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center justify-between p-3">
           <div className="relative flex items-center">
             <div
@@ -253,6 +256,7 @@ const FeedCard = ({
           src={photoUrl}
           alt="Diary image"
           fill
+          className='rounded'
           style={{ objectFit: 'cover' }}
           priority
         />
@@ -263,13 +267,13 @@ const FeedCard = ({
                 onClick={handlePrevImage}
                 className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={20} className='cursor-pointer'/>
               </button>
               <button
                 onClick={handleNextImage}
                 className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={20} className='cursor-pointer'/>
               </button>
               <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 space-x-1.5">
                 {post.imgUrls.map((_, index) => (
@@ -304,19 +308,42 @@ const FeedCard = ({
       </div>
 
       <div className="px-3">
-        <div className="flex items-center gap-1">
-          <UserProfile
-            userId={post.userId}
-            nickname={post.nickname}
-            avatar={post.avatar}
-            containerClassName="inline-flex mr-1"
-            imageSize={20}
-            nicknameClassName="font-semibold"
-          />
-          <p className="truncate text-sm text-center">
+        {isContentExpanded ? (
+          <p className="text-sm whitespace-pre-wrap">
+            <Link
+              href={`/profile/${post.userId}`}
+              className="mr-1 font-semibold hover:underline"
+              onClick={e => e.stopPropagation()}
+            >
+              {post.nickname}
+            </Link>{' '}
             {post.content}
           </p>
-        </div>
+        ) : (
+          <div className="flex items-baseline text-sm">
+            <p className="truncate">
+              <Link
+                href={`/profile/${post.userId}`}
+                className="mr-1 font-semibold hover:underline"
+                onClick={e => e.stopPropagation()}
+              >
+                {post.nickname}
+              </Link>{' '}
+              <span>{post.content}</span>
+            </p>
+            {post.content.length > 30 && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setIsContentExpanded(true);
+                }}
+                className="ml-1 flex-shrink-0 text-gray-500 cursor-pointer"
+              >
+                더 보기
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="px-3 pt-1">

@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import BottomNav from '@/components/common/BottomNav';
+import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import useAuthStore from '../store/authStore';
 import { useEffect, useState } from 'react';
 
@@ -11,6 +12,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { isLoggedIn, checkAuth } = useAuthStore();
   const [isClient, setIsClient] = useState(false);
+  const hideNavOnPaths = ['/login', '/signup', '/password-reset', '/password-reset/verify'];
 
   useEffect(() => {
     checkAuth();
@@ -18,7 +20,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (isClient && isLoggedIn && (pathname === '/login' || pathname === '/signup')) {
+    if (isClient && isLoggedIn && hideNavOnPaths.includes(pathname)) {
       router.replace('/');
     }
   }, [isClient, isLoggedIn, pathname, router]);
@@ -27,11 +29,10 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     return null;
   }
 
-  const hideNavOnPaths = ['/login', '/signup'];
   const shouldHideNav =
     hideNavOnPaths.includes(pathname) || (pathname === '/' && !isLoggedIn);
 
-  if (isLoggedIn && (pathname === '/login' || pathname === '/signup')) {
+  if (isLoggedIn && hideNavOnPaths.includes(pathname)) {
     return null; // 리다이렉트 중에는 아무것도 렌더링하지 않음
   }
 
@@ -48,6 +49,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         </main>
       </div>
       <BottomNav />
+      {isLoggedIn && <PWAInstallPrompt />}
     </div>
   );
 };
