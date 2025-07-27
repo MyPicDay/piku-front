@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useMediaQuery } from 'react-responsive';
-import { signup, sendSignUpVerificationEmail, verifyCode } from '@/api/auth';
+import {
+  signup,
+  sendSignUpVerificationEmail,
+  verifyCode,
+  getAllowedEmailDomains,
+} from '@/api/auth';
 import { useRouter } from 'next/navigation';
 import MobileView from './signup/MobileView';
 import DesktopView from './signup/DesktopView';
@@ -18,8 +23,11 @@ const SignupClient = () => {
     character: '',
     verificationCode: '',
   });
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [emailDomains, setEmailDomains] = useState<string[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
   const [message, setMessage] = useState('');
   const router = useRouter();
   const [isVerificationSent, setIsVerificationSent] = useState(false);
@@ -32,6 +40,17 @@ const SignupClient = () => {
 
   useEffect(() => {
     setIsHydrated(true);
+    const fetchEmailDomains = async () => {
+      try {
+        const domains = await getAllowedEmailDomains();
+        setEmailDomains(domains);
+      } catch (error) {
+        console.error('Failed to fetch email domains:', error);
+        // 기본 도메인 목록 설정 또는 에러 처리
+        setEmailDomains(['gmail.com', 'naver.com', 'kakao.com']);
+      }
+    };
+    fetchEmailDomains();
   }, []);
 
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
@@ -46,12 +65,39 @@ const SignupClient = () => {
   };
   const prevStep = () => setStep(step - 1);
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  const validatePassword = (password: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  }
+
   const handleChange = (input: string) => (e: { target: { value: string } }) => {
+    const { value } = e.target;
     setMessage('');
     if (input === 'verificationCode') {
       setVerificationMessage('');
     }
-    setValues({ ...values, [input]: e.target.value });
+    setValues({ ...values, [input]: value });
+
+    if (input === 'email') {
+      if (!validateEmail(value)) {
+        setErrors(prev => ({ ...prev, email: '유효한 이메일 형식이 아닙니다.' }));
+      } else {
+        setErrors(prev => ({ ...prev, email: '' }));
+      }
+    }
+
+    if (input === 'password') {
+      if (!validatePassword(value)) {
+        setErrors(prev => ({ ...prev, password: '비밀번호는 8자 이상, 소문자, 숫자, 특수문자를 포함해야 합니다.' }));
+      } else {
+        setErrors(prev => ({ ...prev, password: '' }));
+      }
+    }
   };
   
   const handleAgreeAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,8 +121,13 @@ const SignupClient = () => {
       setMessage('이메일을 입력해주세요.');
       return;
     }
+    if (!validateEmail(values.email)) {
+      setMessage('유효한 이메일 형식이 아닙니다.');
+      return;
+    }
     setIsLoading(true);
     setMessage('');
+    setIsSendingVerification(true);
     try {
       await sendSignUpVerificationEmail(values.email);
       setIsVerificationSent(true);
@@ -85,6 +136,7 @@ const SignupClient = () => {
       setMessage(error.response?.data?.message || '인증코드 발송에 실패했습니다.');
     } finally {
       setIsLoading(false);
+      setIsSendingVerification(false);
     }
   };
 
@@ -116,6 +168,10 @@ const SignupClient = () => {
       setMessage('캐릭터를 선택해주세요.');
       return;
     }
+    if (!validatePassword(values.password)) {
+      setMessage('비밀번호 형식이 올바르지 않습니다.');
+      return;
+    }
     if (!agreements.terms || !agreements.privacy) {
       setMessage('이용약관에 동의해주세요.');
       return;
@@ -144,7 +200,7 @@ const SignupClient = () => {
         <div className="w-full mb-10">
           <div className="relative text-center">
             <Link href={isDesktop && isHydrated ? '/' : '#'} passHref>
-              <button onClick={!isDesktop && step === 2 ? prevStep : undefined} className="text-2xl font-bold absolute left-0 dark:text-white">
+              <button onClick={!isDesktop && step === 2 ? prevStep : undefined} className="text-2xl font-bold absolute left-0 dark:text-white cursor-pointer">
                 &lt;
               </button>
             </Link>
@@ -167,6 +223,9 @@ const SignupClient = () => {
               agreements={agreements}
               handleAgreementChange={handleAgreementChange}
               handleAgreeAllChange={handleAgreeAllChange}
+              errors={errors}
+              emailDomains={emailDomains}
+              isSendingVerification={isSendingVerification}
             />
           ) : (
             <MobileView
@@ -184,6 +243,9 @@ const SignupClient = () => {
               agreements={agreements}
               handleAgreementChange={handleAgreementChange}
               handleAgreeAllChange={handleAgreeAllChange}
+              errors={errors}
+              emailDomains={emailDomains}
+              isSendingVerification={isSendingVerification}
             />
           )}
         </div>
