@@ -22,6 +22,12 @@ api.interceptors.request.use(config => {
   if (typeof window === 'undefined') {
     return config;
   }
+
+  // 로그인, 회원가입 요청의 경우 토큰을 헤더에 추가하지 않음
+  if (config.url === '/auth/login' || config.url === '/auth/signup') {
+    return config;
+  }
+
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
