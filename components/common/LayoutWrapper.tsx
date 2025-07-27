@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import BottomNav from '@/components/common/BottomNav';
+import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import useAuthStore from '../store/authStore';
 import { useEffect, useState } from 'react';
 
@@ -48,6 +49,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         </main>
       </div>
       <BottomNav />
+      {isLoggedIn && <PWAInstallPrompt />}
     </div>
   );
 };

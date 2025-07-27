@@ -512,13 +512,13 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                 onClick={handlePrevImage}
                 className="absolute left-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-opacity hover:bg-black/80"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={24} className="cursor-pointer" />
               </button>
               <button
                 onClick={handleNextImage}
                 className="absolute right-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-opacity hover:bg-black/80"
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={24} className="cursor-pointer" />
               </button>
             </>
           )}

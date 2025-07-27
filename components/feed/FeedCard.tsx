@@ -267,13 +267,13 @@ const FeedCard = ({
                 onClick={handlePrevImage}
                 className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={20} className='cursor-pointer'/>
               </button>
               <button
                 onClick={handleNextImage}
                 className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-black/75"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={20} className='cursor-pointer'/>
               </button>
               <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 space-x-1.5">
                 {post.imgUrls.map((_, index) => (

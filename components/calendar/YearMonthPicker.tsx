@@ -67,14 +67,14 @@ const YearMonthPicker = ({
             onClick={() => handleYearChange(pickerYear - 1)}
             className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 cursor-pointer" />
           </button>
           <span className="font-bold text-lg">{pickerYear}년</span>
           <button
             onClick={() => handleYearChange(pickerYear + 1)}
             className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6 cursor-pointer" />
           </button>
         </div>
         <div className="grid grid-cols-4 gap-2 mb-4">

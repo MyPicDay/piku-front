@@ -42,7 +42,7 @@ const ProfileEditPageClient = () => {
   const Header = () => (
     <header className="sticky top-0 z-10 flex items-center justify-center p-4 border-b bg-white xl:hidden">
       <button onClick={() => router.back()} className="absolute left-4">
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-6 h-6 cursor-pointer" />
       </button>
       <h1 className="text-lg font-semibold">프로필 편집</h1>
     </header>

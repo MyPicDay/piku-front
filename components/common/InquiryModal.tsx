@@ -96,10 +96,10 @@ const InquiryModal = ({ onClose }: InquiryModalProps) => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:cursor-not-allowed dark:disabled:bg-gray-600"
+                className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:cursor-not-allowed dark:disabled:bg-gray-600 cursor-pointer"
                 disabled={!!image}
               >
-                <Image size={18} className="mr-2" />
+                <Image size={18} className="mr-2 cursor-pointer" />
                 사진 선택
               </button>
               <input
@@ -115,7 +115,7 @@ const InquiryModal = ({ onClose }: InquiryModalProps) => {
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 cursor-pointer"
                   >
                     <X size={14} />
                   </button>
