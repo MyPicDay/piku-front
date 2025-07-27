@@ -45,9 +45,8 @@ const LoginClient = () => {
         throw new Error('인증 정보가 올바르지 않습니다.');
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || '로그인 중 오류가 발생했습니다.';
+      const errorMessage = error.response?.data?.message || error.response?.data || '로그인 중 오류가 발생했습니다.';
       setMessage(errorMessage);
-      console.error('로그인 실패:', error);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +57,7 @@ const LoginClient = () => {
       <div className="w-full max-w-md px-8">
         <div className="w-full mb-10">
           <div className="relative text-center">
-            <button onClick={() => router.back()} className="text-2xl font-bold absolute left-0 dark:text-white">&lt;</button>
+            <button onClick={() => router.back()} className="text-2xl font-bold absolute left-0 dark:text-white cursor-pointer">&lt;</button>
             <h2 className="text-2xl font-bold inline-block dark:text-white">로그인</h2>
           </div>
         </div>
@@ -93,7 +92,7 @@ const LoginClient = () => {
           </div>
           <div className="flex items-center justify-between">
             <button
-              className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50"
+              className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50 cursor-pointer"
               type="submit"
               disabled={isLoading}
             >
@@ -108,7 +107,7 @@ const LoginClient = () => {
               </Link>
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              <Link href="/password-reset" className="hover:underline">
+              <Link href="/password-reset" className="hover:underline cursor-pointer">
                 비밀번호를 잊으셨나요?
               </Link>
             </p>

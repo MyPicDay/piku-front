@@ -59,7 +59,6 @@ const InquiryModal = ({ onClose }: InquiryModalProps) => {
   return (
     <div
       className="fixed inset-0 bg-black/60 z-50 flex justify-center items-center"
-      onClick={onClose}
     >
       <div
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6 relative animate-slide-up"
@@ -67,7 +66,7 @@ const InquiryModal = ({ onClose }: InquiryModalProps) => {
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">피드백</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
             <X size={24} />
           </button>
         </div>
@@ -83,17 +82,22 @@ const InquiryModal = ({ onClose }: InquiryModalProps) => {
               placeholder="문의하실 내용을 입력해주세요."
               className="w-full h-32 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
+              maxLength={1000}
             />
+            <p className="text-right text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {content.length}/1000
+            </p>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              사진 첨부 (선택)
+              사진 첨부 (선택, 최대 1장)
             </label>
             <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:cursor-not-allowed dark:disabled:bg-gray-600"
+                disabled={!!image}
               >
                 <Image size={18} className="mr-2" />
                 사진 선택
