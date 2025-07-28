@@ -18,26 +18,6 @@ const withPWA = require('next-pwa')({
     /asset-manifest\.json$/,            // 에셋 매니페스트 제외
     /service-worker\.js$/               // 서비스 워커 JS 파일 제외 (중복 방지)
   ],
-  // SW 사용자 정의 옵션
-  mode: 'production',
-  swcMinify: true,
-  cacheOnFrontEndNav: true,
-  cacheStartUrl: true,
-  dynamicStartUrl: false,
-  reloadOnOnline: true,
-  
-  // 매니페스트 설정
-  manifest: {
-    name: 'PikU - 나만의 캐릭터 다이어리',
-    short_name: 'PikU',
-    description: '나만의 캐릭터로 기록하는 하루 한 장',
-    theme_color: '#ffffff',
-    background_color: '#ffffff',
-    display: 'standalone',
-    scope: '/',
-    start_url: '/',
-  },
-  
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
