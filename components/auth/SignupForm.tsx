@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Lock, User, KeyRound } from 'lucide-react';
+import { Mail, Lock, User, KeyRound, Info } from 'lucide-react';
 import { AuthFormProps } from '@/types/auth';
 import PolicyModal from '@/components/common/PolicyModal';
 import { termsOfService } from '@/lib/policies/terms';
@@ -25,6 +25,7 @@ const SignupForm = ({
   const [modalContent, setModalContent] = useState<{ title: string; content: string; type: 'terms' | 'privacy' } | null>(
     null,
   );
+  const [showDomainTooltip, setShowDomainTooltip] = useState(false);
 
   const handleLabelClick = (type: 'terms' | 'privacy') => {
     if (type === 'terms') {
@@ -47,53 +48,44 @@ const SignupForm = ({
     }
   };
 
-  const [emailId, setEmailId] = useState('');
-  const [emailDomain, setEmailDomain] = useState(emailDomains?.[0] || '');
 
-  const handleEmailChange = () => {
-    const fullEmail = `${emailId}@${emailDomain}`;
-    handleChange('email')({ target: { value: fullEmail } });
-  };
-
-  React.useEffect(() => {
-    if (emailId && emailDomain) {
-      handleEmailChange();
-    }
-  }, [emailId, emailDomain]);
-
-  React.useEffect(() => {
-    if(emailDomains && emailDomains.length > 0) {
-      setEmailDomain(emailDomains[0]);
-    }
-  }, [emailDomains]);
 
   return (
     <>
       <form className="space-y-6">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
           <Mail className="text-gray-400" />
           <div className="flex-grow flex items-center gap-2">
             <input
-              type="text"
-              placeholder="email"
-              onChange={(e) => setEmailId(e.target.value)}
-              value={emailId}
+              type="email"
+              placeholder="이메일을 입력해주세요"
+              onChange={handleChange('email')}
+              value={values.email}
               className={`w-full border-b-2 ${errors?.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2`}
               disabled={isEmailVerified}
             />
-            <span>@</span>
-            <select
-              value={emailDomain}
-              onChange={(e) => setEmailDomain(e.target.value)}
-              className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
-              disabled={isEmailVerified}
-            >
-              {emailDomains?.map((domain) => (
-                <option key={domain} value={domain}>
-                  {domain}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <Info 
+                className="text-gray-400 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200" 
+                size={20}
+                onMouseEnter={() => setShowDomainTooltip(true)}
+                onMouseLeave={() => setShowDomainTooltip(false)}
+                onClick={() => setShowDomainTooltip(!showDomainTooltip)}
+              />
+              {showDomainTooltip && emailDomains && emailDomains.length > 0 && (
+                <div className="absolute top-6 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg p-3 z-10 min-w-48">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">허용된 이메일 도메인:</p>
+                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    {emailDomains.map((domain) => (
+                      <li key={domain} className="flex items-center">
+                        <span className="mr-2">•</span>
+                        <span>@{domain}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
           <button
             type="button"
