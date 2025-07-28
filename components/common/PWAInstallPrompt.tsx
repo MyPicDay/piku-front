@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Share, Plus, Download } from 'lucide-react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -16,11 +17,15 @@ interface BeforeInstallPromptEvent extends Event {
 type BrowserType = 'chrome' | 'safari' | 'firefox' | 'samsung' | 'ios' | 'unknown';
 
 export default function PWAInstallPrompt() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [browserType, setBrowserType] = useState<BrowserType>('unknown');
   const [canShowManualPrompt, setCanShowManualPrompt] = useState(false);
+
+  // PWA 설치 버튼이 이미 있는 페이지에서는 팝업을 표시하지 않음
+  const shouldHidePrompt = pathname === '/settings';
 
   // 브라우저 타입 감지
   const detectBrowser = (): BrowserType => {
@@ -202,7 +207,7 @@ export default function PWAInstallPrompt() {
   };
 
   // PWA가 이미 설치되어 있거나 표시할 조건이 맞지 않는 경우
-  if (isStandalone || (!showInstallPrompt && !canShowManualPrompt)) {
+  if (isStandalone || shouldHidePrompt || (!showInstallPrompt && !canShowManualPrompt)) {
     return null;
   }
 
