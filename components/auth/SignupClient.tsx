@@ -19,11 +19,12 @@ const SignupClient = () => {
   const [values, setValues] = useState<AuthValues>({
     email: '',
     password: '',
+    passwordConfirm: '',
     nickname: '',
     character: '',
     verificationCode: '',
   });
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({ email: '', password: '', passwordConfirm: '' });
   const [emailDomains, setEmailDomains] = useState<string[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +72,19 @@ const SignupClient = () => {
   }
 
   const validatePassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
+    if (password.length < 8) {
+      return '비밀번호는 8자 이상이어야 합니다.';
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      return '비밀번호는 소문자를 포함해야 합니다.';
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      return '비밀번호는 숫자를 포함해야 합니다.';
+    }
+    if (!/(?=.*[@$!%*?&])/.test(password)) {
+      return '비밀번호는 특수문자(@$!%*?&)를 포함해야 합니다.';
+    }
+    return '';
   }
 
   const handleChange = (input: string) => (e: { target: { value: string } }) => {
@@ -92,10 +104,22 @@ const SignupClient = () => {
     }
 
     if (input === 'password') {
-      if (!validatePassword(value)) {
-        setErrors(prev => ({ ...prev, password: '비밀번호는 8자 이상, 소문자, 숫자, 특수문자를 포함해야 합니다.' }));
+      const passwordError = validatePassword(value);
+      setErrors(prev => ({ ...prev, password: passwordError }));
+      
+      // 비밀번호 확인과 일치하는지 체크 (비밀번호 확인이 이미 입력된 경우)
+      if (values.passwordConfirm && value !== values.passwordConfirm) {
+        setErrors(prev => ({ ...prev, passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
+      } else if (values.passwordConfirm && value === values.passwordConfirm) {
+        setErrors(prev => ({ ...prev, passwordConfirm: '' }));
+      }
+    }
+
+    if (input === 'passwordConfirm') {
+      if (value !== values.password) {
+        setErrors(prev => ({ ...prev, passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
       } else {
-        setErrors(prev => ({ ...prev, password: '' }));
+        setErrors(prev => ({ ...prev, passwordConfirm: '' }));
       }
     }
   };
@@ -168,8 +192,13 @@ const SignupClient = () => {
       setMessage('캐릭터를 선택해주세요.');
       return;
     }
-    if (!validatePassword(values.password)) {
-      setMessage('비밀번호 형식이 올바르지 않습니다.');
+    const passwordError = validatePassword(values.password);
+    if (passwordError) {
+      setMessage(passwordError);
+      return;
+    }
+    if (values.password !== values.passwordConfirm) {
+      setMessage('비밀번호가 일치하지 않습니다.');
       return;
     }
     if (!agreements.terms || !agreements.privacy) {
@@ -179,7 +208,7 @@ const SignupClient = () => {
     setMessage('');
     setIsLoading(true);
     try {
-      const { verificationCode, ...signupData } = values;
+      const { verificationCode, passwordConfirm, ...signupData } = values;
       await signup(signupData);
       setMessage('회원가입이 완료되었습니다! 잠시 후 로그인 페이지로 이동합니다.');
       setTimeout(() => {

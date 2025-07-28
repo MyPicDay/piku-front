@@ -13,7 +13,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '../store/authStore';
 import { logout } from '@/api/auth';
@@ -27,8 +27,34 @@ const BottomNav = () => {
   const todayDate = `${year}-${month}-${day}`;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    // iOS 환경 감지
+    const detectIOS = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      return /ipad|iphone|ipod/.test(userAgent);
+    };
+
+    // 모바일 환경 감지
+    const detectMobile = () => {
+      return window.innerWidth <= 768 && 'ontouchstart' in window;
+    };
+
+    setIsIOS(detectIOS());
+    setIsMobile(detectMobile());
+
+    // 화면 크기 변경 감지
+    const handleResize = () => {
+      setIsMobile(detectMobile());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -36,17 +62,59 @@ const BottomNav = () => {
 
   const getLinkClass = (path: string, exact = true) => {
     const isActive = exact ? pathname === path : pathname.startsWith(path);
-    return `flex flex-col items-center text-sm w-16 ${
+    const baseClass = `flex flex-col items-center text-sm ${
       isActive ? '' : 'text-gray-400'
     }`;
+    
+    // iOS 모바일에서 크기 증가
+    if (isIOS && isMobile) {
+      return `${baseClass} w-20 py-2`;
+    }
+    
+    return `${baseClass} w-16`;
   };
 
   const getMoreLinkClass = () => {
     const isActive =
       pathname.startsWith('/profile') || pathname.startsWith('/settings');
-    return `flex flex-col items-center text-sm w-16 ${
+    const baseClass = `flex flex-col items-center text-sm ${
       isActive ? '' : 'text-gray-400'
     }`;
+    
+    // iOS 모바일에서 크기 증가
+    if (isIOS && isMobile) {
+      return `${baseClass} w-20 py-2`;
+    }
+    
+    return `${baseClass} w-16`;
+  };
+
+  // iOS 모바일에서 BottomNav 스타일 조정
+  const getBottomNavClass = () => {
+    let baseClass = "flex justify-around items-center border-t xl:hidden sticky bottom-0 bg-white z-10";
+    
+    if (isIOS && isMobile) {
+      // iOS에서 크기 증가 및 safe area 고려
+      return `${baseClass} p-4 pb-6 min-h-[80px]`;
+    }
+    
+    return `${baseClass} p-2`;
+  };
+
+  // iOS 모바일에서 아이콘 크기 조정
+  const getIconSize = () => {
+    if (isIOS && isMobile) {
+      return "w-7 h-7";
+    }
+    return "w-6 h-6";
+  };
+
+  // iOS 모바일에서 텍스트 크기 조정
+  const getTextSize = () => {
+    if (isIOS && isMobile) {
+      return "text-sm";
+    }
+    return "text-xs";
   };
 
   return (
@@ -64,29 +132,29 @@ const BottomNav = () => {
           animation: slide-up 0.25s ease-out;
         }
       `}</style>
-      <footer className="flex justify-around items-center p-2 border-t xl:hidden sticky bottom-0 bg-white z-10">
+      <footer className={getBottomNavClass()}>
         <Link href="/" className={getLinkClass('/')}>
-          <Home className="w-6 h-6" />
-          <span className="text-xs">홈</span>
+          <Home className={getIconSize()} />
+          <span className={getTextSize()}>홈</span>
         </Link>
         <Link href="/feed" className={getLinkClass('/feed')}>
-          <Compass className="w-6 h-6" />
-          <span className="text-xs">피드</span>
+          <Compass className={getIconSize()} />
+          <span className={getTextSize()}>피드</span>
         </Link>
         <Link
           href={`/diary/new/${todayDate}`}
           className={getLinkClass('/diary/new', false)}
         >
-          <PlusSquare className="w-6 h-6" />
-          <span className="text-xs">오늘의 일기</span>
+          <PlusSquare className={getIconSize()} />
+          <span className={getTextSize()}>오늘의 일기</span>
         </Link>
         <Link href="/friends" className={getLinkClass('/friends')}>
-          <Users className="w-6 h-6" />
-          <span className="text-xs">친구</span>
+          <Users className={getIconSize()} />
+          <span className={getTextSize()}>친구</span>
         </Link>
         <button onClick={() => setIsModalOpen(true)} className={getMoreLinkClass()}>
-          <Menu className="w-6 h-6" />
-          <span className="text-xs">더보기</span>
+          <Menu className={getIconSize()} />
+          <span className={getTextSize()}>더보기</span>
         </button>
       </footer>
       {isModalOpen && (

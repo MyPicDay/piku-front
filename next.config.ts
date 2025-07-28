@@ -62,6 +62,20 @@ const withPWA = require('next-pwa')({
           maxAgeSeconds: 24 * 60 * 60 // 24 hours
         }
       }
+    },
+    {
+      urlPattern: /^https?.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'offlineCache',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        },
+        cacheableResponse: {
+          statuses: [0, 200]
+        }
+      }
     }
   ]
 });
@@ -77,6 +91,33 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  // PWA 호환성을 위한 추가 헤더
+  async headers() {
+    return [
+      {
+        source: '/site.webmanifest',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+        ],
+      },
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript',
+          },
+        ],
+      },
+    ];
   },
 };
 
