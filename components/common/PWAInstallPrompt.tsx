@@ -102,6 +102,14 @@ export default function PWAInstallPrompt() {
 
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // PWA 설치 프롬프트 재설정 이벤트 리스너
+    const handlePwaInstallReset = () => {
+      const canShow = checkInstallability();
+      setCanShowManualPrompt(canShow);
+    };
+
+    window.addEventListener('pwa-install-reset', handlePwaInstallReset);
+
     // 수동 설치 안내를 위한 타이머 (Safari, Firefox 등)
     if (canShow) {
       const timer = setTimeout(() => {
@@ -112,12 +120,14 @@ export default function PWAInstallPrompt() {
         clearTimeout(timer);
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         window.removeEventListener('appinstalled', handleAppInstalled);
+        window.removeEventListener('pwa-install-reset', handlePwaInstallReset);
       };
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('pwa-install-reset', handlePwaInstallReset);
     };
   }, [isStandalone]);
 
@@ -133,6 +143,8 @@ export default function PWAInstallPrompt() {
         } else {
           console.log('사용자가 PWA 설치를 거부했습니다');
           localStorage.setItem('pwa-install-dismissed', 'true');
+          // 커스텀 이벤트 발생으로 다른 컴포넌트에 알림
+          window.dispatchEvent(new CustomEvent('pwa-install-dismissed'));
         }
         
         setShowInstallPrompt(false);
@@ -149,6 +161,9 @@ export default function PWAInstallPrompt() {
   const handleDismiss = () => {
     setShowInstallPrompt(false);
     localStorage.setItem('pwa-install-dismissed', 'true');
+    
+    // 커스텀 이벤트 발생으로 다른 컴포넌트에 알림
+    window.dispatchEvent(new CustomEvent('pwa-install-dismissed'));
   };
 
   // 브라우저별 설치 안내 메시지

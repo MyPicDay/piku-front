@@ -53,6 +53,19 @@ export default function PWAInstallButton() {
 
     setIsStandalone(checkStandalone());
 
+    // localStorage 변경 감지 함수
+    const checkDismissedStatus = () => {
+      const wasPromptDismissed = localStorage.getItem('pwa-install-dismissed');
+      if (['safari', 'ios', 'firefox'].includes(browser) && !checkStandalone() && !wasPromptDismissed) {
+        setCanInstall(true);
+      } else if (wasPromptDismissed) {
+        setCanInstall(false);
+      }
+    };
+
+    // 초기 상태 설정
+    checkDismissedStatus();
+
     // beforeinstallprompt 이벤트 리스너
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -60,7 +73,21 @@ export default function PWAInstallButton() {
       setCanInstall(true);
     };
 
+    // storage 이벤트 리스너 (localStorage 변경 감지)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'pwa-install-dismissed') {
+        checkDismissedStatus();
+      }
+    };
+
+    // 커스텀 이벤트 리스너 (같은 탭에서의 PWA 설치 거부 감지)
+    const handlePwaInstallDismissed = () => {
+      checkDismissedStatus();
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('pwa-install-dismissed', handlePwaInstallDismissed);
 
     // 앱이 설치된 후 상태 업데이트
     const handleAppInstalled = () => {
@@ -74,13 +101,10 @@ export default function PWAInstallButton() {
 
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Safari, Firefox 등에서는 수동 설치 가능하다고 표시
-    if (['safari', 'ios', 'firefox'].includes(browser) && !checkStandalone()) {
-      setCanInstall(true);
-    }
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('pwa-install-dismissed', handlePwaInstallDismissed);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -115,6 +139,8 @@ export default function PWAInstallButton() {
 
   const resetInstallPrompt = () => {
     localStorage.removeItem('pwa-install-dismissed');
+    // 커스텀 이벤트 발생으로 다른 컴포넌트에 알림
+    window.dispatchEvent(new CustomEvent('pwa-install-reset'));
     window.location.reload();
   };
 
@@ -221,12 +247,21 @@ export default function PWAInstallButton() {
                   {deferredPrompt ? '앱 설치하기' : '설치 방법 보기'}
                 </button>
               ) : (
-                <button
-                  onClick={resetInstallPrompt}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  설치 프롬프트 다시 보기
-                </button>
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    {['safari', 'ios', 'firefox'].includes(browserType) 
+                      ? '설치 안내를 이전에 거부하셨습니다.' 
+                      : 'PWA 설치 조건을 만족하지 않습니다.'}
+                  </p>
+                  <button
+                    onClick={resetInstallPrompt}
+                    className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {['safari', 'ios', 'firefox'].includes(browserType) 
+                      ? '다시 설치 안내 보기' 
+                      : '설치 프롬프트 다시 보기'}
+                  </button>
+                </div>
               )}
             </div>
           )}
