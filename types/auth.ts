@@ -6,6 +6,7 @@ export interface Agreements {
 export interface AuthValues {
   email: string;
   password: string;
+  passwordConfirm: string;
   nickname: string;
   character: string;
   verificationCode?: string;
@@ -27,7 +28,7 @@ export interface AuthFormProps {
   agreements: Agreements;
   handleAgreeAllChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAgreementChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  errors?: { email?: string; password?: string };
+  errors?: { email?: string; password?: string; passwordConfirm?: string };
   emailDomains?: string[];
   isSendingVerification?: boolean;
 }

@@ -50,7 +50,7 @@ const DesktopView = ({
           <button
             onClick={handleSubmit}
             className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 dark:hover:bg-gray-400 cursor-pointer"
-            disabled={isLoading || !values.character || !isEmailVerified || !isAgreed}
+            disabled={isLoading || !values.character || !isEmailVerified || !isAgreed || !!errors?.email || !!errors?.password || !!errors?.passwordConfirm}
           >
             {isLoading ? '가입 중...' : '회원 가입'}
           </button>

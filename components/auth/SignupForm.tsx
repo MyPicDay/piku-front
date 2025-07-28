@@ -149,9 +149,12 @@ const SignupForm = ({
           <input
             type="password"
             placeholder="비밀번호를 다시 입력해주세요"
-            className="w-full border-b-2 border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2"
+            onChange={handleChange('passwordConfirm')}
+            value={values.passwordConfirm}
+            className={`w-full border-b-2 ${errors?.passwordConfirm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:border-black dark:focus:border-white dark:bg-black dark:text-white outline-none p-2`}
           />
         </div>
+        {errors?.passwordConfirm && <p className="text-red-500 text-xs mt-1 pl-10">{errors.passwordConfirm}</p>}
         <div className="flex items-center space-x-4">
           <User className="text-gray-400" />
           <input

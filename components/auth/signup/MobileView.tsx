@@ -56,7 +56,7 @@ const MobileView = ({
           <button
             onClick={nextStep}
             className="w-full bg-black dark:bg-gray-200 text-white dark:text-black py-3 rounded-full text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 dark:hover:bg-gray-400 cursor-pointer"
-            disabled={!isEmailVerified || !isAgreed}
+            disabled={!isEmailVerified || !isAgreed || !!errors?.email || !!errors?.password || !!errors?.passwordConfirm}
           >
             다음
           </button>
