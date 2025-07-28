@@ -49,7 +49,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         </main>
       </div>
       <BottomNav />
-      {isLoggedIn && <PWAInstallPrompt />}
+      <PWAInstallPrompt />
     </div>
   );
 };

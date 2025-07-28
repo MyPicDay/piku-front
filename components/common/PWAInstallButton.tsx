@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Share, Plus, Download } from 'lucide-react';
 import Image from 'next/image';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -13,12 +13,37 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+type BrowserType = 'chrome' | 'safari' | 'firefox' | 'samsung' | 'ios' | 'unknown';
+
 export default function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
+  const [browserType, setBrowserType] = useState<BrowserType>('unknown');
+  const [showManualInstructions, setShowManualInstructions] = useState(false);
+
+  // 브라우저 타입 감지
+  const detectBrowser = (): BrowserType => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /ipad|iphone|ipod/.test(userAgent);
+    
+    if (isIOS) {
+      if (userAgent.includes('crios')) return 'ios'; // iOS Chrome
+      if (userAgent.includes('safari')) return 'safari';
+    }
+    
+    if (userAgent.includes('samsung')) return 'samsung';
+    if (userAgent.includes('firefox')) return 'firefox';
+    if (userAgent.includes('chrome') && !userAgent.includes('edg')) return 'chrome';
+    if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'safari';
+    
+    return 'unknown';
+  };
 
   useEffect(() => {
+    const browser = detectBrowser();
+    setBrowserType(browser);
+    
     // PWA가 이미 설치되어 있는지 확인
     const checkStandalone = () => {
       return window.matchMedia('(display-mode: standalone)').matches ||
@@ -42,11 +67,17 @@ export default function PWAInstallButton() {
       setDeferredPrompt(null);
       setCanInstall(false);
       setIsStandalone(true);
+      setShowManualInstructions(false);
       // localStorage 정리
       localStorage.removeItem('pwa-install-dismissed');
     };
 
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Safari, Firefox 등에서는 수동 설치 가능하다고 표시
+    if (['safari', 'ios', 'firefox'].includes(browser) && !checkStandalone()) {
+      setCanInstall(true);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -55,27 +86,30 @@ export default function PWAInstallButton() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
+    if (deferredPrompt) {
+      // Chrome/Samsung 브라우저용 자동 설치
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('사용자가 PWA 설치를 수락했습니다');
+          setCanInstall(false);
+        } else {
+          console.log('사용자가 PWA 설치를 거부했습니다');
+        }
+        
+        setDeferredPrompt(null);
+      } catch (error) {
+        console.error('PWA 설치 중 오류 발생:', error);
+      }
+    } else if (['safari', 'ios', 'firefox'].includes(browserType)) {
+      // 수동 설치 안내 표시
+      setShowManualInstructions(true);
+    } else {
       // 프롬프트가 없는 경우 localStorage 클리어하고 페이지 새로고침
       localStorage.removeItem('pwa-install-dismissed');
       window.location.reload();
-      return;
-    }
-
-    try {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('사용자가 PWA 설치를 수락했습니다');
-        setCanInstall(false);
-      } else {
-        console.log('사용자가 PWA 설치를 거부했습니다');
-      }
-      
-      setDeferredPrompt(null);
-    } catch (error) {
-      console.error('PWA 설치 중 오류 발생:', error);
     }
   };
 
@@ -83,6 +117,43 @@ export default function PWAInstallButton() {
     localStorage.removeItem('pwa-install-dismissed');
     window.location.reload();
   };
+
+  // 브라우저별 설치 안내 메시지
+  const getInstallInstructions = () => {
+    switch (browserType) {
+      case 'safari':
+        return {
+          title: 'Safari에서 앱 설치하기',
+          steps: [
+            { icon: <Share className="w-4 h-4" />, text: '하단의 공유 버튼을 탭하세요' },
+            { icon: <Plus className="w-4 h-4" />, text: '"홈 화면에 추가"를 선택하세요' },
+            { icon: <Download className="w-4 h-4" />, text: '"추가"를 탭하여 설치 완료' }
+          ]
+        };
+      case 'ios':
+        return {
+          title: 'iOS에서 앱 설치하기',
+          steps: [
+            { icon: <Share className="w-4 h-4" />, text: 'Safari에서 이 페이지를 열어주세요' },
+            { icon: <Share className="w-4 h-4" />, text: '공유 버튼을 탭하세요' },
+            { icon: <Plus className="w-4 h-4" />, text: '"홈 화면에 추가"를 선택하세요' }
+          ]
+        };
+      case 'firefox':
+        return {
+          title: 'Firefox에서 앱 설치하기',
+          steps: [
+            { icon: <Share className="w-4 h-4" />, text: '주소창 오른쪽의 메뉴를 탭하세요' },
+            { icon: <Plus className="w-4 h-4" />, text: '"홈 화면에 추가"를 선택하세요' },
+            { icon: <Download className="w-4 h-4" />, text: '"설치"를 탭하여 완료' }
+          ]
+        };
+      default:
+        return null;
+    }
+  };
+
+  const instructions = getInstallInstructions();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -115,24 +186,50 @@ export default function PWAInstallButton() {
             </ul>
           </div>
           
-          <div className="flex space-x-2">
-            {canInstall || deferredPrompt ? (
+          {showManualInstructions && instructions ? (
+            // 수동 설치 안내 표시
+            <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                {instructions.title}
+              </h4>
+              <div className="space-y-2">
+                {instructions.steps.map((step, index) => (
+                  <div key={index} className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full mr-2 text-blue-600 dark:text-blue-400">
+                      {step.icon}
+                    </div>
+                    <span>{step.text}</span>
+                  </div>
+                ))}
+              </div>
               <button
-                onClick={handleInstallClick}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+                onClick={() => setShowManualInstructions(false)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
               >
-                <Image src="/apple-touch-icon.png" alt="" width={16} height={16} className="mr-2 rounded-sm" />
-                앱 설치하기
+                확인했습니다
               </button>
-            ) : (
-              <button
-                onClick={resetInstallPrompt}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                설치 프롬프트 다시 보기
-              </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            // 설치 버튼
+            <div className="flex space-x-2">
+              {canInstall || deferredPrompt ? (
+                <button
+                  onClick={handleInstallClick}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <Image src="/apple-touch-icon.png" alt="" width={16} height={16} className="mr-2 rounded-sm" />
+                  {deferredPrompt ? '앱 설치하기' : '설치 방법 보기'}
+                </button>
+              ) : (
+                <button
+                  onClick={resetInstallPrompt}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  설치 프롬프트 다시 보기
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
