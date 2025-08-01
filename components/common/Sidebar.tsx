@@ -107,13 +107,13 @@ const Sidebar = () => {
           <Send className="w-6 h-6 mr-4" />
           <span className="inline">메시지</span>
         </Link> */}
-          {/* <Link
-          href="#"
-          className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
-        >
-          <Bell className="w-6 h-6 mr-4" />
-          <span className="inline">알림</span>
-        </Link> */}
+                    <Link
+            href="/notifications"
+            className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
+          >
+            <Bell className="w-6 h-6 mr-4" />
+            <span className="inline">알림</span>
+          </Link>
           <Link
             href={`/diary/new/${todayDate}`}
             className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"

@@ -6,6 +6,8 @@ import BottomNav from '@/components/common/BottomNav';
 import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import useAuthStore from '../store/authStore';
 import { useEffect, useState } from 'react';
+import FCMInitializer from './FCMInitializer';
+import SSEInitializer from './SSEInitializer';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -42,6 +44,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <FCMInitializer />
+      <SSEInitializer />
       <div className="flex flex-1">
         <Sidebar />
         <main className="w-full xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4">

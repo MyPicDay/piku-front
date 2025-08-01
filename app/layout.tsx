@@ -56,6 +56,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import ReactQueryProvider from '@/providers/ReactQueryProvider';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -65,7 +67,9 @@ export default function RootLayout({
     <html lang="ko">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <ReactQueryProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </ReactQueryProvider>
       </body>
     </html>
   );
