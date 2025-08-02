@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  DotIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
@@ -21,7 +22,7 @@ import {
   deleteComment,
   updateComment,
 } from '@/api/comment';
-import { formatTimeAgo } from '@/lib/utils/date';
+import { formatTimeAgo, formatYearMonthDayDots } from '@/lib/utils/date';
 import { getServerURL } from '@/lib/utils/url';
 import useAuthStore from '@/components/store/authStore';
 import CommentItem from './CommentItem';
@@ -431,6 +432,10 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
           />
           <p className="ml-3 cursor-pointer text-sm font-bold text-white">
             {diary.nickname}
+          </p>
+          <DotIcon className='text-gray-300'/>
+          <p className="text-xs uppercase text-gray-300">
+            {formatYearMonthDayDots(diary.date)}
           </p>
         </div>
         <button onClick={onClose} className="text-white hover:text-gray-300">
