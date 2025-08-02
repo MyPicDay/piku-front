@@ -220,9 +220,9 @@ const FeedCard = ({
               <DotIcon />
               <span
                   className="text-xs text-gray-500"
-                  title={new Date(post.createdAt).toLocaleString()}
+                  title={new Date(post.date).toLocaleString()}
                 >
-                  {formatTimeAgo(post.createdAt)}
+                  {formatYearMonthDayDots(post.date)}
                 </span>
             </div>
             <div>

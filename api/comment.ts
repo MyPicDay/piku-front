@@ -15,7 +15,7 @@ export const getRootComments = async (
 ): Promise<CommentPage> => {
   try {
     const response = await api.get<CommentPage>('/comments', {
-      params: { diaryId, page, size },
+      params: { diaryId, page, size, sort: 'createdAt,asc' },
     });
     return response.data;
   } catch (error) {
@@ -32,7 +32,7 @@ export const getReplies = async (
 ): Promise<CommentPage> => {
   try {
     const response = await api.get<CommentPage>(`/comments/${commentId}/replies`, {
-      params: { page, size },
+      params: { page, size, sort: 'createdAt,asc' },
     });
     return response.data;
   } catch (error) {

@@ -73,6 +73,13 @@ const Sidebar = () => {
             <span className="inline">홈</span>
           </Link>
           <Link
+            href="/search"
+            className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
+          >
+            <Search className="w-6 h-6 mr-4" />
+            <span className="inline">검색</span>
+          </Link>
+          <Link
             href="/feed"
             className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
           >
