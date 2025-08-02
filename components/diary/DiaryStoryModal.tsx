@@ -40,6 +40,16 @@ interface CommentRepliesState {
   isShown: boolean;
 }
 
+const formatCount = (count: number): string => {
+  if (count >= 1_000_000) {
+    return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, '')}m`;
+  }
+  if (count >= 1_000) {
+    return `${(count / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  }
+  return String(count);
+};
+
 const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -82,7 +92,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
       setPage(pageToFetch + 1);
       setHasMore(!data.last);
       if (isNewFetch) {
-        setTotalComments(data.totalElements);
+        setTotalComments(diary.commentCount);
       }
     } catch (error) {
       console.error('댓글을 불러오는데 실패했습니다:', error);
@@ -252,12 +262,12 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
         ...prev,
         [parentId]: {
           ...parentState,
-          list: [optimisticComment, ...parentState.list],
+          list: [...parentState.list, optimisticComment],
           isShown: true,
         },
       }));
     } else {
-      setComments(prev => [optimisticComment, ...prev]);
+      setComments(prev => [...prev, optimisticComment]);
     }
     setScrollToCommentId(tempId);
     cancelReply();
@@ -483,7 +493,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
           </div>
           <div className="mt-1 flex items-center text-white">
             <MessageCircle size={20} className="mr-2" />
-            <span>{totalComments}</span>
+            <span>{formatCount(totalComments)}</span>
           </div>
         </motion.div>
       )}
@@ -532,14 +542,6 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
               </div>
               
               {/* Comments */}
-              {isLoadingComments && <div className="py-2 text-center text-gray-500">댓글을 불러오는 중...</div>}
-              {!isLoadingComments && hasMore && (
-                <div className="py-2 text-center">
-                  <button onClick={() => fetchComments()} className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-                    이전 댓글 더 보기 ({totalComments})
-                  </button>
-                </div>
-              )}
               {comments.map(comment => (
                 <CommentItem
                   key={comment.id}
@@ -557,6 +559,14 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
               {comments.length === 0 && !isLoadingComments && (
                 <div className="py-4 text-center text-gray-500">
                   아직 댓글이 없습니다.
+                </div>
+              )}
+              {isLoadingComments && <div className="py-2 text-center text-gray-500">댓글을 불러오는 중...</div>}
+              {!isLoadingComments && hasMore && (
+                <div className="py-2 text-center">
+                  <button onClick={() => fetchComments()} className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                    다음 댓글 더 보기
+                  </button>
                 </div>
               )}
             </div>

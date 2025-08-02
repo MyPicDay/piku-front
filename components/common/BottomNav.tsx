@@ -95,7 +95,7 @@ const BottomNav = () => {
     
     if (isIOS && isMobile) {
       // iOS에서 크기 증가 및 safe area 고려
-      return `${baseClass} p-4 pb-6 min-h-[80px]`;
+      return `${baseClass} p-2 min-h-[80px]`;
     }
     
     return `${baseClass} p-2`;
