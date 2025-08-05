@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: "PikU Team" }],
   creator: "PikU Team",
   publisher: "PikU",
+  // metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://piku.app'),
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -40,11 +41,28 @@ export const metadata: Metadata = {
     siteName: "PikU",
     title: "PikU - 나만의 캐릭터 다이어리",
     description: "나만의 캐릭터로 기록하는 하루 한 장",
+    locale: "ko_KR",
+    images: [
+      {
+        url: "/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "PikU - 나만의 캐릭터 다이어리 로고",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    site: "@PikU",
+    creator: "@PikU",
     title: "PikU - 나만의 캐릭터 다이어리",
     description: "나만의 캐릭터로 기록하는 하루 한 장",
+    images: [
+      {
+        url: "/android-chrome-512x512.png",
+        alt: "PikU - 나만의 캐릭터 다이어리 로고",
+      }
+    ],
   },
 };
 

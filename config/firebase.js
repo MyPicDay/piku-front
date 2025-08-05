@@ -20,7 +20,6 @@ const app = initializeApp(firebaseConfig);
 // FCM 메시징 객체를 가져오는 함수 추가
 export const getFirebaseMessaging = () => {
   if (typeof window !== 'undefined' && isSupported()) {
-		console.log('getFirebaseMessaging', app);
     return getMessaging(app);
   }
   return null;

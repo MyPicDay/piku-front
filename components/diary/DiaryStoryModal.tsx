@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   X,
   MessageCircle,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  DotIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
@@ -20,7 +22,7 @@ import {
   deleteComment,
   updateComment,
 } from '@/api/comment';
-import { formatTimeAgo } from '@/lib/utils/date';
+import { formatTimeAgo, formatYearMonthDayDots } from '@/lib/utils/date';
 import { getServerURL } from '@/lib/utils/url';
 import useAuthStore from '@/components/store/authStore';
 import CommentItem from './CommentItem';
@@ -29,6 +31,7 @@ import CommentInput from './CommentInput';
 interface DiaryStoryModalProps {
   diary: DiaryDetail;
   onClose: () => void;
+  onCommentViewToggle?: (isOpen: boolean) => void;
 }
 
 interface CommentRepliesState {
@@ -39,7 +42,21 @@ interface CommentRepliesState {
   isShown: boolean;
 }
 
-const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
+const formatCount = (count: number): string => {
+  if (count >= 1_000_000) {
+    return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, '')}m`;
+  }
+  if (count >= 1_000) {
+    return `${(count / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  }
+  return String(count);
+};
+
+const DiaryStoryModal = ({
+  diary,
+  onClose,
+  onCommentViewToggle,
+}: DiaryStoryModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentReplies, setCommentReplies] = useState<
@@ -61,6 +78,13 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { isLoggedIn, user } = useAuthStore();
   const serverUrl = getServerURL();
+  const router = useRouter();
+
+  const handleProfileClick = () => {
+    router.push(`/profile/${diary.userId}`);
+    onClose();
+  };
+
 
   const fetchComments = async (isNewFetch: boolean = false) => {
     if (isLoadingComments || (!hasMore && !isNewFetch)) return;
@@ -74,7 +98,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
       setPage(pageToFetch + 1);
       setHasMore(!data.last);
       if (isNewFetch) {
-        setTotalComments(data.totalElements);
+        setTotalComments(diary.commentCount);
       }
     } catch (error) {
       console.error('댓글을 불러오는데 실패했습니다:', error);
@@ -158,6 +182,11 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
   }, [diary.diaryId]);
 
   useEffect(() => {
+    onCommentViewToggle?.(isCommentViewOpen);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCommentViewOpen]);
+
+  useEffect(() => {
     if (scrollToCommentId) {
       const element = document.getElementById(`comment-${scrollToCommentId}`);
       if (element) {
@@ -166,6 +195,21 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
       setScrollToCommentId(null);
     }
   }, [scrollToCommentId, comments, commentReplies, isCommentViewOpen]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsCommentViewOpen(false);
+    };
+
+    if (isCommentViewOpen) {
+      window.history.pushState({ commentView: 'open' }, '');
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isCommentViewOpen]);
 
   const handleSetReplyTo = (comment: Comment) => {
     setReplyTo(comment);
@@ -244,12 +288,12 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
         ...prev,
         [parentId]: {
           ...parentState,
-          list: [optimisticComment, ...parentState.list],
+          list: [...parentState.list, optimisticComment],
           isShown: true,
         },
       }));
     } else {
-      setComments(prev => [optimisticComment, ...prev]);
+      setComments(prev => [...prev, optimisticComment]);
     }
     setScrollToCommentId(tempId);
     cancelReply();
@@ -380,6 +424,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
   };
 
   const swipeHandlers = useSwipeable({
+    onSwipedUp: () => setIsCommentViewOpen(true),
     onSwipedLeft: () => handleNextImage(),
     onSwipedRight: () => handlePrevImage(),
     trackMouse: true,
@@ -401,16 +446,22 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
     >
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
-        <div className="flex items-center">
+        <div className="flex items-center" onClick={handleProfileClick}>
           <img
             src={diary.avatar || DEFAULT_AVATAR}
             alt={diary.nickname}
             width={32}
             height={32}
-            className="rounded-full"
+            className="cursor-pointer rounded-full"
             onError={handleAvatarError}
           />
-          <p className="ml-3 text-sm font-bold text-white">{diary.nickname}</p>
+          <p className="ml-3 cursor-pointer text-sm font-bold text-white">
+            {diary.nickname}
+          </p>
+          <DotIcon className='text-gray-300'/>
+          <p className="text-xs uppercase text-gray-300">
+            {formatYearMonthDayDots(diary.date)}
+          </p>
         </div>
         <button onClick={onClose} className="text-white hover:text-gray-300">
           <X size={28} />
@@ -459,7 +510,8 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
        {/* Comment section handle */}
        {!isCommentViewOpen && (
         <motion.div
-          className="absolute bottom-0 left-0 right-0 z-20 flex cursor-grab flex-col items-center p-4"
+          className="absolute bottom-0 left-0 right-0 z-20 flex cursor-pointer flex-col items-center p-4"
+          onClick={() => setIsCommentViewOpen(true)}
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={{ top: 0, bottom: 0.5 }}
@@ -471,7 +523,7 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
           </div>
           <div className="mt-1 flex items-center text-white">
             <MessageCircle size={20} className="mr-2" />
-            <span>{totalComments}</span>
+            <span>{formatCount(totalComments)}</span>
           </div>
         </motion.div>
       )}
@@ -499,18 +551,18 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
 
             <div className="flex-grow space-y-4 overflow-y-auto p-4 no-scrollbar">
               {/* Diary Content */}
-              <div className="flex items-start">
+              <div className="flex items-start" onClick={handleProfileClick}>
                 <img
                   src={diary.avatar || DEFAULT_AVATAR}
                   alt={diary.nickname}
                   width={32}
                   height={32}
-                  className="mr-3 mt-1 rounded-full"
+                  className="mr-3 mt-1 cursor-pointer rounded-full"
                   onError={handleAvatarError}
                 />
                 <div>
                   <p className="whitespace-pre-wrap text-sm dark:text-white">
-                    <span className="font-bold">{diary.nickname}</span>{' '}
+                    <span className="cursor-pointer font-bold">{diary.nickname}</span>{' '}
                     {diary.content}
                   </p>
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
@@ -520,14 +572,6 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
               </div>
               
               {/* Comments */}
-              {isLoadingComments && <div className="py-2 text-center text-gray-500">댓글을 불러오는 중...</div>}
-              {!isLoadingComments && hasMore && (
-                <div className="py-2 text-center">
-                  <button onClick={() => fetchComments()} className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-                    이전 댓글 더 보기 ({totalComments})
-                  </button>
-                </div>
-              )}
               {comments.map(comment => (
                 <CommentItem
                   key={comment.id}
@@ -545,6 +589,14 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
               {comments.length === 0 && !isLoadingComments && (
                 <div className="py-4 text-center text-gray-500">
                   아직 댓글이 없습니다.
+                </div>
+              )}
+              {isLoadingComments && <div className="py-2 text-center text-gray-500">댓글을 불러오는 중...</div>}
+              {!isLoadingComments && hasMore && (
+                <div className="py-2 text-center">
+                  <button onClick={() => fetchComments()} className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                    다음 댓글 더 보기
+                  </button>
                 </div>
               )}
             </div>

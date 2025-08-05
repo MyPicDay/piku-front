@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   XCircle,
+  DotIcon,
 } from 'lucide-react';
 import type { DiaryDetail } from '@/types/diary';
 import type { Comment } from '@/types/comment';
@@ -302,13 +303,13 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
         ...prev,
         [parentId]: {
           ...parentState,
-          list: [optimisticComment, ...parentState.list],
+          list: [...parentState.list, optimisticComment],
           isShown: true,
         },
       }));
     } else {
       // 새 루트 댓글 추가
-      setComments(prev => [optimisticComment, ...prev]);
+      setComments(prev => [...prev, optimisticComment]);
     }
 
     setScrollToCommentId(tempId);
@@ -549,6 +550,10 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
                     {diary.nickname}
                   </p>
                 </Link>
+                <DotIcon className='text-gray-500 dark:text-gray-400'/>
+                <p className="text-xs uppercase text-gray-400 dark:text-gray-300">
+                  {displayDate}
+                </p>
               </div>
               {isHeaderHovering && (
                 <MotionProfileHoverCard
@@ -647,23 +652,6 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
               )}
             </div>
 
-            {/* 댓글 더보기 버튼 */}
-            {isLoadingComments && (
-              <div className="py-2 text-center text-gray-500">
-                댓글을 불러오는 중...
-              </div>
-            )}
-            {!isLoadingComments && hasMore && (
-              <div className="py-2 text-center">
-                <button
-                  onClick={() => fetchComments()}
-                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
-                >
-                  이전 댓글 더 보기 ({totalComments})
-                </button>
-              </div>
-            )}
-
             {/* 실제 댓글 목록 */}
             {comments.map(comment => (
               <CommentItem
@@ -682,6 +670,23 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             {comments.length === 0 && !isLoadingComments && (
               <div className="py-4 text-center text-gray-500">
                 아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!
+              </div>
+            )}
+
+            {/* 댓글 더보기 버튼 */}
+            {isLoadingComments && (
+              <div className="py-2 text-center text-gray-500">
+                댓글을 불러오는 중...
+              </div>
+            )}
+            {!isLoadingComments && hasMore && (
+              <div className="py-2 text-center">
+                <button
+                  onClick={() => fetchComments()}
+                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+                >
+                  다음 댓글 더 보기
+                </button>
               </div>
             )}
           </div>
@@ -707,9 +712,9 @@ const DiaryDetailModal = ({ diary, onClose }: DiaryDetailModalProps) => {
             {/* <p className="mt-2 text-sm font-bold dark:text-white">
               좋아요 {diary.likeCount}개
             </p> */}
-            <p className="mt-1 text-xs uppercase text-gray-500 dark:text-gray-400">
+            {/* <p className="mt-1 text-xs uppercase text-gray-500 dark:text-gray-400">
               {displayDate}
-            </p>
+            </p> */}
           </div>
 
           {/* Comment Input */}

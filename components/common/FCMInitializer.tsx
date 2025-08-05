@@ -17,12 +17,11 @@ const FCMInitializer = () => {
       const token = await requestPermissionAndGetToken();
       if (token) {
         try {
-          await registerFCMToken(user.id, token);
-          console.log('FCM token successfully registered with server.');
+          const deviceId = localStorage.getItem('deviceId') || '';
+          await registerFCMToken(user.id, token, deviceId);
           // 세션 내에서 중복 등록 방지
           setIsTokenRegistered(true); 
         } catch (error) {
-          console.error('Failed to register FCM token with server:', error);
         }
       }
     };

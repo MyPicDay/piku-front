@@ -3,6 +3,7 @@
 import {
   Home,
   Compass,
+  Search,
   User,
   PlusSquare,
   Users,
@@ -30,6 +31,7 @@ const BottomNav = () => {
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const [isPWAiOS, setIsPWAiOS] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -61,11 +63,17 @@ const BottomNav = () => {
     };
 
     setIsPWAiOS(detectPWAiOS());
+    const checkSmallScreen = () => {
+      setIsSmallScreen(window.innerWidth < 500);
+    };
+
     setIsMobile(detectMobile());
+    checkSmallScreen();
 
     // 화면 크기 변경 감지
     const handleResize = () => {
       setIsMobile(detectMobile());
+      checkSmallScreen();
     };
 
     window.addEventListener('resize', handleResize);
@@ -113,7 +121,6 @@ const BottomNav = () => {
       // PWA를 사용하는 iOS에서 크기 증가 및 safe area 고려
       return `${baseClass} p-4 pb-6 min-h-[80px]`;
     }
-    
     return `${baseClass} p-2`;
   };
 
@@ -157,20 +164,20 @@ const BottomNav = () => {
           <Compass className={getIconSize()} />
           <span className={getTextSize()}>피드</span>
         </Link>
+        <Link href="/search" className={getLinkClass('/search')}>
+          <Search className={getIconSize()} />
+          <span className={getTextSize()}>검색</span>
+        </Link>
         <Link
           href={`/diary/new/${todayDate}`}
           className={getLinkClass('/diary/new', false)}
         >
           <PlusSquare className={getIconSize()} />
-          <span className={getTextSize()}>오늘의 일기</span>
+          <span className={getTextSize()}>{isSmallScreen ? '일기' : '오늘의 일기'}</span>
         </Link>
         <Link href="/friends" className={getLinkClass('/friends')}>
           <Users className={getIconSize()} />
           <span className={getTextSize()}>친구</span>
-        </Link>
-        <Link href="/notifications" className={getLinkClass('/notifications')}>
-            <Bell className={getIconSize()} />
-            <span className={getTextSize()}>알림</span>
         </Link>
         <button onClick={() => setIsModalOpen(true)} className={getMoreLinkClass()}>
           <Menu className={getIconSize()} />

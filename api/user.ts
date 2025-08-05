@@ -31,9 +31,9 @@ export const updateUserProfile = async (
 };
 
 // FCM 토큰을 서버에 등록하는 함수
-export const registerFCMToken = async (userId: string, token: string) => {
+export const registerFCMToken = async (userId: string, token: string, deviceId: string) => {
   try {
-    const response = await api.post('/fcm', { userId, token });
+    const response = await api.post('/fcm', { userId, token, deviceId });
     return response.data;
   } catch (error) {
     console.error('Failed to register FCM token:', error);

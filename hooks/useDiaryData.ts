@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getMonthlyDiaries, getDiaryById } from '@/api/diary';
 import type { MonthlyDiary, DiaryDetail } from '@/types/diary';
 import type { Friend } from '@/types/friend';
 import type { User } from '@/types/auth';
 
 export const useDiaryData = (
-  currentDate: Date, 
-  user: User | null, 
-  viewedUser?: Friend | null
+  currentDate: Date,
+  user: User | null,
+  viewedUser?: Friend | null,
 ) => {
   const [pikus, setPikus] = useState<{
     [key: string]: { id: number; imageUrl: string };
@@ -48,7 +48,7 @@ export const useDiaryData = (
     fetchDiaries();
   }, [currentDate, user, viewedUser]);
 
-  const loadDiaryDetail = async (diaryId: number) => {
+  const loadDiaryDetail = useCallback(async (diaryId: number) => {
     setIsLoading(true);
     try {
       const diaryDetail = await getDiaryById(diaryId);
@@ -58,11 +58,11 @@ export const useDiaryData = (
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const closeDiaryDetail = () => {
+  const closeDiaryDetail = useCallback(() => {
     setSelectedDiary(null);
-  };
+  }, []);
 
   return {
     pikus,

@@ -4,14 +4,12 @@ import { getToken } from "firebase/messaging";
 export const requestPermissionAndGetToken = async () => {
   const messaging = getFirebaseMessaging();
   if (!messaging) {
-    console.log("Firebase Messaging is not supported in this browser.");
     return null;
   }
 
   // 1. 알림 권한 요청
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
-    console.log("Notification permission not granted.");
     return null;
   }
   
@@ -22,14 +20,11 @@ export const requestPermissionAndGetToken = async () => {
     });
 
     if (fcmToken) {
-      console.log("FCM Token:", fcmToken);
       return fcmToken;
     } else {
-      console.log("Can not get token.");
       return null;
     }
   } catch (error) {
-    console.error("An error occurred while retrieving token. ", error);
     return null;
   }
 };
