@@ -131,7 +131,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const [allPhotos, setAllPhotos] = useState<UnifiedPhoto[]>([]);
   const [privacy, setPrivacy] = useState<PrivacyStatus>('PUBLIC');
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
-  const [tempPrivacy, setTempPrivacy] = useState<PrivacyStatus>(privacy);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -172,11 +172,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
   }, [isLoggedIn, router]);
 
-  useEffect(() => {
-    if (isPrivacyModalOpen) {
-      setTempPrivacy(privacy);
-    }
-  }, [isPrivacyModalOpen, privacy]);
+
 
   useEffect(() => {
     // 컴포넌트가 언마운트될 때만 blob URL을 해제하도록 수정
@@ -481,10 +477,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const aiPhotosCount = allPhotos.filter(p => p.type === 'ai').length;
   const totalPhotosCount = allPhotos.length;
 
-  const handleConfirmPrivacy = () => {
-    setPrivacy(tempPrivacy);
-    setIsPrivacyModalOpen(false);
-  };
+
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-black">
@@ -664,16 +657,19 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                             ).map(status => (
                                 <button
                                     key={status}
-                                    onClick={() => setTempPrivacy(status)}
+                                    onClick={() => {
+                                        setPrivacy(status);
+                                        setIsPrivacyModalOpen(false);
+                                    }}
                                     className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors cursor-pointer ${
-                                        tempPrivacy === status
+                                        privacy === status
                                             ? 'bg-black text-white dark:bg-white dark:text-black'
                                             : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                                     }`}
                                 >
                                     <div
                                         className={
-                                            tempPrivacy === status
+                                            privacy === status
                                                 ? 'text-white dark:text-black'
                                                 : 'text-gray-800 dark:text-gray-200'
                                         }
@@ -698,7 +694,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                         </p>
                                         <p
                                             className={`text-sm ${
-                                                tempPrivacy === status
+                                                privacy === status
                                                     ? 'text-gray-300 dark:text-gray-500'
                                                     : 'text-gray-500 dark:text-gray-400'
                                             }`}
@@ -716,12 +712,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                 </button>
                             ))}
                         </div>
-                        <button
-                            onClick={handleConfirmPrivacy}
-                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer"
-                        >
-                            확인
-                        </button>
+
                     </motion.div>
                 </motion.div>
             )}
