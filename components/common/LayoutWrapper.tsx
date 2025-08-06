@@ -50,7 +50,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
       <MobileHeader />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="w-full pt-14 xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4 md:pt-0">
+        <main className="w-full pt-14 xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4">
           <div className="md:col-span-4 md:col-start-3 h-full">{children}</div>
         </main>
       </div>
