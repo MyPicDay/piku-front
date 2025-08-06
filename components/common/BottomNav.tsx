@@ -186,7 +186,7 @@ const BottomNav = () => {
       </footer>
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40"
           onClick={() => setIsModalOpen(false)}
         >
           <div
