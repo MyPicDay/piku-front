@@ -148,10 +148,23 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     handleSubmit,
     formState: { errors },
     getValues,
+    watch,
+    setValue,
   } = useForm<DiaryFormValues>({
     resolver: zodResolver(diarySchema),
     mode: 'onChange',
   });
+
+  const contentValue = watch('content');
+
+  useEffect(() => {
+    if (contentValue && contentValue.length > 500) {
+      alert('일기는 500자까지만 입력 가능합니다.');
+      setValue('content', contentValue.slice(0, 500), {
+        shouldValidate: true,
+      });
+    }
+  }, [contentValue, setValue]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -333,9 +346,21 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
         photos: userPhotoFiles,
       });
       router.push('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create diary:', error);
-      alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+      if (
+        error?.response?.status === 400 &&
+        error?.response?.data?.errors
+      ) {
+        const messages = Object.values(error.response.data.errors);
+        if (messages.length > 0 && typeof messages[0] === 'string') {
+          alert(messages[0]);
+        } else {
+          alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+        }
+      } else {
+        alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -590,10 +615,20 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
             >
                 <TextareaAutosize
                     {...register('content')}
-                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white flex-grow rounded-md resize-none"
+                    className="w-full p-2 border-2 border-gray-200 dark:border-gray-700 bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white flex-grow rounded-md resize-none"
                     placeholder="오늘의 하루를 기록해보세요..."
                     minRows={5}
                 />
+                <div className="self-end text-sm text-gray-500">
+                  <span
+                    className={
+                      (contentValue?.length || 0) > 500 ? 'text-red-500' : ''
+                    }
+                  >
+                    {contentValue?.length || 0}
+                  </span>
+                  /500
+                </div>
                 {errors.content && (
                     <p className="text-red-500 text-sm mt-1">
                         {errors.content.message}
