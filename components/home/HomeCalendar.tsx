@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { startOfDay } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -18,18 +18,20 @@ import type { Friend } from '@/types/friend';
 interface HomeCalendarProps {
   viewedUser?: Friend;
   initialDate?: Date;
+  diaryId?: string | null;
 }
 
 const HomeCalendar = ({
   viewedUser: initialViewedUser,
   initialDate,
+  diaryId,
 }: HomeCalendarProps) => {
   const router = useRouter();
   const { user } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
   const isMyCalendar =
     !initialViewedUser || user?.id === initialViewedUser.userId;
-  
+
   // 친구 관리 훅
   const {
     viewedUser: selectedViewedUser,
@@ -62,6 +64,7 @@ const HomeCalendar = ({
     initialDate,
   );
 
+  const [isCommentViewOpen, setIsCommentViewOpen] = useState(false);
   // 다이어리 데이터 훅
   const {
     pikus,
@@ -70,6 +73,31 @@ const HomeCalendar = ({
     loadDiaryDetail,
     closeDiaryDetail,
   } = useDiaryData(currentDate, user, viewedUser);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedDiary && !isCommentViewOpen) {
+        closeDiaryDetail();
+      }
+    };
+
+    if (selectedDiary && !isCommentViewOpen) {
+      window.history.pushState({ modal: 'open' }, '');
+      window.addEventListener('popstate', handlePopState);
+    } else {
+      window.removeEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [selectedDiary, closeDiaryDetail, isCommentViewOpen]);
+
+  useEffect(() => {
+    if (diaryId) {
+      loadDiaryDetail(Number(diaryId));
+    }
+  }, [diaryId, loadDiaryDetail]);
 
   // 친구 상태 페치
   useEffect(() => {
@@ -157,7 +185,11 @@ const HomeCalendar = ({
         (isDesktopOrLaptop ? (
           <DiaryDetailModal diary={selectedDiary} onClose={closeDiaryDetail} />
         ) : (
-          <DiaryStoryModal diary={selectedDiary} onClose={closeDiaryDetail} />
+          <DiaryStoryModal
+            diary={selectedDiary}
+            onClose={closeDiaryDetail}
+            onCommentViewToggle={setIsCommentViewOpen}
+          />
         ))}
 
       {isLoading && (

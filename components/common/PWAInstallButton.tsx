@@ -117,10 +117,7 @@ export default function PWAInstallButton() {
         const { outcome } = await deferredPrompt.userChoice;
         
         if (outcome === 'accepted') {
-          console.log('사용자가 PWA 설치를 수락했습니다');
           setCanInstall(false);
-        } else {
-          console.log('사용자가 PWA 설치를 거부했습니다');
         }
         
         setDeferredPrompt(null);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getUserProfile } from '@/api/user';
 import HomeCalendar from '@/components/home/HomeCalendar';
 import type { UserProfile } from '@/types/friend';
@@ -25,8 +25,26 @@ const CalendarClient = ({ userId }: { userId: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
-  const dateStr = useSearchParams().get('date');
-  const initialDate = getInitialDate(dateStr);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const [initialDate, setInitialDate] = useState<Date>(() => getSeoulDate());
+  const [diaryId, setDiaryId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const dateStr = params.get('date');
+    const diaryIdFromUrl = params.get('diaryId');
+
+    setInitialDate(getInitialDate(dateStr));
+    
+    if (diaryIdFromUrl) {
+      setDiaryId(diaryIdFromUrl);
+      params.delete('diaryId');
+      const newPath = `${window.location.pathname}?${params.toString()}`;
+      router.replace(newPath, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -77,6 +95,7 @@ const CalendarClient = ({ userId }: { userId: string }) => {
     <HomeCalendar
       viewedUser={viewedUser as UserProfile}
       initialDate={initialDate}
+      diaryId={diaryId}
     />
   );
 };

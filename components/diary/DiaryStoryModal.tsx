@@ -31,6 +31,7 @@ import CommentInput from './CommentInput';
 interface DiaryStoryModalProps {
   diary: DiaryDetail;
   onClose: () => void;
+  onCommentViewToggle?: (isOpen: boolean) => void;
 }
 
 interface CommentRepliesState {
@@ -51,7 +52,11 @@ const formatCount = (count: number): string => {
   return String(count);
 };
 
-const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
+const DiaryStoryModal = ({
+  diary,
+  onClose,
+  onCommentViewToggle,
+}: DiaryStoryModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentReplies, setCommentReplies] = useState<
@@ -177,6 +182,11 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
   }, [diary.diaryId]);
 
   useEffect(() => {
+    onCommentViewToggle?.(isCommentViewOpen);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCommentViewOpen]);
+
+  useEffect(() => {
     if (scrollToCommentId) {
       const element = document.getElementById(`comment-${scrollToCommentId}`);
       if (element) {
@@ -185,6 +195,21 @@ const DiaryStoryModal = ({ diary, onClose }: DiaryStoryModalProps) => {
       setScrollToCommentId(null);
     }
   }, [scrollToCommentId, comments, commentReplies, isCommentViewOpen]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsCommentViewOpen(false);
+    };
+
+    if (isCommentViewOpen) {
+      window.history.pushState({ commentView: 'open' }, '');
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isCommentViewOpen]);
 
   const handleSetReplyTo = (comment: Comment) => {
     setReplyTo(comment);

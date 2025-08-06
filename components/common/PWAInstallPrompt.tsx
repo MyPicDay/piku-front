@@ -144,9 +144,7 @@ export default function PWAInstallPrompt() {
         const { outcome } = await deferredPrompt.userChoice;
         
         if (outcome === 'accepted') {
-          console.log('사용자가 PWA 설치를 수락했습니다');
         } else {
-          console.log('사용자가 PWA 설치를 거부했습니다');
           localStorage.setItem('pwa-install-dismissed', 'true');
           // 커스텀 이벤트 발생으로 다른 컴포넌트에 알림
           window.dispatchEvent(new CustomEvent('pwa-install-dismissed'));
