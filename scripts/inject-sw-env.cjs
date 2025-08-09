@@ -40,9 +40,6 @@ function loadEnv() {
 
 function ensure(value, name, { strict }) {
   if (value == null || value === '') {
-    if (strict) {
-      throw new Error(`환경변수 ${name}가 비어 있습니다. .env(.local) 또는 시스템 환경변수에 설정하세요.`);
-    }
     console.warn(`[inject-sw-env] 경고: ${name}가 비어 있어 빈 문자열로 대체합니다.`);
     return '';
   }
