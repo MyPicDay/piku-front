@@ -25,7 +25,13 @@ const FriendsClient = () => {
 
     try {
       const data = await getFriendRequests(requestsPage, 10);
-      setRequests(prev => [...prev, ...data.requests]);
+      setRequests(prev => {
+        const existingUserIds = new Set(prev.map(req => req.userId));
+        const newRequests = data.requests.filter(
+          req => !existingUserIds.has(req.userId),
+        );
+        return [...prev, ...newRequests];
+      });
       setRequestsHasMore(data.hasNext);
       setTotalRequests(data.totalElements);
       setRequestsPage(prev => prev + 1);

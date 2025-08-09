@@ -131,7 +131,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const [allPhotos, setAllPhotos] = useState<UnifiedPhoto[]>([]);
   const [privacy, setPrivacy] = useState<PrivacyStatus>('PUBLIC');
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
-  const [tempPrivacy, setTempPrivacy] = useState<PrivacyStatus>(privacy);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAiPhotos, setIsGeneratingAiPhotos] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -148,10 +148,23 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     handleSubmit,
     formState: { errors },
     getValues,
+    watch,
+    setValue,
   } = useForm<DiaryFormValues>({
     resolver: zodResolver(diarySchema),
     mode: 'onChange',
   });
+
+  const contentValue = watch('content');
+
+  useEffect(() => {
+    if (contentValue && contentValue.length > 500) {
+      alert('일기는 500자까지만 입력 가능합니다.');
+      setValue('content', contentValue.slice(0, 500), {
+        shouldValidate: true,
+      });
+    }
+  }, [contentValue, setValue]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -159,11 +172,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
     }
   }, [isLoggedIn, router]);
 
-  useEffect(() => {
-    if (isPrivacyModalOpen) {
-      setTempPrivacy(privacy);
-    }
-  }, [isPrivacyModalOpen, privacy]);
+
 
   useEffect(() => {
     // 컴포넌트가 언마운트될 때만 blob URL을 해제하도록 수정
@@ -333,9 +342,21 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
         photos: userPhotoFiles,
       });
       router.push('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create diary:', error);
-      alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+      if (
+        error?.response?.status === 400 &&
+        error?.response?.data?.errors
+      ) {
+        const messages = Object.values(error.response.data.errors);
+        if (messages.length > 0 && typeof messages[0] === 'string') {
+          alert(messages[0]);
+        } else {
+          alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+        }
+      } else {
+        alert('일기 생성에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -456,10 +477,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
   const aiPhotosCount = allPhotos.filter(p => p.type === 'ai').length;
   const totalPhotosCount = allPhotos.length;
 
-  const handleConfirmPrivacy = () => {
-    setPrivacy(tempPrivacy);
-    setIsPrivacyModalOpen(false);
-  };
+
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-black">
@@ -590,10 +608,20 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
             >
                 <TextareaAutosize
                     {...register('content')}
-                    className="w-full p-2 border-none bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white flex-grow rounded-md resize-none"
+                    className="w-full p-2 border-2 border-gray-200 dark:border-gray-700 bg-transparent focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-black dark:text-white flex-grow rounded-md resize-none"
                     placeholder="오늘의 하루를 기록해보세요..."
                     minRows={5}
                 />
+                <div className="self-end text-sm text-gray-500">
+                  <span
+                    className={
+                      (contentValue?.length || 0) > 500 ? 'text-red-500' : ''
+                    }
+                  >
+                    {contentValue?.length || 0}
+                  </span>
+                  /500
+                </div>
                 {errors.content && (
                     <p className="text-red-500 text-sm mt-1">
                         {errors.content.message}
@@ -629,16 +657,19 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                             ).map(status => (
                                 <button
                                     key={status}
-                                    onClick={() => setTempPrivacy(status)}
+                                    onClick={() => {
+                                        setPrivacy(status);
+                                        setIsPrivacyModalOpen(false);
+                                    }}
                                     className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors cursor-pointer ${
-                                        tempPrivacy === status
+                                        privacy === status
                                             ? 'bg-black text-white dark:bg-white dark:text-black'
                                             : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                                     }`}
                                 >
                                     <div
                                         className={
-                                            tempPrivacy === status
+                                            privacy === status
                                                 ? 'text-white dark:text-black'
                                                 : 'text-gray-800 dark:text-gray-200'
                                         }
@@ -663,7 +694,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                         </p>
                                         <p
                                             className={`text-sm ${
-                                                tempPrivacy === status
+                                                privacy === status
                                                     ? 'text-gray-300 dark:text-gray-500'
                                                     : 'text-gray-500 dark:text-gray-400'
                                             }`}
@@ -681,12 +712,7 @@ const DiaryCreateForm = ({ date }: DiaryCreateFormProps) => {
                                 </button>
                             ))}
                         </div>
-                        <button
-                            onClick={handleConfirmPrivacy}
-                            className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black dark:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer"
-                        >
-                            확인
-                        </button>
+
                     </motion.div>
                 </motion.div>
             )}

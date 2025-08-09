@@ -4,8 +4,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import BottomNav from '@/components/common/BottomNav';
 import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
+import MobileHeader from '@/components/common/MobileHeader';
 import useAuthStore from '../store/authStore';
 import { useEffect, useState } from 'react';
+import FCMInitializer from './FCMInitializer';
+import SSEInitializer from './SSEInitializer';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -42,9 +45,12 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <FCMInitializer />
+      <SSEInitializer />
+      <MobileHeader />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="w-full xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4">
+        <main className="w-full pt-14 xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4 xl:pt-0">
           <div className="md:col-span-4 md:col-start-3 h-full">{children}</div>
         </main>
       </div>

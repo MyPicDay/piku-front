@@ -24,7 +24,7 @@ export const createDiary = async (diaryData: DiaryCreateRequest) => {
   const formData = new FormData();
 
   // DiaryDTO를 JSON 문자열로 변환하여 추가
-  formData.append('diary', JSON.stringify(diaryData.diary));
+  formData.append('diary', new Blob([JSON.stringify(diaryData.diary)], { type: 'application/json' }));
 
   // 사용자 사진 파일 추가
   if (diaryData.photos) {

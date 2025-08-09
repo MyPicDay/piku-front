@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   HelpCircle,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -28,17 +29,32 @@ const BottomNav = () => {
   const todayDate = `${year}-${month}-${day}`;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [isPWAiOS, setIsPWAiOS] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // iOS 환경 감지
-    const detectIOS = () => {
+    // iOS 기기 감지
+    const detectiOS = () => {
       const userAgent = navigator.userAgent.toLowerCase();
       return /ipad|iphone|ipod/.test(userAgent);
+    };
+
+    // PWA 환경 감지
+    const detectPWA = () => {
+      // PWA가 standalone 모드로 실행 중인지 확인
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      // iOS Safari에서 홈 스크린에 추가된 PWA인지 확인 (iOS 전용)
+      const isIOSStandalone = (window.navigator as any).standalone === true;
+      
+      return isStandalone || isIOSStandalone;
+    };
+
+    // PWA를 사용하는 iOS 기기인지 확인
+    const detectPWAiOS = () => {
+      return detectiOS() && detectPWA();
     };
 
     // 모바일 환경 감지
@@ -46,11 +62,11 @@ const BottomNav = () => {
       return window.innerWidth <= 768 && 'ontouchstart' in window;
     };
 
+    setIsPWAiOS(detectPWAiOS());
     const checkSmallScreen = () => {
       setIsSmallScreen(window.innerWidth < 500);
     };
 
-    setIsIOS(detectIOS());
     setIsMobile(detectMobile());
     checkSmallScreen();
 
@@ -74,8 +90,8 @@ const BottomNav = () => {
       isActive ? '' : 'text-gray-400'
     }`;
     
-    // iOS 모바일에서 크기 증가
-    if (isIOS && isMobile) {
+    // PWA를 사용하는 iOS 모바일에서 크기 증가
+    if (isPWAiOS && isMobile) {
       return `${baseClass} w-20 py-2`;
     }
     
@@ -85,41 +101,40 @@ const BottomNav = () => {
   const getMoreLinkClass = () => {
     const isActive =
       pathname.startsWith('/profile') || pathname.startsWith('/settings');
-    const baseClass = `flex flex-col items-center text-sm ${
+    const baseClass = `flex flex-col items-center text-sm cursor-pointer ${
       isActive ? '' : 'text-gray-400'
     }`;
     
-    // iOS 모바일에서 크기 증가
-    if (isIOS && isMobile) {
+    // PWA를 사용하는 iOS 모바일에서 크기 증가
+    if (isPWAiOS && isMobile) {
       return `${baseClass} w-20 py-2`;
     }
     
     return `${baseClass} w-16`;
   };
 
-  // iOS 모바일에서 BottomNav 스타일 조정
+  // PWA를 사용하는 iOS 모바일에서 BottomNav 스타일 조정
   const getBottomNavClass = () => {
     let baseClass = "flex justify-around items-center border-t xl:hidden sticky bottom-0 bg-white z-10";
     
-    if (isIOS && isMobile) {
-      // iOS에서 크기 증가 및 safe area 고려
-      return `${baseClass} p-2 min-h-[80px]`;
+    if (isPWAiOS && isMobile) {
+      // PWA를 사용하는 iOS에서 크기 증가 및 safe area 고려
+      return `${baseClass} p-4 pb-6 min-h-[80px]`;
     }
-    
     return `${baseClass} p-2`;
   };
 
-  // iOS 모바일에서 아이콘 크기 조정
+  // PWA를 사용하는 iOS 모바일에서 아이콘 크기 조정
   const getIconSize = () => {
-    if (isIOS && isMobile) {
+    if (isPWAiOS && isMobile) {
       return "w-7 h-7";
     }
     return "w-6 h-6";
   };
 
-  // iOS 모바일에서 텍스트 크기 조정
+  // PWA를 사용하는 iOS 모바일에서 텍스트 크기 조정
   const getTextSize = () => {
-    if (isIOS && isMobile) {
+    if (isPWAiOS && isMobile) {
       return "text-sm";
     }
     return "text-xs";
@@ -171,7 +186,7 @@ const BottomNav = () => {
       </footer>
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40"
           onClick={() => setIsModalOpen(false)}
         >
           <div

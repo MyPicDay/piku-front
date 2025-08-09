@@ -27,7 +27,6 @@ const FriendList = () => {
   }, [isLoading, hasNext]);
 
   const fetchFriends = useCallback(async (pageNum: number) => {
-    if (!hasNext && pageNum > 0) return; // 첫 페이지가 아니고, 다음 페이지가 없으면 요청 X
     setIsLoading(true);
     try {
       const data = await getFriends(pageNum, PAGE_SIZE);
@@ -42,11 +41,13 @@ const FriendList = () => {
       setIsLoading(false);
       setInitialLoad(true);
     }
-  }, [hasNext]);
+  }, []);
 
   useEffect(() => {
+    if (!hasNext && page > 0) return; // 다음 페이지가 없고 첫 페이지가 아니면 요청 X
+    if (initialLoad && page === 0) return; // 이미 초기 로딩이 완료된 경우 첫 페이지 재요청 방지
     fetchFriends(page);
-  }, [fetchFriends, page]);
+  }, [fetchFriends, page, hasNext, initialLoad]);
 
   const handleDeleteFriend = async (userId: string) => {
     try {

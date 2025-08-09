@@ -20,22 +20,37 @@ const FeedClient = () => {
   const [isClient, setIsClient] = useState(false);
   const [selectedDiary, setSelectedDiary] = useState<DiaryDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isCommentViewOpen, setIsCommentViewOpen] = useState(false);
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const handleCloseModal = useCallback(() => {
+    setSelectedDiary(null);
+  }, []);
+
   useEffect(() => {
-    if (selectedDiary) {
+    const handlePopState = () => {
+      if (!isCommentViewOpen) {
+        handleCloseModal();
+      }
+    };
+
+    if (selectedDiary && !isCommentViewOpen) {
       document.body.style.overflow = 'hidden';
+      window.history.pushState({ modal: 'open' }, '');
+      window.addEventListener('popstate', handlePopState);
     } else {
       document.body.style.overflow = 'auto';
     }
+
     return () => {
-      document.body.style.overflow = 'auto'; // 컴포넌트 언마운트 시 초기화
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('popstate', handlePopState);
     };
-  }, [selectedDiary]);
+  }, [selectedDiary, handleCloseModal, isCommentViewOpen]);
 
   const handleContentClick = async (diaryId: number) => {
     if (isClient) {
@@ -50,10 +65,6 @@ const FeedClient = () => {
         setIsLoadingDetail(false);
       }
     }
-  };
-
-  const handleCloseModal = () => {
-    setSelectedDiary(null);
   };
 
   const loadMore = useCallback(async () => {
@@ -157,7 +168,11 @@ const FeedClient = () => {
         (isDesktop ? (
           <DiaryDetailModal diary={selectedDiary} onClose={handleCloseModal} />
         ) : (
-          <DiaryStoryModal diary={selectedDiary} onClose={handleCloseModal} />
+          <DiaryStoryModal
+            diary={selectedDiary}
+            onClose={handleCloseModal}
+            onCommentViewToggle={setIsCommentViewOpen}
+          />
         ))}
     </div>
   );

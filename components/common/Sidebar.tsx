@@ -1,26 +1,23 @@
 'use client';
 
+import { logout } from '@/api/auth';
 import {
-  Home,
-  Search,
-  Compass,
-  Clapperboard,
-  Send,
   Bell,
-  PlusSquare,
-  User,
-  Menu,
-  Pocket,
-  Users,
-  Settings,
-  LogOut,
+  Compass,
   HelpCircle,
+  Home,
+  LogOut,
+  Menu,
+  PlusSquare,
+  Search,
+  Settings,
+  User,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import useAuthStore from '@/components/store/authStore';
-import { logout } from '@/api/auth';
+import { useEffect, useRef, useState } from 'react';
+import useNotificationStore from '../store/notificationStore';
 import InquiryModal from './InquiryModal';
 
 const Sidebar = () => {
@@ -33,7 +30,7 @@ const Sidebar = () => {
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const storeLogout = useAuthStore(state => state.logout);
+  const { unreadCount } = useNotificationStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -114,13 +111,18 @@ const Sidebar = () => {
           <Send className="w-6 h-6 mr-4" />
           <span className="inline">메시지</span>
         </Link> */}
-          {/* <Link
-          href="#"
-          className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
-        >
-          <Bell className="w-6 h-6 mr-4" />
-          <span className="inline">알림</span>
-        </Link> */}
+          <Link
+            href="/notifications"
+            className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start relative"
+          >
+            <Bell className="w-6 h-6 mr-4" />
+            <span className="inline mr-4">알림</span>
+            {unreadCount > 0 && (
+              <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
           <Link
             href={`/diary/new/${todayDate}`}
             className="flex items-center p-4 rounded-lg hover:bg-gray-100 justify-start"
