@@ -32,9 +32,11 @@ function loadEnv() {
   const env = { ...process.env };
   const envPath = path.join(cwd, '.env');
   const envLocalPath = path.join(cwd, '.env.local');
+  const envProdPath = path.join(cwd, '.env.production');
   // .env then override with .env.local
   Object.assign(env, parseEnvFile(envPath));
   Object.assign(env, parseEnvFile(envLocalPath));
+  Object.assign(env, parseEnvFile(envProdPath));
   return env;
 }
 
