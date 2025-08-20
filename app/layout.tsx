@@ -20,7 +20,28 @@ export const metadata: Metadata = {
   authors: [{ name: "PikU Team" }],
   creator: "PikU Team",
   publisher: "PikU",
-  // metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://piku.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: {
+      'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION || '',
+    },
+  },
+  referrer: 'origin-when-cross-origin',
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -44,10 +65,10 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     images: [
       {
-        url: "/android-chrome-512x512.png",
-        width: 512,
-        height: 512,
-        alt: "PikU - 나만의 캐릭터 다이어리 로고",
+        url: "/piku-og-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "PikU - 나만의 캐릭터 다이어리",
       },
     ],
   },
@@ -59,8 +80,8 @@ export const metadata: Metadata = {
     description: "나만의 캐릭터로 기록하는 하루 한 장",
     images: [
       {
-        url: "/android-chrome-512x512.png",
-        alt: "PikU - 나만의 캐릭터 다이어리 로고",
+        url: "/piku-og-1200x630.png",
+        alt: "PikU - 나만의 캐릭터 다이어리",
       }
     ],
   },
@@ -81,6 +102,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   return (
     <html lang="ko">
       <body
@@ -88,6 +110,34 @@ export default function RootLayout({
         <ReactQueryProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
         </ReactQueryProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              url: baseUrl,
+              name: 'PikU',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: `${baseUrl}/search?query={search_term_string}`,
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'PikU',
+              url: baseUrl,
+              logo: `${baseUrl}/android-chrome-512x512.png`,
+            }),
+          }}
+        />
       </body>
     </html>
   );

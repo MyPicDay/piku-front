@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '일기 수정 - PikU',
+  description: '작성한 일기를 수정합니다',
+};
 'use client';
 
 import { useState, useEffect } from 'react';
