@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '설정 - PikU',
+  description: '계정 및 알림 등 앱 환경설정을 관리하세요',
+};
 import PWAInstallButton from '@/components/common/PWAInstallButton';
 
 const SettingsPage = () => {
