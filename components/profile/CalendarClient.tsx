@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getUserProfile } from '@/api/user';
+import { getUserProfile } from '@/lib/api/user';
 import HomeCalendar from '@/components/home/HomeCalendar';
 import type { UserProfile } from '@/types/friend';
 import useAuthStore from '../store/authStore';

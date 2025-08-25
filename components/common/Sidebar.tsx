@@ -1,6 +1,6 @@
 'use client';
 
-import { logout } from '@/api/auth';
+import { logout } from '@/lib/api/auth';
 import {
   Bell,
   Compass,

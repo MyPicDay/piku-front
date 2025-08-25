@@ -8,7 +8,7 @@ import {
   UserProfile,
   FriendshipStatus,
 } from '@/types/friend';
-import api from '@/api/api';
+import api from '@/lib/api/api';
 
 // 친구 목록
 export const getFriends = async (page: number, size: number): Promise<PaginatedFriendsResponse> => {

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateDiary, generateAiPhotos } from '@/api/diary';
+import { updateDiary, generateAiPhotos } from '@/lib/api/diary';
 import useAuthStore from '../store/authStore';
 import TextareaAutosize from 'react-textarea-autosize';
 import {

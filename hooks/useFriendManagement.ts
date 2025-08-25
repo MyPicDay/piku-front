@@ -5,7 +5,7 @@ import {
   cancelFriendRequest,
   deleteFriend,
   getFriends,
-} from '@/api/friend';
+} from '@/lib/api/friend';
 import type { Friend, PaginatedFriendsResponse } from '@/types/friend';
 import { FriendshipStatus } from '@/types/friend';
 

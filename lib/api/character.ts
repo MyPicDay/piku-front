@@ -1,4 +1,4 @@
-import api from '@/api/api';
+import api from '@/lib/api/api';
 
 export interface FixedCharacter {
   id: number;

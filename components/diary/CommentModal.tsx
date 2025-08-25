@@ -11,7 +11,7 @@ import {
   getReplies,
   deleteComment,
   updateComment,
-} from '@/api/comment';
+} from '@/lib/api/comment';
 import useAuthStore from '@/components/store/authStore';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';

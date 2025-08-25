@@ -6,10 +6,10 @@ import { UserProfileResponseDTO } from '@/types/profile';
 import {
   checkNicknameAvailability,
   updateUserProfile,
-} from '@/api/user';
+} from '@/lib/api/user';
 import useAuthStore from '../store/authStore';
 import CharacterSelection from '../auth/CharacterSelection';
-import { getFixedCharacters } from '@/api/character';
+import { getFixedCharacters } from '@/lib/api/character';
 
 interface ProfileEditClientProps {
   profileData: UserProfileResponseDTO;

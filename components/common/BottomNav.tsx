@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '../store/authStore';
-import { logout } from '@/api/auth';
+import { logout } from '@/lib/api/auth';
 import InquiryModal from './InquiryModal';
 
 const BottomNav = () => {

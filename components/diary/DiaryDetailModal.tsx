@@ -25,7 +25,7 @@ import {
   getReplies,
   deleteComment,
   updateComment,
-} from '@/api/comment';
+} from '@/lib/api/comment';
 import { formatTimeAgo, formatYearMonthDay } from '@/lib/utils/date';
 import { getServerURL } from '@/lib/utils/url';
 import useAuthStore from '@/components/store/authStore';

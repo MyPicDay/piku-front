@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import FeedCard from './FeedCard';
-import { getFeed } from '@/api/feed';
-import { getDiaryById } from '@/api/diary';
+import { getFeed } from '@/lib/api/feed';
+import { getDiaryById } from '@/lib/api/diary';
 import { FeedDiary, DiaryDetail } from '@/types/diary';
 import { FriendshipStatus } from '@/types/friend';
 import DiaryDetailModal from '../diary/DiaryDetailModal';

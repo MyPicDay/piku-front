@@ -8,7 +8,7 @@ import {
   sendSignUpVerificationEmail,
   verifyCode,
   getAllowedEmailDomains,
-} from '@/api/auth';
+} from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import MobileView from './signup/MobileView';
 import DesktopView from './signup/DesktopView';

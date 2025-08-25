@@ -7,7 +7,7 @@ import {
   getFriendRequests,
   acceptFriendRequest,
   rejectFriendRequest,
-} from '@/api/friend';
+} from '@/lib/api/friend';
 import { FriendRequest } from '@/types/friend';
 
 const FriendsClient = () => {

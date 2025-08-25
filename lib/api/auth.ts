@@ -1,4 +1,4 @@
-import api from '@/api/api';
+import api from '@/lib/api/api';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';
 import generateUUID from '@/lib/utils/uuidGenerator';
 import { PwdResetRequest } from '@/types/auth';

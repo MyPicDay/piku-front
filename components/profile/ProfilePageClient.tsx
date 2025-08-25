@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import ProfileClient from '@/components/profile/ProfileClient';
 import Header from '@/components/profile/Header';
 import { UserProfileResponseDTO } from '@/types/profile';
-import { getUserProfile } from '@/api/user';
+import { getUserProfile } from '@/lib/api/user';
 import { getDaysInMonth } from '@/lib/utils/date';
 import useAuthStore from '@/components/store/authStore';
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import DiaryEditForm from '@/components/diary/DiaryEditForm';
-import { getDiaryById } from '@/api/diary';
+import { getDiaryById } from '@/lib/api/diary';
 import { DiaryDetail } from '@/types/diary';
 
 const DiaryEditClient = () => {
