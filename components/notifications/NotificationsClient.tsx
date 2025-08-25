@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { deleteNotification, getNotifications, markNotificationAsRead } from '@/api/notification';
+import { deleteNotification, getNotifications, markNotificationAsRead } from '@/lib/api/notification';
 import { Notification } from '@/types/notification';
 import { Trash2 } from 'lucide-react';
 import useNotificationStore from '../store/notificationStore';

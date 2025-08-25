@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getFixedCharacters, FixedCharacter } from '@/api/character';
+import { getFixedCharacters, FixedCharacter } from '@/lib/api/character';
 import Image from 'next/image';
 
 interface CharacterSelectionProps {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { sendVerificationCode, verifyCode, resetPassword } from '@/api/auth';
+import { sendVerificationCode, verifyCode, resetPassword } from '@/lib/api/auth';
 
 const PasswordResetClient = () => {
   const [email, setEmail] = useState('');

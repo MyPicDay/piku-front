@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import type { DiaryDetail } from '@/types/diary';
-import { getDiaryById } from '@/api/diary';
-import { createComment, getRootComments } from '@/api/comment';
+import { getDiaryById } from '@/lib/api/diary';
+import { createComment, getRootComments } from '@/lib/api/comment';
 import type { Comment } from '@/types/comment';
 import { format } from 'date-fns';
 import { Heart, MessageCircle, Send, X } from 'lucide-react';

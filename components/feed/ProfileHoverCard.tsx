@@ -9,7 +9,7 @@ import {
   deleteFriend,
   cancelFriendRequest,
   getProfileInfo,
-} from '@/api/friend';
+} from '@/lib/api/friend';
 import useAuthStore from '../store/authStore';
 import { useRouter } from 'next/navigation';
 

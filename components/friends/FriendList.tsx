@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import UserProfile from '@/components/common/UserProfile';
 import { Friend } from '@/types/friend';
-import { deleteFriend, getFriends } from '@/api/friend';
+import { deleteFriend, getFriends } from '@/lib/api/friend';
 
 const PAGE_SIZE = 20;
 

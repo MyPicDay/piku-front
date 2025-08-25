@@ -10,7 +10,7 @@ import {
 } from '../icons/FeedIcons';
 import { useState, useRef } from 'react';
 import useAuthStore from '../store/authStore';
-import { createComment } from '@/api/comment';
+import { createComment } from '@/lib/api/comment';
 import { useRouter } from 'next/navigation';
 import ProfileHoverCard from './ProfileHoverCard';
 import FriendActionConfirmModal from './FriendActionConfirmModal';
@@ -18,7 +18,7 @@ import {
   cancelFriendRequest,
   deleteFriend,
   sendFriendRequest,
-} from '@/api/friend';
+} from '@/lib/api/friend';
 import { ChevronLeft, ChevronRight, DotIcon } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
 import UserProfile from '../common/UserProfile';

@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/api/auth';
+import { login } from '@/lib/api/auth';
 import Link from 'next/link';
 import useAuthStore from '@/components/store/authStore';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';

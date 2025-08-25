@@ -10,7 +10,7 @@ import {
   deleteFriend,
   rejectFriendRequest,
   sendFriendRequest,
-} from '@/api/friend';
+} from '@/lib/api/friend';
 import { FriendshipStatus, UserProfile } from '@/types/friend';
 import { UserProfileResponseDTO, DiaryMonthCountDTO } from '@/types/profile';
 

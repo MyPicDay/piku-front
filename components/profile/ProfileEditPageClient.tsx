@@ -6,7 +6,7 @@ import { ChevronLeft } from 'lucide-react';
 import ProfileEditClient from '@/components/profile/ProfileEditClient';
 import { UserProfileResponseDTO } from '@/types/profile';
 import useAuthStore from '@/components/store/authStore';
-import { getUserProfile } from '@/api/user';
+import { getUserProfile } from '@/lib/api/user';
 
 const ProfileEditPageClient = () => {
   const router = useRouter();

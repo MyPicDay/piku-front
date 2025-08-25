@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { searchUsers } from '@/api/search';
+import { searchUsers } from '@/lib/api/search';
 import { Friend } from '@/types/friend';
 
 const SearchClient = () => {

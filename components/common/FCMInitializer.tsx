@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import useAuthStore from '../store/authStore';
 import { requestPermissionAndGetToken } from '@/lib/utils/fcm';
-import { registerFCMToken } from '@/api/user';
+import { registerFCMToken } from '@/lib/api/user';
 
 const FCMInitializer = () => {
   const { isLoggedIn, user } = useAuthStore();

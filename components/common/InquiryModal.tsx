@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { X, Image, Send } from 'lucide-react';
-import { submitInquiry } from '@/api/inquiry';
+import { submitInquiry } from '@/lib/api/inquiry';
 
 interface InquiryModalProps {
   onClose: () => void;
