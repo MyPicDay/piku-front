@@ -73,7 +73,7 @@ const ProfilePageClient = ({ userId }: ProfilePageClientProps) => {
   if (!profileData) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p>프로필 정보를 찾을 수 없습니다.</p>
+        <p>현재 게스트 모드에서는 내 프로필을 사용할 수 없습니다.</p>
       </div>
     );
   }

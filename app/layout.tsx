@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PikU",
-  description: "나만의 캐릭터로 기록하는 하루 한 장",
+  description: "캐릭터로 기록하는 하루 한 장",
   keywords: ["다이어리", "캐릭터", "일기", "PikU", "픽유", "감정 기록"],
   authors: [{ name: "PikU Team" }],
   creator: "PikU Team",
@@ -60,15 +60,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "PikU",
-    title: "PikU - 나만의 캐릭터 다이어리",
-    description: "나만의 캐릭터로 기록하는 하루 한 장",
+    title: "PikU - 캐릭터 다이어리",
+    description: "캐릭터로 기록하는 하루 한 장",
     locale: "ko_KR",
     images: [
       {
         url: "/piku-og-1200x630.png",
         width: 1200,
         height: 630,
-        alt: "PikU - 나만의 캐릭터 다이어리",
+        alt: "PikU - 캐릭터 다이어리",
       },
     ],
   },
@@ -76,12 +76,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@PikU",
     creator: "@PikU",
-    title: "PikU - 나만의 캐릭터 다이어리",
-    description: "나만의 캐릭터로 기록하는 하루 한 장",
+    title: "PikU - 캐릭터 다이어리",
+    description: "캐릭터로 기록하는 하루 한 장",
     images: [
       {
         url: "/piku-og-1200x630.png",
-        alt: "PikU - 나만의 캐릭터 다이어리",
+        alt: "PikU - 캐릭터 다이어리",
       }
     ],
   },
