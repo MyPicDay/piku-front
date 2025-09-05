@@ -3,17 +3,45 @@
 import { X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logout } from '@/lib/api/auth';
+import useAuthStore from '@/components/store/authStore';
 
 interface GuestLoginModalProps {
   onClose: () => void;
 }
 
 const GuestLoginModal = ({ onClose }: GuestLoginModalProps) => {
+  const { logout: logoutStore } = useAuthStore();
+  
   const handleBack = () => {
     onClose();
     if (window.history.length > 1) {
       window.history.back();
     }
+  };
+
+  const handleLoginClick = async () => {
+    try {
+      // 비회원 로그아웃 실행
+      await logout();
+      // 스토어도 로그아웃 상태로 변경
+      logoutStore();
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+    onClose();
+  };
+
+  const handleSignupClick = async () => {
+    try {
+      // 비회원 로그아웃 실행
+      await logout();
+      // 스토어도 로그아웃 상태로 변경
+      logoutStore();
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+    onClose();
   };
 
   return (
@@ -51,16 +79,18 @@ const GuestLoginModal = ({ onClose }: GuestLoginModalProps) => {
             이 기능을 사용하려면 로그인하거나 회원가입이 필요합니다.
           </p>
           <div className="flex flex-col gap-3">
-            <Link href="/login" onClick={onClose}>
-              <button className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition-colors">
-                로그인
-              </button>
-            </Link>
-            <Link href="/signup" onClick={onClose}>
-              <button className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 rounded-full text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                회원가입
-              </button>
-            </Link>
+            <button 
+              onClick={handleLoginClick}
+              className="w-full bg-black text-white py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
+              로그인
+            </button>
+            <button 
+              onClick={handleSignupClick}
+              className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 rounded-full text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              회원가입
+            </button>
           </div>
         </div>
       </div>
