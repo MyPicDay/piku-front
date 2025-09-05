@@ -104,7 +104,7 @@ const FeedCard = ({
     try {
       await createComment({ diaryId: post.diaryId, content: trimmedComment });
       setComment('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to post comment:', error);
       alert('댓글 작성에 실패했습니다.');
     } finally {
@@ -122,9 +122,11 @@ const FeedCard = ({
       await action();
       onFriendshipStatusChange(post.diaryId, newStatus);
       setIsConfirmModalOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Friend action failed:', error);
-      alert('요청 처리 중 오류가 발생했습니다.');
+      if (error?.response?.status != 403) {
+        alert('요청 처리 중 오류가 발생했습니다.');
+      }
     } finally {
       setIsActionLoading(false);
     }

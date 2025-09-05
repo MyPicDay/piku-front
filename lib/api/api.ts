@@ -69,6 +69,16 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
+    // 403 에러인 경우 로그인 페이지로 리다이렉트
+    if (error.response?.status === 403) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      if (typeof window !== 'undefined') {
+        alert('로그인이 필요합니다.');
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+
     // 401 에러이고, 재시도한 요청이 아닐 경우
     if (error.response?.status === 401 && !originalRequest._retry &&
       originalRequest.url !== '/auth/login' &&
