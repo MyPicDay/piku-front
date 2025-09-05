@@ -55,9 +55,11 @@ const ProfileHoverCard = ({
       await action();
       await fetchProfile(); // 자신의 상태 갱신
       onStatusChange(); // 부모(피드) 상태 갱신 요청
-    } catch (error) {
+    } catch (error: any) {
       console.error('Friend action failed', error);
-      alert('요청 처리 중 오류가 발생했습니다.');
+      if (error?.response?.status != 403) {
+        alert('요청 처리 중 오류가 발생했습니다.');
+      }
     } finally {
       setIsActionLoading(false);
     }

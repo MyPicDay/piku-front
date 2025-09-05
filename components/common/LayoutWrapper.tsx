@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import BottomNav from '@/components/common/BottomNav';
+import GuestSidebar from '@/components/common/GuestSidebar';
+import GuestBottomNav from '@/components/common/GuestBottomNav';
 import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import MobileHeader from '@/components/common/MobileHeader';
 import useAuthStore from '../store/authStore';
@@ -15,7 +17,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { isLoggedIn, checkAuth } = useAuthStore();
   const [isClient, setIsClient] = useState(false);
-  const hideNavOnPaths = ['/login', '/signup', '/password-reset', '/password-reset/verify'];
+  const hideNavOnPaths = ['/signup', '/password-reset', '/password-reset/verify'];
 
   useEffect(() => {
     checkAuth();
@@ -32,8 +34,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     return null;
   }
 
-  const shouldHideNav =
-    hideNavOnPaths.includes(pathname) || (pathname === '/' && !isLoggedIn);
+  const shouldHideNav = hideNavOnPaths.includes(pathname);
 
   if (isLoggedIn && hideNavOnPaths.includes(pathname)) {
     return null; // 리다이렉트 중에는 아무것도 렌더링하지 않음
@@ -45,16 +46,16 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <FCMInitializer />
-      <SSEInitializer />
+      {isLoggedIn && <FCMInitializer />}
+      {isLoggedIn && <SSEInitializer />}
       <MobileHeader />
       <div className="flex flex-1">
-        <Sidebar />
+        {isLoggedIn ? <Sidebar /> : <GuestSidebar />}
         <main className="w-full pt-14 xl:ml-64 transition-all duration-300 md:grid md:grid-cols-8 md:gap-4 xl:pt-0">
           <div className="md:col-span-4 md:col-start-3 h-full">{children}</div>
         </main>
       </div>
-      <BottomNav />
+      {isLoggedIn ? <BottomNav /> : <GuestBottomNav />}
       <PWAInstallPrompt />
     </div>
   );

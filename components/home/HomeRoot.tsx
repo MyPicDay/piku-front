@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import useAuthStore from '@/components/store/authStore';
 import HomeCalendar from '@/components/home/HomeCalendar';
-import LandingClient from '@/components/home/LandingClient';
+import FeedClient from '@/components/feed/FeedClient';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';
 
 export default function HomeRoot() {
@@ -21,5 +21,5 @@ export default function HomeRoot() {
     return null; // 또는 로딩 스피너
   }
 
-  return isLoggedIn ? <HomeCalendar /> : <LandingClient />;
+  return isLoggedIn ? <HomeCalendar /> : <FeedClient />;
 } 
