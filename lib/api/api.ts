@@ -2,6 +2,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getServerURL } from '@/lib/utils/url';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';
+import useAuthStore from '@/components/store/authStore';
+import useModalStore from '@/components/store/modalStore';
 
 /**
  * 프로젝트 전역으로 사용될 Axios 인스턴스.
@@ -23,8 +25,8 @@ api.interceptors.request.use(config => {
     return config;
   }
 
-  // 로그인, 회원가입 요청의 경우 토큰을 헤더에 추가하지 않음
-  if (config.url === '/auth/login' || config.url === '/auth/signup') {
+  // 로그인, 회원가입, 비회원 로그인 요청의 경우 토큰을 헤더에 추가하지 않음
+  if (config.url === '/auth/login' || config.url === '/auth/signup' || config.url === '/auth/guest') {
     return config;
   }
 
@@ -68,6 +70,16 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    // 403 에러이고 비회원인 경우 로그인 모달 표시
+    if (error.response?.status === 403 && typeof window !== 'undefined') {
+      const { isGuest } = useAuthStore.getState();
+      if (isGuest()) {
+        const { openGuestLoginModal } = useModalStore.getState();
+        openGuestLoginModal();
+        return Promise.reject(error);
+      }
+    }
 
     // 401 에러이고, 재시도한 요청이 아닐 경우
     if (error.response?.status === 401 && !originalRequest._retry &&

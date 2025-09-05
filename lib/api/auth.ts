@@ -63,6 +63,21 @@ export const login = async (data: LoginData) => {
   return response;
 };
 
+export const guestLogin = async () => {
+  let deviceId = localStorage.getItem('deviceId');
+  if (!deviceId) {
+      deviceId = generateUUID(); // 브라우저 지원
+      localStorage.setItem('deviceId', deviceId);
+  }
+
+  const response = await api.post('/auth/guest', {}, {
+    headers: {
+      'Device-Id': deviceId,
+    },
+  });
+  return response;
+};
+
 export const logout = async (): Promise<void> => {
   try {
     localStorage.removeItem('deviceId');

@@ -18,6 +18,12 @@ export const useFriendManagement = (currentUserId?: string) => {
   const viewedUser = viewedUserIndex !== null ? friends[viewedUserIndex] : null;
 
   useEffect(() => {
+    // currentUserId가 없으면 친구 목록을 가져오지 않음
+    if (!currentUserId) {
+      setFriends([]);
+      return;
+    }
+
     const fetchAllFriends = async () => {
       try {
         let allFriends: Friend[] = [];
@@ -39,7 +45,7 @@ export const useFriendManagement = (currentUserId?: string) => {
       }
     };
     fetchAllFriends();
-  }, []);
+  }, [currentUserId]);
 
   const fetchFriendStatus = useCallback(
     async (targetUserId: string) => {

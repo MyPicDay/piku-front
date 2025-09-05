@@ -11,6 +11,7 @@ interface AuthState {
   login: (user: User) => void;
   logout: () => void;
   checkAuth: () => void;
+  isGuest: () => boolean;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -45,6 +46,10 @@ const useAuthStore = create<AuthState>()(
             set({ isLoggedIn: false, user:null });
           }
         }
+      },
+      isGuest: () => {
+        const state = get();
+        return state.isLoggedIn && state.user?.isGuest === true;
       }
     }),
     {

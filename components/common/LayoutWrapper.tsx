@@ -6,14 +6,17 @@ import BottomNav from '@/components/common/BottomNav';
 import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import MobileHeader from '@/components/common/MobileHeader';
 import useAuthStore from '../store/authStore';
+import useModalStore from '../store/modalStore';
 import { useEffect, useState } from 'react';
 import FCMInitializer from './FCMInitializer';
 import SSEInitializer from './SSEInitializer';
+import GuestLoginModal from './GuestLoginModal';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { isLoggedIn, checkAuth } = useAuthStore();
+  const { isLoggedIn, checkAuth, isGuest } = useAuthStore();
+  const { isGuestLoginModalOpen, closeGuestLoginModal } = useModalStore();
   const [isClient, setIsClient] = useState(false);
   const hideNavOnPaths = ['/login', '/signup', '/password-reset', '/password-reset/verify'];
 
@@ -45,8 +48,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <FCMInitializer />
-      <SSEInitializer />
+      {!isGuest() && <FCMInitializer />}
+      {!isGuest() && <SSEInitializer />}
       <MobileHeader />
       <div className="flex flex-1">
         <Sidebar />
@@ -56,6 +59,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
       </div>
       <BottomNav />
       <PWAInstallPrompt />
+      {isGuestLoginModalOpen && <GuestLoginModal onClose={closeGuestLoginModal} />}
     </div>
   );
 };

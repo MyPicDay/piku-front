@@ -38,6 +38,7 @@ export interface User {
   email: string;
   nickname: string;
   avatar: string;
+  isGuest?: boolean;
 }
 
 export interface PwdResetRequest {

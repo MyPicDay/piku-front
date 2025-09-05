@@ -27,21 +27,24 @@ const HomeCalendar = ({
   diaryId,
 }: HomeCalendarProps) => {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isGuest } = useAuthStore();
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 768px)' });
   const isMyCalendar =
     !initialViewedUser || user?.id === initialViewedUser.userId;
 
-  // 친구 관리 훅
+  // 비회원이면 친구 기능 비활성화
+  const isGuestUser = isGuest();
+  
+  // 친구 관리 훅 (비회원이면 사용하지 않음)
   const {
     viewedUser: selectedViewedUser,
     fetchFriendStatus,
     nextFriend,
     prevFriend,
-  } = useFriendManagement(user?.id);
+  } = useFriendManagement(isGuestUser ? undefined : user?.id);
 
-  // 실제로 표시할 유저 결정
-  const viewedUser = selectedViewedUser || initialViewedUser;
+  // 실제로 표시할 유저 결정 (비회원이면 항상 본인 캘린더만 표시)
+  const viewedUser = isGuestUser ? null : (selectedViewedUser || initialViewedUser);
 
   const isOwner = !viewedUser || viewedUser.userId === user?.id;
 
@@ -59,8 +62,9 @@ const HomeCalendar = ({
     swipeHandlers,
   } = useCalendarNavigation(
     isDesktopOrLaptop,
-    isMyCalendar ? nextFriend : noop,
-    isMyCalendar ? prevFriend : noop,
+    // 비회원이면 친구 네비게이션 비활성화
+    isGuestUser ? noop : (isMyCalendar ? nextFriend : noop),
+    isGuestUser ? noop : (isMyCalendar ? prevFriend : noop),
     initialDate,
   );
 
@@ -99,12 +103,12 @@ const HomeCalendar = ({
     }
   }, [diaryId, loadDiaryDetail]);
 
-  // 친구 상태 페치
+  // 친구 상태 페치 (비회원이면 실행하지 않음)
   useEffect(() => {
-    if (viewedUser && user) {
+    if (viewedUser && user && !isGuestUser) {
       fetchFriendStatus(viewedUser.userId);
     }
-  }, [viewedUser, user, fetchFriendStatus]);
+  }, [viewedUser, user, fetchFriendStatus, isGuestUser]);
 
   const handleDayClick = async (diaryId: number) => {
     await loadDiaryDetail(diaryId);
@@ -152,7 +156,7 @@ const HomeCalendar = ({
     >
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
-          key={viewedUser ? viewedUser.userId : user.id}
+          key={isGuestUser ? 'guest' : (viewedUser ? viewedUser.userId : user.id)}
           className="h-full flex flex-col"
           variants={slideVariants}
           custom={direction}

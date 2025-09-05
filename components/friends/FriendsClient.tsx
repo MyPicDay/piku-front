@@ -25,6 +25,14 @@ const FriendsClient = () => {
 
     try {
       const data = await getFriendRequests(requestsPage, 10);
+      
+      // 데이터가 없거나 빈 배열인 경우 처리
+      if (!data.requests || data.requests.length === 0) {
+        setRequestsHasMore(false);
+        setRequestsLoading(false);
+        return;
+      }
+
       setRequests(prev => {
         const existingUserIds = new Set(prev.map(req => req.userId));
         const newRequests = data.requests.filter(
@@ -32,11 +40,14 @@ const FriendsClient = () => {
         );
         return [...prev, ...newRequests];
       });
+      
       setRequestsHasMore(data.hasNext);
       setTotalRequests(data.totalElements);
       setRequestsPage(prev => prev + 1);
     } catch (error) {
       console.error('친구 요청 목록을 불러오는데 실패했습니다:', error);
+      // 에러 발생 시 더 이상 로드하지 않도록 설정
+      setRequestsHasMore(false);
     } finally {
       setRequestsLoading(false);
     }
@@ -58,9 +69,12 @@ const FriendsClient = () => {
     [requestsLoading, requestsHasMore, loadMoreRequests],
   );
 
+  // 초기 로드만 실행
   useEffect(() => {
-    loadMoreRequests();
-  }, [loadMoreRequests]);
+    if (requestsPage === 0 && !requestsLoading) {
+      loadMoreRequests();
+    }
+  }, []); // 빈 의존성 배열로 초기 로드만 실행
 
   const handleAccept = async (userId: string) => {
     await acceptFriendRequest(userId);
