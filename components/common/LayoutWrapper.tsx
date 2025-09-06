@@ -30,8 +30,15 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isClient, isLoggedIn, pathname, router]);
 
+  // SSR 및 크롤러를 위한 기본 레이아웃 제공
   if (!isClient) {
-    return null;
+    return (
+      <div className="flex flex-col min-h-screen">
+        <main className="w-full min-h-screen transition-all duration-300">
+          {children}
+        </main>
+      </div>
+    );
   }
 
   const shouldHideNav = hideNavOnPaths.includes(pathname);

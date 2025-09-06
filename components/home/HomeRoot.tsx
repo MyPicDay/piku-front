@@ -17,8 +17,13 @@ export default function HomeRoot() {
     setIsLoggedIn(!!token && !!user);
   }, [user]);
 
+  // SSR 및 크롤러를 위한 기본 콘텐츠 제공
   if (!isClient) {
-    return null; // 또는 로딩 스피너
+    return (
+      <div className="w-full min-h-screen">
+        <FeedClient />
+      </div>
+    );
   }
 
   return isLoggedIn ? <HomeCalendar /> : <FeedClient />;

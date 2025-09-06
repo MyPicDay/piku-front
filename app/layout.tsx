@@ -6,7 +6,7 @@ import ReactQueryProvider from "@/providers/ReactQueryProvider";
 
 // === 절대 URL 고정 (마지막 슬래시 제거) ===
 const BASE_URL =
-  (process.env.NEXT_PUBLIC_BASE_URL || "https://piku.store").replace(/\/+$/, "");
+  (process.env.NEXT_PUBLIC_BASE_URL || "https://www.piku.store").replace(/\/+$/, "");
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -90,6 +90,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: "PikU - 나만의 캐릭터 다이어리",
+        type: "image/png",
       },
     ],
   },
