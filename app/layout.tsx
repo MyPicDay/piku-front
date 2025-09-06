@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: "PikU Team" }],
   creator: "PikU Team",
   publisher: "PikU",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.piku.store'),
   alternates: {
     canonical: '/',
   },
