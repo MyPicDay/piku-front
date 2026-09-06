@@ -148,10 +148,11 @@ describe('useDiaryShare', () => {
     await act(async () => copyResult.resolve());
   });
 
-  it('수동 패널의 새 조작으로 복사를 다시 시도한다', async () => {
+  it('재복사 처리 중 수동 패널을 유지하고 성공한 뒤에만 닫는다', async () => {
+    const retryResult = deferred<void>();
     const writeText = vi.fn()
       .mockRejectedValueOnce(new Error('denied'))
-      .mockResolvedValueOnce(undefined);
+      .mockReturnValueOnce(retryResult.promise);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
     const { result } = renderHook(() => useDiaryShare(12, 'PUBLIC'));
     act(() => result.current.share());
@@ -160,7 +161,72 @@ describe('useDiaryShare', () => {
     act(() => result.current.retryCopy());
 
     expect(writeText).toHaveBeenCalledTimes(2);
+    expect(result.current.pending).toBe(true);
+    expect(result.current.feedback?.kind).toBe('manual');
+    expect(result.current.canRetryCopy).toBe(true);
+
+    await act(async () => retryResult.resolve());
     await waitFor(() => expect(result.current.feedback?.kind).toBe('success'));
+  });
+
+  it('재복사 실패 중 패널을 닫으면 늦은 실패가 패널을 다시 열지 않는다', async () => {
+    const retryResult = deferred<void>();
+    const writeText = vi.fn()
+      .mockRejectedValueOnce(new Error('denied'))
+      .mockReturnValueOnce(retryResult.promise);
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const { result } = renderHook(() => useDiaryShare(15, 'PUBLIC'));
+    act(() => result.current.share(trigger));
+    await waitFor(() => expect(result.current.feedback?.kind).toBe('manual'));
+
+    act(() => result.current.retryCopy());
+    act(() => result.current.closeFeedback());
+    expect(result.current.pending).toBe(false);
+    expect(result.current.feedback).toBeNull();
+    expect(trigger).toHaveFocus();
+
+    await act(async () => retryResult.reject(new Error('still denied')));
+    expect(result.current.feedback).toBeNull();
+    trigger.remove();
+  });
+
+  it('공유 Promise가 대상 변경 뒤 실패해도 이전 URL 복사를 시작하지 않는다', async () => {
+    const shareResult = deferred<void>();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', {
+      share: vi.fn(() => shareResult.promise),
+      clipboard: { writeText },
+    });
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useDiaryShare>,
+      { id: number; status: PrivacyStatus }
+    >(({ id, status }) => useDiaryShare(id, status), {
+      initialProps: { id: 16, status: 'PUBLIC' },
+    });
+    act(() => result.current.share());
+
+    rerender({ id: 17, status: 'PRIVATE' });
+    await act(async () => shareResult.reject(new TypeError('late failure')));
+
+    expect(writeText).not.toHaveBeenCalled();
+    expect(result.current.feedback).toBeNull();
+  });
+
+  it('공유 Promise가 언마운트 뒤 실패해도 fallback 복사를 시작하지 않는다', async () => {
+    const shareResult = deferred<void>();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', {
+      share: vi.fn(() => shareResult.promise),
+      clipboard: { writeText },
+    });
+    const { result, unmount } = renderHook(() => useDiaryShare(18, 'PUBLIC'));
+    act(() => result.current.share());
+    unmount();
+
+    await act(async () => shareResult.reject(new TypeError('late failure')));
+    expect(writeText).not.toHaveBeenCalled();
   });
 
   it('렌더 중 Clipboard API를 읽지 않고 사용자 조작에서만 감지한다', () => {

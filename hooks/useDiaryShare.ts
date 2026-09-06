@@ -172,14 +172,16 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
     [copyUrl, finish, isCurrentRequest],
   );
 
-  const startRequest = useCallback(() => {
+  const startRequest = useCallback((preserveFeedback = false) => {
     if (lockRef.current) return null;
     lockRef.current = true;
     const requestId = requestRef.current + 1;
     requestRef.current = requestId;
     setPending(true);
-    setFeedback(null);
-    setCanRetryCopy(false);
+    if (!preserveFeedback) {
+      setFeedback(null);
+      setCanRetryCopy(false);
+    }
     return { requestId, requestKey: currentKeyRef.current };
   }, []);
 
@@ -249,12 +251,15 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
 
   const retryCopy = useCallback(() => {
     if (feedback?.kind !== 'manual' || !feedback.url) return;
-    const request = startRequest();
+    const request = startRequest(true);
     if (!request) return;
     copyUrl(feedback.url, request.requestId, request.requestKey);
   }, [copyUrl, feedback, startRequest]);
 
   const closeFeedback = useCallback(() => {
+    requestRef.current += 1;
+    lockRef.current = false;
+    setPending(false);
     setFeedback(null);
     setCanRetryCopy(false);
     triggerRef.current?.focus();

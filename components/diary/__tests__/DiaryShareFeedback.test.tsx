@@ -27,6 +27,7 @@ describe('DiaryShareFeedback', () => {
     expect(input).toHaveFocus();
     expect(input.selectionStart).toBe(0);
     expect(input.selectionEnd).toBe(input.value.length);
+    expect(input).toHaveClass('bg-white', 'text-gray-900');
 
     fireEvent.keyDown(input, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledOnce();
@@ -46,6 +47,51 @@ describe('DiaryShareFeedback', () => {
       />,
     );
     expect(screen.queryByRole('button', { name: '링크 복사' })).not.toBeInTheDocument();
+  });
+
+  it('재복사 처리와 실패로 수동 피드백 객체가 바뀌어도 재복사 버튼 포커스를 유지한다', () => {
+    const manualFeedback = {
+      kind: 'manual' as const,
+      message: '직접 복사',
+      url: 'https://example.com',
+    };
+    const { rerender } = render(
+      <DiaryShareFeedback
+        feedback={manualFeedback}
+        status="PUBLIC"
+        canRetryCopy
+        pending={false}
+        onRetryCopy={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const retryButton = screen.getByRole('button', { name: '링크 복사' });
+    retryButton.focus();
+
+    rerender(
+      <DiaryShareFeedback
+        feedback={{ ...manualFeedback }}
+        status="PUBLIC"
+        canRetryCopy
+        pending
+        onRetryCopy={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(retryButton).toBeDisabled();
+    expect(retryButton).toHaveFocus();
+
+    rerender(
+      <DiaryShareFeedback
+        feedback={{ ...manualFeedback }}
+        status="PUBLIC"
+        canRetryCopy
+        pending={false}
+        onRetryCopy={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(retryButton).toHaveFocus();
   });
 
   it('스토리 성공 안내를 안전 영역의 고대비 패널에 표시한다', () => {

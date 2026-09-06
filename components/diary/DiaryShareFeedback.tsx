@@ -30,7 +30,7 @@ const DiaryShareFeedback = ({
     if (feedback?.kind !== 'manual') return;
     inputRef.current?.focus();
     inputRef.current?.select();
-  }, [feedback]);
+  }, [feedback?.kind]);
 
   if (!feedback) {
     if (status !== 'FRIENDS') return null;
@@ -96,7 +96,7 @@ const DiaryShareFeedback = ({
         readOnly
         value={feedback.url ?? ''}
         onFocus={event => event.currentTarget.select()}
-        className="w-full rounded border border-gray-300 px-2 py-2 text-xs text-gray-900"
+        className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900"
       />
       <div className="mt-2 flex justify-end gap-2">
         {canRetryCopy && (
