@@ -50,6 +50,8 @@ describe('DiaryShareFeedback', () => {
   });
 
   it('재복사 처리와 실패로 수동 피드백 객체가 바뀌어도 재복사 버튼 포커스를 유지한다', () => {
+    const onRetryCopy = vi.fn();
+    const onClose = vi.fn();
     const manualFeedback = {
       kind: 'manual' as const,
       message: '직접 복사',
@@ -61,8 +63,8 @@ describe('DiaryShareFeedback', () => {
         status="PUBLIC"
         canRetryCopy
         pending={false}
-        onRetryCopy={vi.fn()}
-        onClose={vi.fn()}
+        onRetryCopy={onRetryCopy}
+        onClose={onClose}
       />,
     );
     const retryButton = screen.getByRole('button', { name: '링크 복사' });
@@ -74,12 +76,17 @@ describe('DiaryShareFeedback', () => {
         status="PUBLIC"
         canRetryCopy
         pending
-        onRetryCopy={vi.fn()}
-        onClose={vi.fn()}
+        onRetryCopy={onRetryCopy}
+        onClose={onClose}
       />,
     );
-    expect(retryButton).toBeDisabled();
+    expect(retryButton).toHaveAttribute('aria-disabled', 'true');
+    expect(retryButton).not.toBeDisabled();
     expect(retryButton).toHaveFocus();
+    fireEvent.click(retryButton);
+    expect(onRetryCopy).not.toHaveBeenCalled();
+    fireEvent.keyDown(retryButton, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledOnce();
 
     rerender(
       <DiaryShareFeedback
@@ -87,11 +94,13 @@ describe('DiaryShareFeedback', () => {
         status="PUBLIC"
         canRetryCopy
         pending={false}
-        onRetryCopy={vi.fn()}
-        onClose={vi.fn()}
+        onRetryCopy={onRetryCopy}
+        onClose={onClose}
       />,
     );
     expect(retryButton).toHaveFocus();
+    fireEvent.click(retryButton);
+    expect(onRetryCopy).toHaveBeenCalledOnce();
   });
 
   it('스토리 성공 안내를 안전 영역의 고대비 패널에 표시한다', () => {

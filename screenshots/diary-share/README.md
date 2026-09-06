@@ -12,6 +12,7 @@
 | Escape / 닫기 | 패널 종료 후 공유 버튼 포커스 복귀; 일기 모달 유지 |
 | 시스템 공유 취소 | 추가 클립보드 쓰기와 수동 패널 없이 종료 |
 | 새 클릭으로 재복사 | 실제 성공 후에만 성공 안내 표시 |
+| 재복사 처리 중 키보드 | 버튼 포커스 유지, Enter 중복 실행 차단, Escape 종료 후 공유 버튼 복귀; 요청 완료 전까지 공유 잠금 유지 |
 | 사진·텍스트 피드 | 공유 표시, 비공개는 숨김; 스켈레톤과 실제 사진 카드 높이 일치 |
 | 모바일 스토리 | 좋아요 → 댓글 → 공유 세로 배치, 댓글 화면에서 액션과 패널 숨김 |
 | 360px 스토리 패널 | 패널 x=16..280, 액션 x=300..344로 겹치지 않음; 하단 16px 여백 |
@@ -32,6 +33,7 @@
 
 Node 26의 실험적 Web Storage가 jsdom의 localStorage를 가리는 현상을 피하기 위해 Vitest 실행에 `NODE_OPTIONS=--no-experimental-webstorage`를 사용했다. 애플리케이션 런타임 설정은 변경하지 않았다.
 타입 검사와 전체 Vitest, 기존 Playwright E2E를 실행했다. 시스템 공유·Clipboard 제한 분기는 대역과 수동 브라우저 조작으로 검증했다.
+추가 리뷰에서 Chromium의 native `disabled` 전환으로 재복사 버튼 포커스가 사라지는 현상을 재현하고 `aria-disabled`와 실행 가드로 수정했다. 공유 전용 회귀 흐름은 `e2e/diary-share.spec.ts`에 보존해 `npm run test:e2e`에서 반복 검증한다.
 `NEXT_PUBLIC_E2E_TEST=1 NEXT_PUBLIC_BASE_URL=http://127.0.0.1:3000 npm run build`로 프로덕션 빌드를 생성하고 로컬 `next start` 서버에서 Twitterbot·facebookexternalhit·Kakaotalk-scrap User-Agent로 상세 HTML을 조회했다. 세 요청 모두 제목·설명, canonical·og:url, OG/Twitter 공통 이미지와 크기·alt 등 16개 메타데이터 항목이 일치했다. 실제 외부 서비스의 크롤링 결과는 별도 확인 대상이다.
 
 ## 실제 환경에서 남은 확인

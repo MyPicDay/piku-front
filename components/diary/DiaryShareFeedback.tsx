@@ -102,9 +102,12 @@ const DiaryShareFeedback = ({
         {canRetryCopy && (
           <button
             type="button"
-            onClick={onRetryCopy}
-            disabled={pending}
-            className="min-h-11 rounded px-3 text-sm font-semibold text-blue-600 disabled:opacity-50"
+            onClick={() => {
+              if (!pending) onRetryCopy();
+            }}
+            aria-disabled={pending}
+            aria-busy={pending}
+            className="min-h-11 rounded px-3 text-sm font-semibold text-blue-600 aria-disabled:opacity-50"
           >
             링크 복사
           </button>
