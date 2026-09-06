@@ -23,4 +23,20 @@ describe('DiaryShareButton', () => {
       '공유하기 작성자의 친구만 볼 수 있는 일기예요.',
     );
   });
+
+  it('처리 중에도 포커스를 받을 수 있고 반복 실행은 막는다', () => {
+    const onShare = vi.fn();
+    render(
+      <DiaryShareButton status="PUBLIC" pending onShare={onShare} />,
+    );
+    const button = screen.getByRole('button', { name: '일기 공유' });
+
+    button.focus();
+    fireEvent.click(button);
+
+    expect(button).toHaveFocus();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).not.toBeDisabled();
+    expect(onShare).not.toHaveBeenCalled();
+  });
 });

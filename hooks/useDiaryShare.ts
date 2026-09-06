@@ -42,6 +42,7 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
   const mountedRef = useRef(false);
   const lockRef = useRef(false);
   const requestRef = useRef(0);
+  const dismissedRequestRef = useRef<number | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<DiaryShareFeedback | null>(null);
@@ -52,12 +53,14 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
     return () => {
       mountedRef.current = false;
       requestRef.current += 1;
+      dismissedRequestRef.current = null;
       lockRef.current = false;
     };
   }, []);
 
   useEffect(() => {
     requestRef.current += 1;
+    dismissedRequestRef.current = null;
     lockRef.current = false;
     setPending(false);
     setFeedback(null);
@@ -88,6 +91,12 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
       if (!isCurrentRequest(requestId, requestKey)) return;
       lockRef.current = false;
       setPending(false);
+      if (dismissedRequestRef.current === requestId) {
+        dismissedRequestRef.current = null;
+        setFeedback(null);
+        setCanRetryCopy(false);
+        return;
+      }
       setFeedback(nextFeedback);
       setCanRetryCopy(nextCanRetryCopy);
     },
@@ -177,6 +186,7 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
     lockRef.current = true;
     const requestId = requestRef.current + 1;
     requestRef.current = requestId;
+    dismissedRequestRef.current = null;
     setPending(true);
     if (!preserveFeedback) {
       setFeedback(null);
@@ -257,9 +267,9 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
   }, [copyUrl, feedback, startRequest]);
 
   const closeFeedback = useCallback(() => {
-    requestRef.current += 1;
-    lockRef.current = false;
-    setPending(false);
+    if (lockRef.current) {
+      dismissedRequestRef.current = requestRef.current;
+    }
     setFeedback(null);
     setCanRetryCopy(false);
     triggerRef.current?.focus();

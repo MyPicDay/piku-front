@@ -35,6 +35,7 @@ const DiaryShareButton = forwardRef<HTMLButtonElement, DiaryShareButtonProps>(
         .join(' ') || undefined;
     const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
+      if (pending) return;
       onShare(event.currentTarget);
     };
 
@@ -45,15 +46,15 @@ const DiaryShareButton = forwardRef<HTMLButtonElement, DiaryShareButtonProps>(
           type="button"
           aria-label="일기 공유"
           aria-busy={pending}
+          aria-disabled={pending}
           aria-describedby={describedBy}
           title={
             status === 'FRIENDS'
               ? '작성자의 친구만 볼 수 있는 일기예요.'
               : '공유하기'
           }
-          disabled={pending}
           onClick={handleClick}
-          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 disabled:opacity-50 ${
+          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 aria-disabled:opacity-50 ${
             variant === 'story'
               ? 'flex-col text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]'
               : 'text-gray-700 dark:text-gray-200'

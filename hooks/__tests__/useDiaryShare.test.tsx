@@ -169,11 +169,12 @@ describe('useDiaryShare', () => {
     await waitFor(() => expect(result.current.feedback?.kind).toBe('success'));
   });
 
-  it('재복사 실패 중 패널을 닫으면 늦은 실패가 패널을 다시 열지 않는다', async () => {
+  it('재복사 중 패널을 닫아도 정착 전 중복 실행을 막고 정착 후 새 공유를 허용한다', async () => {
     const retryResult = deferred<void>();
     const writeText = vi.fn()
       .mockRejectedValueOnce(new Error('denied'))
-      .mockReturnValueOnce(retryResult.promise);
+      .mockReturnValueOnce(retryResult.promise)
+      .mockResolvedValueOnce(undefined);
     const trigger = document.createElement('button');
     document.body.append(trigger);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
@@ -183,12 +184,20 @@ describe('useDiaryShare', () => {
 
     act(() => result.current.retryCopy());
     act(() => result.current.closeFeedback());
-    expect(result.current.pending).toBe(false);
+    expect(result.current.pending).toBe(true);
     expect(result.current.feedback).toBeNull();
     expect(trigger).toHaveFocus();
 
+    act(() => result.current.share());
+    expect(writeText).toHaveBeenCalledTimes(2);
+
     await act(async () => retryResult.reject(new Error('still denied')));
+    expect(result.current.pending).toBe(false);
     expect(result.current.feedback).toBeNull();
+
+    act(() => result.current.share());
+    expect(writeText).toHaveBeenCalledTimes(3);
+    await waitFor(() => expect(result.current.feedback?.kind).toBe('success'));
     trigger.remove();
   });
 
