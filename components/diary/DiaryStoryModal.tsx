@@ -26,6 +26,9 @@ import { deleteDiary } from '@/lib/api/diary';
 import { addLike, removeLike, type LikeResponse } from '@/lib/api/like';
 import StoryCommentModal from './StoryCommentModal';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
+import { useDiaryShare } from '@/hooks/useDiaryShare';
+import DiaryShareButton from './DiaryShareButton';
+import DiaryShareFeedback from './DiaryShareFeedback';
 
 interface DiaryStoryModalProps {
   diary: DiaryDetail;
@@ -88,7 +91,7 @@ const DiaryStoryModal = ({
 }: DiaryStoryModalProps) => {
   useBodyScrollLock(true);
 
-  const [currentDiary, setCurrentDiary] = useState(diary);
+  const currentDiary = diary;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [totalComments, setTotalComments] = useState(diary.commentCount);
   const [isLiked, setIsLiked] = useState(diary.isLiked);
@@ -104,9 +107,9 @@ const DiaryStoryModal = ({
   const isAnonymousDiary = isAnonymousDiaryIdentity(currentDiary);
   const displayNickname = isAnonymousDiary ? '익명' : currentDiary.nickname;
   const isOwner = currentDiary.isOwner ?? user?.id === currentDiary.userId;
+  const diaryShare = useDiaryShare(currentDiary.diaryId, currentDiary.status);
 
   useEffect(() => {
-    setCurrentDiary(diary);
     setCurrentImageIndex(0);
     setTotalComments(diary.commentCount);
     setIsLiked(diary.isLiked);
@@ -411,7 +414,24 @@ const DiaryStoryModal = ({
                 onClick={action.onClick}
               />
             ))}
+            {diaryShare.visible && (
+              <DiaryShareButton
+                status={currentDiary.status}
+                pending={diaryShare.pending}
+                onShare={diaryShare.share}
+                variant="story"
+              />
+            )}
           </div>
+          <DiaryShareFeedback
+            feedback={diaryShare.feedback}
+            status={currentDiary.status}
+            canRetryCopy={diaryShare.canRetryCopy}
+            pending={diaryShare.pending}
+            onRetryCopy={diaryShare.retryCopy}
+            onClose={diaryShare.closeFeedback}
+            variant="story"
+          />
         </>
       )}
 

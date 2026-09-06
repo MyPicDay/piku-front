@@ -105,6 +105,39 @@ describe('DiaryDetailClient', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('조회된 공개 일기를 카드 액션에서 공유한다', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { share });
+    vi.mocked(getDiaryById).mockResolvedValue(diary);
+
+    render(<DiaryDetailClient diaryId={42} />);
+    fireEvent.click(await screen.findByRole('button', { name: '일기 공유' }));
+
+    expect(share).toHaveBeenCalledWith({
+      title: 'PikUme 일기',
+      text: 'PikUme에서 일기를 확인해 보세요.',
+      url: 'https://www.pikume.com/diary/42',
+    });
+  });
+
+  it('요청 id가 바뀌면 이전에 조회한 일기의 공유 버튼을 즉시 숨긴다', async () => {
+    vi.mocked(getDiaryById).mockResolvedValueOnce(diary).mockReturnValueOnce(new Promise(() => {}));
+    const { rerender } = render(<DiaryDetailClient diaryId={42} />);
+    expect(await screen.findByRole('button', { name: '일기 공유' })).toBeInTheDocument();
+
+    rerender(<DiaryDetailClient diaryId={43} />);
+
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
+  });
+
+  it('PRIVATE 일기를 조회하면 공유 버튼을 표시하지 않는다', async () => {
+    vi.mocked(getDiaryById).mockResolvedValue({ ...diary, status: 'PRIVATE' });
+    render(<DiaryDetailClient diaryId={42} />);
+    await screen.findByText('오늘의 일기');
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
   });
 
   it('일기 상세 조회 실패 시 404 이미지를 보여준다', async () => {

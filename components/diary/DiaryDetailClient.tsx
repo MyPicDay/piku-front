@@ -24,6 +24,9 @@ import { getPrivacyLabel, isAnonymousDiaryIdentity } from '@/lib/utils/privacy';
 import UserProfile from '@/components/common/UserProfile';
 import ProfileHoverCard from '@/components/feed/ProfileHoverCard';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
+import { useDiaryShare } from '@/hooks/useDiaryShare';
+import DiaryShareButton from './DiaryShareButton';
+import DiaryShareFeedback from './DiaryShareFeedback';
 
 interface DiaryDetailClientProps {
   diaryId: number;
@@ -42,20 +45,31 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
   const { user } = useAuthStore();
   const router = useRouter();
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
+  const hasCurrentDiary = diary?.diaryId === diaryId;
+  const diaryShare = useDiaryShare(
+    hasCurrentDiary ? diary.diaryId : 0,
+    hasCurrentDiary ? diary.status : 'PRIVATE',
+  );
 
   useEffect(() => {
+    let isCurrentRequest = true;
+    setDiary(null);
+    setIsLoading(true);
     const fetchDiaryDetail = async () => {
       try {
         const diaryData = await getDiaryById(diaryId);
-        setDiary(diaryData);
+        if (isCurrentRequest) setDiary(diaryData);
       } catch (error) {
         // setErrorMessage(getApiErrorMessage(error, '일기를 찾을 수 없습니다.'));
       } finally {
-        setIsLoading(false);
+        if (isCurrentRequest) setIsLoading(false);
       }
     };
 
     fetchDiaryDetail();
+    return () => {
+      isCurrentRequest = false;
+    };
   }, [diaryId]);
 
   const openCommentModal = () => {
@@ -330,7 +344,22 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
                   <MessageCircle className="h-7 w-7" />
                   <span className="font-bold">{diary.commentCount}</span>
                 </button>
+                {diaryShare.visible && (
+                  <DiaryShareButton
+                    status={diary.status}
+                    pending={diaryShare.pending}
+                    onShare={diaryShare.share}
+                  />
+                )}
               </div>
+              <DiaryShareFeedback
+                feedback={diaryShare.feedback}
+                status={diary.status}
+                canRetryCopy={diaryShare.canRetryCopy}
+                pending={diaryShare.pending}
+                onRetryCopy={diaryShare.retryCopy}
+                onClose={diaryShare.closeFeedback}
+              />
             </div>
 
             <main className="px-3 pb-3">

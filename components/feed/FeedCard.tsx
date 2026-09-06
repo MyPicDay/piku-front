@@ -7,7 +7,6 @@ import {
   CommentIcon,
   HeartIcon,
   MoreIcon,
-  ShareIcon,
 } from '../icons/FeedIcons';
 import { useRef, useState } from 'react';
 import useAuthStore from '../store/authStore';
@@ -26,6 +25,9 @@ import UserProfile from '../common/UserProfile';
 import Link from 'next/link';
 import { isAnonymousDiaryIdentity } from '@/lib/utils/privacy';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
+import { useDiaryShare } from '@/hooks/useDiaryShare';
+import DiaryShareButton from '@/components/diary/DiaryShareButton';
+import DiaryShareFeedback from '@/components/diary/DiaryShareFeedback';
 
 interface FeedCardProps {
   post: FeedDiary;
@@ -70,6 +72,7 @@ const FeedCard = ({
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAnonymousPost = isAnonymousDiaryIdentity(post);
   const displayNickname = isAnonymousPost ? '익명' : post.nickname;
+  const diaryShare = useDiaryShare(post.diaryId, post.status);
 
   const handleMouseEnter = () => {
     if (isAnonymousPost) return;
@@ -413,11 +416,26 @@ const FeedCard = ({
               <CommentIcon />
               <span className="font-bold">{post.commentCount}</span>
             </button>
+            {diaryShare.visible && (
+              <DiaryShareButton
+                status={post.status}
+                pending={diaryShare.pending}
+                onShare={diaryShare.share}
+              />
+            )}
           </div>
           {/* <button>
             <BookmarkIcon />
           </button> */}
         </div>
+        <DiaryShareFeedback
+          feedback={diaryShare.feedback}
+          status={post.status}
+          canRetryCopy={diaryShare.canRetryCopy}
+          pending={diaryShare.pending}
+          onRetryCopy={diaryShare.retryCopy}
+          onClose={diaryShare.closeFeedback}
+        />
       </div>
 
       {photoUrl && (

@@ -19,8 +19,13 @@ const FeedSkeletonCard = () => (
     <div className={`aspect-square w-full rounded ${placeholderClassName}`} />
 
     <div className="flex gap-3 p-3">
-      <div className={`h-7 w-14 rounded ${placeholderClassName}`} />
-      <div className={`h-7 w-14 rounded ${placeholderClassName}`} />
+      {Array.from({ length: 3 }, (_, index) => (
+        <div
+          key={index}
+          data-testid="feed-skeleton-action"
+          className={`h-11 w-14 rounded ${placeholderClassName}`}
+        />
+      ))}
     </div>
 
     <div className="px-3">

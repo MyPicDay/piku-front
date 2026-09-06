@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DiaryStoryModal from '../DiaryStoryModal';
 import type { DiaryDetail } from '@/types/diary';
 import { addLike } from '@/lib/api/like';
@@ -106,15 +106,34 @@ describe('DiaryStoryModal history navigation', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('좋아요와 댓글을 우측 하단 세로 액션 레일에 표시한다', () => {
     render(<DiaryStoryModal diary={diary} onClose={vi.fn()} />);
 
     const actionRail = screen.getByTestId('story-action-rail');
     expect(actionRail).toHaveClass('right-4', 'bottom-8', 'flex-col');
-    expect(within(actionRail).getAllByRole('button')).toHaveLength(2);
+    expect(within(actionRail).getAllByRole('button')).toHaveLength(3);
     expect(within(actionRail).getByRole('button', { name: '좋아요 0개' })).toBeInTheDocument();
     expect(within(actionRail).getByRole('button', { name: '댓글 3개 보기' })).toBeInTheDocument();
+    expect(within(actionRail).getByRole('button', { name: '일기 공유' })).toHaveTextContent('공유');
     expect(screen.queryByText('댓글 보기')).not.toBeInTheDocument();
+  });
+
+  it('댓글 화면에서는 공유를 포함한 액션 레일을 숨긴다', async () => {
+    render(<DiaryStoryModal diary={diary} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: '댓글 3개 보기' }));
+
+    expect(await screen.findByTestId('story-comment-modal')).toBeInTheDocument();
+    expect(screen.queryByTestId('story-action-rail')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
+  });
+
+  it('PRIVATE 일기에는 공유 액션을 표시하지 않는다', () => {
+    render(<DiaryStoryModal diary={{ ...diary, status: 'PRIVATE' }} onClose={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
   });
 
   it('위로 스와이프해서 댓글을 여는 핸들러는 등록하지 않는다', () => {
