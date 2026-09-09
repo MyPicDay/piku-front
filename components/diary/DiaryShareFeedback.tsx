@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { DiaryShareFeedback as Feedback } from '@/hooks/useDiaryShare';
 import type { PrivacyStatus } from '@/types/diary';
 
@@ -47,10 +48,24 @@ const DiaryShareFeedback = ({
     );
   }
 
-  if (feedback.kind !== 'manual') {
+  if (feedback.kind === 'success') {
+    return createPortal(
+      <p
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="pointer-events-none fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] left-1/2 z-[110] w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full bg-gray-900 px-5 py-3 text-center text-sm font-medium text-white shadow-lg dark:bg-gray-100 dark:text-gray-900 xl:bottom-[max(1.5rem,env(safe-area-inset-bottom))]"
+      >
+        {feedback.message}
+      </p>,
+      document.body,
+    );
+  }
+
+  if (feedback.kind === 'error') {
     return (
       <p
-        role={feedback.kind === 'error' ? 'alert' : 'status'}
+        role="alert"
         aria-live="polite"
         className={
           variant === 'story'

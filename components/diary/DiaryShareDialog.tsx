@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Ellipsis, Link, X } from 'lucide-react';
 import type { PrivacyStatus } from '@/types/diary';
@@ -44,7 +44,7 @@ const DiaryShareDialog = ({ controller, status, variant = 'default' }: DiaryShar
     };
   }, [close, isOpen, titleId]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (closingRef.current) return;
     // history 이동 전에 도착하는 공유 실패도 후속 복사를 실행하지 않게 한다.
     dismissPending();
@@ -54,7 +54,11 @@ const DiaryShareDialog = ({ controller, status, variant = 'default' }: DiaryShar
     } else {
       close();
     }
-  };
+  }, [close, dismissPending, titleId]);
+
+  useEffect(() => {
+    if (isOpen && feedback?.kind === 'success') handleClose();
+  }, [feedback?.kind, handleClose, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -71,7 +75,7 @@ const DiaryShareDialog = ({ controller, status, variant = 'default' }: DiaryShar
   }, [isOpen, restoreFocus]);
 
   if (!isOpen) {
-    return <DiaryShareFeedback feedback={null} status={status} pending={false}
+    return <DiaryShareFeedback feedback={feedback?.kind === 'success' ? feedback : null} status={status} pending={false}
       canRetryCopy={false} onRetryCopy={copy} onClose={close} variant={variant} />;
   }
 
@@ -144,7 +148,7 @@ const DiaryShareDialog = ({ controller, status, variant = 'default' }: DiaryShar
             </button>
           ))}
         </div>
-        {feedback && <DiaryShareFeedback feedback={feedback} status={status} pending={pending}
+        {feedback && feedback.kind !== 'success' && <DiaryShareFeedback feedback={feedback} status={status} pending={pending}
           canRetryCopy={false} onRetryCopy={copy} onClose={handleClose} />}
       </div>
     </div>,

@@ -32,10 +32,29 @@ describe('DiaryShareDialog', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '링크 복사' }));
     expect(writeText).toHaveBeenCalledWith('https://www.pikume.com/diary/42');
     expect(share).not.toHaveBeenCalled();
-    await screen.findByText('링크를 복사했어요.');
-    fireEvent.click(within(dialog).getByRole('button', { name: '더보기' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('status')).toHaveTextContent('링크를 복사했어요.');
+    expect(screen.getByRole('button', { name: '일기 공유' })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    const reopenedDialog = screen.getByRole('dialog');
+    fireEvent.click(within(reopenedDialog).getByRole('button', { name: '더보기' }));
     expect(share).toHaveBeenCalledOnce();
-    await waitFor(() => expect(dialog).toHaveAttribute('aria-busy', 'false'));
+    await waitFor(() => expect(reopenedDialog).toHaveAttribute('aria-busy', 'false'));
+  });
+
+  it('복사 실패는 모달을 유지하고 재시도 성공 후에만 토스트를 표시한다', async () => {
+    const writeText = vi.fn().mockRejectedValueOnce(new Error('복사 거절')).mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+    fireEvent.click(screen.getByRole('button', { name: '링크 복사' }));
+    await screen.findByRole('textbox', { name: '공유 링크' });
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '링크 복사' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('status')).toHaveTextContent('링크를 복사했어요.');
   });
 
   it('키보드 포커스를 모달 안에 유지하고 Escape와 배경 클릭은 공유 모달만 닫는다', async () => {

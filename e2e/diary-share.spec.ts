@@ -206,7 +206,9 @@ test('작성자의 비공개 일기는 공유 버튼을 숨긴다', async ({ pag
 });
 
 
-test('링크 복사는 Web Share 없이 URL만 복사하고 성공을 안내한다', async ({ page }) => {
+for (const viewport of [{ width: 360, height: 800 }, { width: 1280, height: 900 }]) {
+test(`${viewport.width}px 링크 복사는 모달을 닫고 하단 중앙 토스트를 표시한다`, async ({ page }) => {
+  await page.setViewportSize(viewport);
   await prepareDiary(page);
   await page.goto('/diary/42?source=feed#share');
   await page.evaluate(() => { window.diaryShareHarness.copyMode = 'success'; });
@@ -214,8 +216,40 @@ test('링크 복사는 Web Share 없이 URL만 복사하고 성공을 안내한�
   expect(await calls(page)).toEqual({ shares: [], copies: [] });
   const dialog = page.getByRole('dialog', { name: '일기 공유' });
   await dialog.getByRole('button', { name: '링크 복사', exact: true }).click();
-  await expect(dialog.getByText('링크를 복사했어요.', { exact: true })).toBeVisible();
+  await expect(dialog).toHaveCount(0);
+  const toast = page.getByRole('status').filter({ hasText: '링크를 복사했어요.' });
+  await expect(toast).toBeVisible();
+  await expect(page.getByRole('button', { name: '일기 공유', exact: true })).toBeFocused();
+  const toastBox = await toast.boundingBox();
+  expect(toastBox).not.toBeNull();
+  expect(Math.abs(toastBox!.x + toastBox!.width / 2 - viewport.width / 2)).toBeLessThan(1);
+  if (viewport.width === 360) {
+    const navBox = await page.getByRole('contentinfo').boundingBox();
+    expect(navBox).not.toBeNull();
+    expect(toastBox!.y + toastBox!.height).toBeLessThanOrEqual(navBox!.y - 8);
+  } else {
+    expect(viewport.height - toastBox!.y - toastBox!.height).toBe(24);
+  }
   expect(await calls(page)).toEqual({ shares: [], copies: [diaryUrl] });
+  await expect(toast).toHaveCount(0, { timeout: 4000 });
+});
+}
+
+test('스토리에서 복사 성공 후 토스트가 보여도 다음 뒤로가기에 스토리를 닫는다', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await prepareDiary(page);
+  await page.goto('/feed');
+  await page.getByTestId('feed-card').getByRole('img', { name: 'Diary image', exact: true }).click();
+  const rail = page.getByTestId('story-action-rail');
+  await rail.getByRole('button', { name: '일기 공유', exact: true }).click();
+  await page.evaluate(() => { window.diaryShareHarness.copyMode = 'success'; });
+  await page.getByRole('dialog').getByRole('button', { name: '링크 복사' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(rail).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: '링크를 복사했어요.' })).toBeVisible();
+  await page.goBack();
+  await expect(rail).toHaveCount(0);
+  await expect(page).toHaveURL(/\/feed$/);
 });
 
 test('스토리 위 공유에서 뒤로가면 공유만 닫고 다음 뒤로가기에 스토리를 닫는다', async ({ page }) => {

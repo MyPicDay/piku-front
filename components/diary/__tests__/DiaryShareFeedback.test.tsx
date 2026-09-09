@@ -103,8 +103,8 @@ describe('DiaryShareFeedback', () => {
     expect(onRetryCopy).toHaveBeenCalledOnce();
   });
 
-  it('스토리 성공 안내를 안전 영역의 고대비 패널에 표시한다', () => {
-    render(
+  it('복사 성공 토스트는 스토리 내부가 아닌 body에 표시하고 보조기기에 안내한다', () => {
+    const { container } = render(
       <DiaryShareFeedback
         feedback={{ kind: 'success', message: '링크를 복사했어요.' }}
         status="PUBLIC"
@@ -115,11 +115,11 @@ describe('DiaryShareFeedback', () => {
         variant="story"
       />,
     );
-    expect(screen.getByRole('status')).toHaveClass(
-      'absolute',
-      'bottom-[max(1rem,env(safe-area-inset-bottom))]',
-      'text-white',
-    );
+    const toast = screen.getByRole('status');
+    expect(toast).toHaveTextContent('링크를 복사했어요.');
+    expect(toast).toHaveAttribute('aria-live', 'polite');
+    expect(container).not.toContainElement(toast);
+    expect(document.body).toContainElement(toast);
   });
 
   it('스토리 수동 패널은 다크 모드에서도 흰 배경과 어두운 글자 대비를 유지한다', () => {

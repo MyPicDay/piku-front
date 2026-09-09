@@ -18,6 +18,22 @@ const errorWithName = (name: string) => Object.assign(new Error(name), { name })
 describe('useDiaryShare', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('복사 성공 안내는 모달을 닫아도 유지하고 3초 뒤 사라진다', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    const { result } = renderHook(() => useDiaryShare(42, 'PUBLIC'));
+    act(() => result.current.open());
+    await act(async () => result.current.copy());
+    act(() => result.current.close());
+    expect(result.current.isOpen).toBe(false);
+    expect(result.current.feedback?.kind).toBe('success');
+    act(() => vi.advanceTimersByTime(2999));
+    expect(result.current.feedback?.kind).toBe('success');
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.feedback).toBeNull();
   });
 
   it('선택 모달을 열 때 API를 호출하지 않고 링크 복사는 Clipboard만 즉시 호출한다', async () => {

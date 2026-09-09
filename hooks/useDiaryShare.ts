@@ -298,7 +298,8 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
   const close = useCallback(() => {
     dismissPending();
     setOpenedKey(null);
-    setFeedback(null);
+    // 성공 토스트는 모달 종료 후에도 기존 타이머가 끝날 때까지 유지한다.
+    setFeedback(current => current?.kind === 'success' ? current : null);
     setCanRetryCopy(false);
   }, [dismissPending]);
 
