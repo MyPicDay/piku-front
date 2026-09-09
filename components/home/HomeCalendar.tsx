@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { startOfDay } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -68,6 +68,8 @@ const HomeCalendar = ({
   );
 
   const [isCommentViewOpen, setIsCommentViewOpen] = useState(false);
+  const calendarHistoryId = useId();
+  const detailHistorySequenceRef = useRef(0);
   // 다이어리 데이터 훅
   const {
     pikus,
@@ -142,23 +144,22 @@ const HomeCalendar = ({
   }, [recoveryScopeKey, refetchMonthlyDiaries]);
 
   useEffect(() => {
-    const handlePopState = () => {
-      if (selectedDiary && !isCommentViewOpen) {
-        closeDiaryDetail();
-      }
+    if (!selectedDiary || isCommentViewOpen) return;
+
+    const detailHistoryId = `${calendarHistoryId}:${++detailHistorySequenceRef.current}`;
+    const handlePopState = (event: PopStateEvent) => {
+      // 공유에서 현재 상세로 돌아온 경우만 유지하고 이전 상세 항목과는 구분한다.
+      if (event.state?.calendarDiaryDetail === detailHistoryId) return;
+      closeDiaryDetail();
     };
 
-    if (selectedDiary && !isCommentViewOpen) {
-      window.history.pushState({ modal: 'open' }, '');
-      window.addEventListener('popstate', handlePopState);
-    } else {
-      window.removeEventListener('popstate', handlePopState);
-    }
+    window.history.pushState({ modal: 'open', calendarDiaryDetail: detailHistoryId }, '');
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [selectedDiary, closeDiaryDetail, isCommentViewOpen]);
+  }, [selectedDiary, closeDiaryDetail, isCommentViewOpen, calendarHistoryId]);
 
   useEffect(() => {
     if (diaryId) {

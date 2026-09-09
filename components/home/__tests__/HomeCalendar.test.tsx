@@ -4,6 +4,7 @@ import HomeCalendar from '../HomeCalendar';
 import type { DiaryDetail } from '@/types/diary';
 
 const loadDiaryDetailMock = vi.fn();
+const closeDiaryDetailMock = vi.fn();
 const refetchMonthlyDiariesMock = vi.fn();
 let selectedDiaryMock: DiaryDetail | null = null;
 let currentDateMock = new Date('2026-05-15T00:00:00');
@@ -90,7 +91,7 @@ vi.mock('@/hooks/useDiaryData', () => ({
     isLoading: false,
     refetchMonthlyDiaries: refetchMonthlyDiariesMock,
     loadDiaryDetail: loadDiaryDetailMock,
-    closeDiaryDetail: vi.fn(),
+    closeDiaryDetail: closeDiaryDetailMock,
     removeDiary: vi.fn(),
   }),
 }));
@@ -182,6 +183,30 @@ describe('HomeCalendar view switch', () => {
     render(<HomeCalendar />);
 
     expect(screen.getByTestId('diary-detail-modal')).toBeInTheDocument();
+  });
+
+  it('공유 계층에서 상세 history로 복귀하면 상세를 유지하고 그 아래로 이동할 때만 닫는다', () => {
+    selectedDiaryMock = diary;
+    render(<HomeCalendar />);
+
+    fireEvent.popState(window, { state: window.history.state });
+    expect(closeDiaryDetailMock).not.toHaveBeenCalled();
+
+    fireEvent.popState(window, { state: null });
+    expect(closeDiaryDetailMock).toHaveBeenCalledOnce();
+  });
+
+  it('상세를 닫고 다시 연 뒤 이전 상세 history로 돌아가면 현재 상세를 닫는다', () => {
+    selectedDiaryMock = diary;
+    const { rerender } = render(<HomeCalendar />);
+    const previousDetailState = window.history.state;
+    selectedDiaryMock = null;
+    rerender(<HomeCalendar />);
+    selectedDiaryMock = diary;
+    rerender(<HomeCalendar />);
+
+    fireEvent.popState(window, { state: previousDetailState });
+    expect(closeDiaryDetailMock).toHaveBeenCalledOnce();
   });
 
   it('같은 사용자와 연월의 여러 이미지 오류를 한 번의 재조회로 합친다', async () => {

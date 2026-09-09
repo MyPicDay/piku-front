@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const diaryUrl = 'http://127.0.0.1:3000/diary/42';
+const diaryUrl = 'http://localhost:3000/diary/42';
 const mockUser = {
   id: 'share-tester',
   email: 'share@example.test',
@@ -88,6 +88,54 @@ const calls = (page: Page) => page.evaluate(() => ({
   shares: window.diaryShareHarness.shares,
   copies: window.diaryShareHarness.copies,
 }));
+
+for (const viewport of [{ width: 360, height: 800 }, { width: 1280, height: 900 }]) {
+  for (const calendarPath of ['/', '/profile/share-tester/calendar?date=2026-09-06']) {
+    test(`${viewport.width}px ${calendarPath} 캘린더 상세에서 복사해도 상세와 토스트를 유지한다`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.clock.setFixedTime(new Date('2026-09-09T12:00:00+09:00'));
+      await prepareDiary(page);
+      await page.route('**/api/users/share-tester', route => route.fulfill({
+        json: { ...mockUser, userId: mockUser.id, friendCount: 0, diaryCount: 1,
+          friendStatus: 'NONE', isOwner: true, monthlyDiaryCount: [] },
+      }));
+      await page.route('**/api/diary/user/share-tester/monthly**', route => route.fulfill({
+        json: [{ diaryId: 42, date: '2026-09-06', coverPhotoUrl: '/globe.svg' }],
+      }));
+      await page.goto(calendarPath);
+      await page.getByTestId('calendar-image-2026-09-06').click();
+      const detail = viewport.width < 768
+        ? page.getByTestId('story-action-rail')
+        : page.getByText('공유할 일기의 본문', { exact: true });
+      await expect(detail).toBeVisible();
+      await page.getByRole('button', { name: '일기 공유', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: '일기 공유' });
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole('button', { name: '공유 닫기', exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(detail).toBeVisible();
+      await page.getByRole('button', { name: '일기 공유', exact: true }).click();
+      await page.evaluate(() => { window.diaryShareHarness.copyMode = 'success'; });
+      await dialog.getByRole('button', { name: '링크 복사', exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect.soft(detail).toBeVisible();
+      await expect.soft(page.getByRole('status').filter({ hasText: '링크를 복사했어요.' })).toBeVisible();
+      expect(await calls(page)).toEqual({ shares: [], copies: [diaryUrl] });
+      await page.goBack();
+      await expect(detail).toHaveCount(0);
+      await expect(page.getByTestId('calendar-image-2026-09-06')).toBeVisible();
+
+      await page.getByTestId('calendar-image-2026-09-06').click();
+      await expect(detail).toBeVisible();
+      await page.locator('button:has(svg.lucide-x)').click();
+      await expect(detail).toHaveCount(0);
+      await page.getByTestId('calendar-image-2026-09-06').click();
+      await expect(detail).toBeVisible();
+      await page.goBack();
+      await expect(detail).toHaveCount(0);
+    });
+  }
+}
 
 test('직접 상세의 복사 패널은 재복사 중 포커스와 실행 잠금을 유지한다', async ({ page }) => {
   await prepareDiary(page);
