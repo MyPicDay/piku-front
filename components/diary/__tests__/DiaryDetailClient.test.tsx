@@ -115,6 +115,8 @@ describe('DiaryDetailClient', () => {
 
     render(<DiaryDetailClient diaryId={42} />);
     fireEvent.click(await screen.findByRole('button', { name: '일기 공유' }));
+    expect(share).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '더보기' }));
 
     expect(share).toHaveBeenCalledWith({
       title: 'PikUme 일기',

@@ -94,6 +94,10 @@ test('직접 상세의 복사 패널은 재복사 중 포커스와 실행 잠금
   await page.goto('/diary/42?from=notification#detail');
   const share = page.getByRole('button', { name: '일기 공유', exact: true });
   await share.click();
+  const dialog = page.getByRole('dialog', { name: '일기 공유' });
+  await expect(dialog).toBeVisible();
+  expect(await calls(page)).toEqual({ shares: [], copies: [] });
+  await dialog.getByRole('button', { name: '더보기', exact: true }).click();
 
   const panel = page.getByRole('region', { name: '공유 링크 직접 복사' });
   const field = panel.getByRole('textbox', { name: '공유 링크' });
@@ -107,7 +111,7 @@ test('직접 상세의 복사 패널은 재복사 중 포커스와 실행 잠금
   });
 
   await page.evaluate(() => { window.diaryShareHarness.copyMode = 'pending'; });
-  const retry = panel.getByRole('button', { name: '링크 복사', exact: true });
+  const retry = dialog.getByRole('button', { name: '링크 복사', exact: true });
   await retry.click();
   await expect(panel).toBeVisible();
   await expect(retry).toBeDisabled();
@@ -128,6 +132,7 @@ test('직접 상세의 복사 패널은 재복사 중 포커스와 실행 잠금
   await expect(panel).toHaveCount(0);
   await page.evaluate(() => { window.diaryShareHarness.copyMode = 'deny'; });
   await share.click();
+  await dialog.getByRole('button', { name: '링크 복사', exact: true }).click();
   await expect(panel).toBeVisible();
   await page.evaluate(() => { window.diaryShareHarness.copyMode = 'pending'; });
   await retry.click();
@@ -142,6 +147,7 @@ test('시스템 공유 취소는 클립보드 쓰기나 수동 패널을 만들�
   await page.evaluate(() => { window.diaryShareHarness.shareMode = 'abort'; });
   const share = page.getByRole('button', { name: '일기 공유', exact: true });
   await share.click();
+  await page.getByRole('dialog').getByRole('button', { name: '더보기' }).click();
   await expect(share).toBeEnabled();
   expect((await calls(page)).shares).toHaveLength(1);
   expect((await calls(page)).copies).toEqual([]);
@@ -155,6 +161,8 @@ test('데스크톱 모달 메뉴는 같은 URL을 공유하고 아이콘으로 �
   await page.getByTestId('feed-card').getByRole('img', { name: 'Diary image', exact: true }).click();
   await page.getByRole('button', { name: '일기 메뉴', exact: true }).click();
   await page.getByRole('button', { name: '공유하기', exact: true }).click();
+  expect(await calls(page)).toEqual({ shares: [], copies: [] });
+  await page.getByRole('dialog').getByRole('button', { name: '링크 복사' }).click();
   const panel = page.getByRole('region', { name: '공유 링크 직접 복사' });
   await expect(panel.getByRole('textbox', { name: '공유 링크' })).toHaveValue(diaryUrl);
   await page.keyboard.press('Escape');
@@ -164,7 +172,7 @@ test('데스크톱 모달 메뉴는 같은 URL을 공유하고 아이콘으로 �
   await expect(page).toHaveURL(/\/feed$/);
 });
 
-test('360px 친구 공개 스토리는 공유 패널과 액션이 겹치지 않고 댓글에서 숨겨진다', async ({ page }) => {
+test('360px 친구 공개 스토리는 선택 모달을 위에 표시하고 닫으면 스토리로 돌아간다', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await prepareDiary(page, 'FRIENDS');
   await page.goto('/feed');
@@ -173,14 +181,18 @@ test('360px 친구 공개 스토리는 공유 패널과 액션이 겹치지 않�
   const share = rail.getByRole('button', { name: '일기 공유', exact: true });
   await expect(share).toHaveAccessibleDescription('작성자의 친구만 볼 수 있는 일기예요.');
   await share.click();
+  const dialog = page.getByRole('dialog', { name: '일기 공유' });
+  await expect(dialog).toHaveAccessibleDescription('작성자의 친구만 볼 수 있는 일기예요.');
+  await dialog.getByRole('button', { name: '링크 복사' }).click();
   const panel = page.getByRole('region', { name: '공유 링크 직접 복사' });
   await expect(panel.getByRole('textbox', { name: '공유 링크' })).toHaveValue(diaryUrl);
-  const panelBox = await panel.boundingBox();
-  const railBox = await rail.boundingBox();
-  expect(panelBox).not.toBeNull();
-  expect(railBox).not.toBeNull();
-  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(railBox!.x);
-  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(784);
+  const dialogBox = await dialog.boundingBox();
+  expect(dialogBox).not.toBeNull();
+  expect(dialogBox!.width).toBe(360);
+  expect(dialogBox!.y + dialogBox!.height).toBeLessThanOrEqual(800);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(share).toBeFocused();
   await rail.getByRole('button', { name: '댓글' }).click();
   await expect(rail).toHaveCount(0);
   await expect(panel).toHaveCount(0);
@@ -191,4 +203,33 @@ test('작성자의 비공개 일기는 공유 버튼을 숨긴다', async ({ pag
   await page.goto('/diary/42');
   await expect(page.getByRole('article')).toBeVisible();
   await expect(page.getByRole('button', { name: '일기 공유', exact: true })).toHaveCount(0);
+});
+
+
+test('링크 복사는 Web Share 없이 URL만 복사하고 성공을 안내한다', async ({ page }) => {
+  await prepareDiary(page);
+  await page.goto('/diary/42?source=feed#share');
+  await page.evaluate(() => { window.diaryShareHarness.copyMode = 'success'; });
+  await page.getByRole('button', { name: '일기 공유', exact: true }).click();
+  expect(await calls(page)).toEqual({ shares: [], copies: [] });
+  const dialog = page.getByRole('dialog', { name: '일기 공유' });
+  await dialog.getByRole('button', { name: '링크 복사', exact: true }).click();
+  await expect(dialog.getByText('링크를 복사했어요.', { exact: true })).toBeVisible();
+  expect(await calls(page)).toEqual({ shares: [], copies: [diaryUrl] });
+});
+
+test('스토리 위 공유에서 뒤로가면 공유만 닫고 다음 뒤로가기에 스토리를 닫는다', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await prepareDiary(page);
+  await page.goto('/feed');
+  await page.getByTestId('feed-card').getByRole('img', { name: 'Diary image', exact: true }).click();
+  const rail = page.getByTestId('story-action-rail');
+  await rail.getByRole('button', { name: '일기 공유', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '일기 공유' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('dialog', { name: '일기 공유' })).toHaveCount(0);
+  await expect(rail).toBeVisible();
+  await page.goBack();
+  await expect(rail).toHaveCount(0);
+  await expect(page).toHaveURL(/\/feed$/);
 });

@@ -47,6 +47,7 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<DiaryShareFeedback | null>(null);
   const [canRetryCopy, setCanRetryCopy] = useState(false);
+  const [openedKey, setOpenedKey] = useState<string | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -65,6 +66,7 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
     setPending(false);
     setFeedback(null);
     setCanRetryCopy(false);
+    setOpenedKey(null);
   }, [key]);
 
   useEffect(() => {
@@ -164,6 +166,10 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
       requestKey: string,
     ) => {
       if (!isCurrentRequest(requestId, requestKey)) return;
+      if (dismissedRequestRef.current === requestId) {
+        finish(requestId, requestKey, null);
+        return;
+      }
       const errorName = getErrorName(error);
       if (errorName === 'AbortError') {
         finish(requestId, requestKey, null);
@@ -266,6 +272,40 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
     copyUrl(feedback.url, request.requestId, request.requestKey);
   }, [copyUrl, feedback, startRequest]);
 
+  const copy = useCallback(() => {
+    if (!visible || lockRef.current) return;
+    if (!url) {
+      setFeedback({ kind: 'error', message: '공유 링크를 만들 수 없어요.' });
+      return;
+    }
+    const request = startRequest(feedback?.kind === 'manual');
+    if (request) copyUrl(url, request.requestId, request.requestKey);
+  }, [copyUrl, feedback?.kind, startRequest, url, visible]);
+
+  const open = useCallback((trigger?: HTMLElement | null) => {
+    if (!visible || lockRef.current) return;
+    triggerRef.current = trigger ??
+      (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    setFeedback(null);
+    setCanRetryCopy(false);
+    setOpenedKey(key);
+  }, [key, visible]);
+
+  const dismissPending = useCallback(() => {
+    if (lockRef.current) dismissedRequestRef.current = requestRef.current;
+  }, []);
+
+  const close = useCallback(() => {
+    dismissPending();
+    setOpenedKey(null);
+    setFeedback(null);
+    setCanRetryCopy(false);
+  }, [dismissPending]);
+
+  const restoreFocus = useCallback(() => {
+    if (triggerRef.current?.isConnected) triggerRef.current.focus();
+  }, []);
+
   const closeFeedback = useCallback(() => {
     if (lockRef.current) {
       dismissedRequestRef.current = requestRef.current;
@@ -277,6 +317,12 @@ export const useDiaryShare = (diaryId: number, status: PrivacyStatus) => {
 
   return {
     visible,
+    isOpen: visible && openedKey === key,
+    open,
+    close,
+    dismissPending,
+    restoreFocus,
+    copy,
     pending,
     feedback,
     canRetryCopy,

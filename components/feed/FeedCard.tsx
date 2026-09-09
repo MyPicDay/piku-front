@@ -27,7 +27,7 @@ import { isAnonymousDiaryIdentity } from '@/lib/utils/privacy';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
 import { useDiaryShare } from '@/hooks/useDiaryShare';
 import DiaryShareButton from '@/components/diary/DiaryShareButton';
-import DiaryShareFeedback from '@/components/diary/DiaryShareFeedback';
+import DiaryShareDialog from '@/components/diary/DiaryShareDialog';
 
 interface FeedCardProps {
   post: FeedDiary;
@@ -420,7 +420,7 @@ const FeedCard = ({
               <DiaryShareButton
                 status={post.status}
                 pending={diaryShare.pending}
-                onShare={diaryShare.share}
+                onShare={diaryShare.open}
               />
             )}
           </div>
@@ -428,13 +428,9 @@ const FeedCard = ({
             <BookmarkIcon />
           </button> */}
         </div>
-        <DiaryShareFeedback
-          feedback={diaryShare.feedback}
+        <DiaryShareDialog
+          controller={diaryShare}
           status={post.status}
-          canRetryCopy={diaryShare.canRetryCopy}
-          pending={diaryShare.pending}
-          onRetryCopy={diaryShare.retryCopy}
-          onClose={diaryShare.closeFeedback}
         />
       </div>
 

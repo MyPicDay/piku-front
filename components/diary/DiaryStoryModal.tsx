@@ -28,7 +28,7 @@ import StoryCommentModal from './StoryCommentModal';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
 import { useDiaryShare } from '@/hooks/useDiaryShare';
 import DiaryShareButton from './DiaryShareButton';
-import DiaryShareFeedback from './DiaryShareFeedback';
+import DiaryShareDialog from './DiaryShareDialog';
 
 interface DiaryStoryModalProps {
   diary: DiaryDetail;
@@ -418,18 +418,14 @@ const DiaryStoryModal = ({
               <DiaryShareButton
                 status={currentDiary.status}
                 pending={diaryShare.pending}
-                onShare={diaryShare.share}
+                onShare={diaryShare.open}
                 variant="story"
               />
             )}
           </div>
-          <DiaryShareFeedback
-            feedback={diaryShare.feedback}
+          <DiaryShareDialog
+            controller={diaryShare}
             status={currentDiary.status}
-            canRetryCopy={diaryShare.canRetryCopy}
-            pending={diaryShare.pending}
-            onRetryCopy={diaryShare.retryCopy}
-            onClose={diaryShare.closeFeedback}
             variant="story"
           />
         </>

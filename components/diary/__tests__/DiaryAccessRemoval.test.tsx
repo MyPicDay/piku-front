@@ -149,6 +149,9 @@ describe('diary edit access', () => {
     render(<DiaryDetailModal diary={diary} onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+    expect(share).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '더보기' }));
+    fireEvent.click(screen.getByRole('button', { name: '공유 닫기' }));
     const menuButton = screen.getByRole('button', { name: '일기 메뉴' });
     fireEvent.click(menuButton);
     fireEvent.click(await screen.findByRole('button', { name: '공유하기' }));

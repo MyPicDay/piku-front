@@ -103,6 +103,9 @@ describe('FeedCard diary share', () => {
       const { props } = renderFeedCard(makePost({ status, imgUrls: [] }));
 
       fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+      expect(share).not.toHaveBeenCalled();
+      expect(screen.getByRole('dialog', { name: '일기 공유' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: '더보기' }));
 
       expect(share).toHaveBeenCalledWith({
         title: 'PikUme 일기',

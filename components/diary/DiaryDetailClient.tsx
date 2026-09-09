@@ -26,7 +26,7 @@ import ProfileHoverCard from '@/components/feed/ProfileHoverCard';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
 import { useDiaryShare } from '@/hooks/useDiaryShare';
 import DiaryShareButton from './DiaryShareButton';
-import DiaryShareFeedback from './DiaryShareFeedback';
+import DiaryShareDialog from './DiaryShareDialog';
 
 interface DiaryDetailClientProps {
   diaryId: number;
@@ -348,17 +348,13 @@ const DiaryDetailClient = ({ diaryId }: DiaryDetailClientProps) => {
                   <DiaryShareButton
                     status={diary.status}
                     pending={diaryShare.pending}
-                    onShare={diaryShare.share}
+                    onShare={diaryShare.open}
                   />
                 )}
               </div>
-              <DiaryShareFeedback
-                feedback={diaryShare.feedback}
+              <DiaryShareDialog
+                controller={diaryShare}
                 status={diary.status}
-                canRetryCopy={diaryShare.canRetryCopy}
-                pending={diaryShare.pending}
-                onRetryCopy={diaryShare.retryCopy}
-                onClose={diaryShare.closeFeedback}
               />
             </div>
 

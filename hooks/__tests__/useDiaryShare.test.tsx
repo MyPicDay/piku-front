@@ -20,6 +20,56 @@ describe('useDiaryShare', () => {
     vi.unstubAllGlobals();
   });
 
+  it('선택 모달을 열 때 API를 호출하지 않고 링크 복사는 Clipboard만 즉시 호출한다', async () => {
+    const share = vi.fn();
+    const copyResult = deferred<void>();
+    const writeText = vi.fn(() => copyResult.promise);
+    vi.stubGlobal('navigator', { share, clipboard: { writeText } });
+    const { result } = renderHook(() => useDiaryShare(42, 'PUBLIC'));
+    act(() => result.current.open(document.createElement('button')));
+    expect(result.current.isOpen).toBe(true);
+    expect(share).not.toHaveBeenCalled();
+    expect(writeText).not.toHaveBeenCalled();
+
+    act(() => result.current.copy());
+    expect(writeText).toHaveBeenCalledWith('https://www.pikume.com/diary/42');
+    expect(share).not.toHaveBeenCalled();
+    expect(result.current.feedback).toBeNull();
+    await act(async () => copyResult.resolve());
+    expect(result.current.feedback?.kind).toBe('success');
+  });
+
+  it('더보기 처리 중 모달을 닫으면 늦은 실패의 복사를 막고 요청이 끝나야 다시 연다', async () => {
+    const shareResult = deferred<void>();
+    const writeText = vi.fn();
+    vi.stubGlobal('navigator', { share: vi.fn(() => shareResult.promise), clipboard: { writeText } });
+    const { result } = renderHook(() => useDiaryShare(42, 'PUBLIC'));
+    act(() => result.current.open());
+    act(() => result.current.share());
+    act(() => result.current.close());
+    expect(result.current.isOpen).toBe(false);
+    act(() => result.current.open());
+    expect(result.current.isOpen).toBe(false);
+    await act(async () => shareResult.reject(new TypeError('late failure')));
+    expect(writeText).not.toHaveBeenCalled();
+    expect(result.current.pending).toBe(false);
+    expect(result.current.feedback).toBeNull();
+    act(() => result.current.open());
+    expect(result.current.isOpen).toBe(true);
+  });
+
+  it('일기나 공개 범위가 바뀌면 선택 모달을 닫는다', () => {
+    const { result, rerender } = renderHook(
+      ({ id, status }: { id: number; status: PrivacyStatus }) => useDiaryShare(id, status),
+      { initialProps: { id: 42, status: 'PUBLIC' as PrivacyStatus } },
+    );
+    act(() => result.current.open());
+    rerender({ id: 43, status: 'PRIVATE' });
+    expect(result.current.isOpen).toBe(false);
+    act(() => result.current.open());
+    expect(result.current.isOpen).toBe(false);
+  });
+
   it('공유 payload를 동기적으로 한 번 전달하고 성공 안내는 만들지 않는다', async () => {
     const shareResult = deferred<void>();
     const share = vi.fn(() => shareResult.promise);

@@ -37,7 +37,7 @@ import MotionProfileHoverCard from '@/components/feed/ProfileHoverCard';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
 import { useDiaryShare } from '@/hooks/useDiaryShare';
 import DiaryShareButton from './DiaryShareButton';
-import DiaryShareFeedback from './DiaryShareFeedback';
+import DiaryShareDialog from './DiaryShareDialog';
 
 interface DiaryDetailModalProps {
   diary: DiaryDetail;
@@ -495,7 +495,7 @@ const DiaryDetailModal = ({
 
   const handleShareClick = (trigger: HTMLButtonElement) => {
     setIsMenuOpen(false);
-    diaryShare.share(trigger);
+    diaryShare.open(trigger);
   };
 
   const handleReportClick = () => {
@@ -846,7 +846,7 @@ const DiaryDetailModal = ({
                     ref={shareButtonRef}
                     status={currentDiary.status}
                     pending={diaryShare.pending}
-                    onShare={diaryShare.share}
+                    onShare={diaryShare.open}
                   />
                 )}
               </div>
@@ -854,13 +854,9 @@ const DiaryDetailModal = ({
             <p className="mt-1 text-sm font-bold dark:text-white">
               좋아요 {likeCount}개
             </p>
-            <DiaryShareFeedback
-              feedback={diaryShare.feedback}
+            <DiaryShareDialog
+              controller={diaryShare}
               status={currentDiary.status}
-              canRetryCopy={diaryShare.canRetryCopy}
-              pending={diaryShare.pending}
-              onRetryCopy={diaryShare.retryCopy}
-              onClose={diaryShare.closeFeedback}
             />
           </div>
 
