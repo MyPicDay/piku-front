@@ -21,6 +21,9 @@ describe('FeedSkeleton', () => {
     expect(loadingStatus).not.toHaveAttribute('aria-busy');
     skeletonCards.forEach(card => {
       expect(card).toHaveAttribute('aria-hidden', 'true');
+      const actionPlaceholders = card.querySelectorAll('[data-testid="feed-skeleton-action"]');
+      expect(actionPlaceholders).toHaveLength(3);
+      actionPlaceholders.forEach(action => expect(action).toHaveClass('h-11'));
     });
   });
 });

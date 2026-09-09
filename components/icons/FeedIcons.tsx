@@ -36,9 +36,9 @@ export const CommentIcon = () => (
   </svg>
 );
 
-export const ShareIcon = () => (
+export const ShareIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
   <svg
-    {...iconProps}
+    className={className}
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
@@ -98,4 +98,4 @@ export const SmileyIcon = () => (
       d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
     />
   </svg>
-); 
+);

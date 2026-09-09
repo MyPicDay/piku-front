@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FeedCard from '../FeedCard';
 import { createComment } from '@/lib/api/comment';
 import { cancelFriendRequest, sendFriendRequest } from '@/lib/api/friend';
@@ -78,6 +78,49 @@ const renderFeedCard = (
     props,
   };
 };
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('FeedCard diary share', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    act(() => {
+      useAuthStore.setState({
+        authStatus: 'authenticated',
+        isLoggedIn: true,
+        user: null,
+      });
+    });
+  });
+
+  it.each(['PUBLIC', 'ANONYMOUS', 'FRIENDS'] as const)(
+    '%s 일기는 사진 없이도 공유하고 카드 상세를 열지 않는다',
+    status => {
+      const share = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal('navigator', { share });
+      const { props } = renderFeedCard(makePost({ status, imgUrls: [] }));
+
+      fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+      expect(share).not.toHaveBeenCalled();
+      expect(screen.getByRole('dialog', { name: '일기 공유' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: '더보기' }));
+
+      expect(share).toHaveBeenCalledWith({
+        title: 'PikUme 일기',
+        text: 'PikUme에서 일기를 확인해 보세요.',
+        url: 'https://www.pikume.com/diary/1',
+      });
+      expect(props.onContentClick).not.toHaveBeenCalled();
+    },
+  );
+
+  it('PRIVATE 일기에는 공유 버튼을 표시하지 않는다', () => {
+    renderFeedCard(makePost({ status: 'PRIVATE' }));
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
+  });
+});
 
 describe('FeedCard comments', () => {
   beforeEach(() => {

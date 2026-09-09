@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/font/google', () => ({
   Geist: () => ({ variable: '--font-geist-sans' }),
@@ -30,10 +30,15 @@ vi.mock('@/components/auth/PasswordResetClient', () => ({
   default: () => <main />,
 }));
 
+vi.mock('@/components/diary/DiaryDetailClient', () => ({
+  default: () => <main />,
+}));
+
 import RootLayout, { metadata as rootMetadata } from './layout';
 import { metadata as feedMetadata } from './feed/page';
 import { metadata as homeMetadata } from './page';
 import { metadata as passwordResetMetadata } from './password-reset/page';
+import * as diaryRoute from './diary/[id]/page';
 
 const getTitleText = (title: Metadata['title']) => {
   if (typeof title === 'string') return title;
@@ -93,6 +98,45 @@ const readPngSize = (filePath: string) => {
 };
 
 describe('SEO metadata', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it('일기 메타데이터는 조회 없이 상세 경로와 공통 안내·이미지만 제공한다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://preview.example/path?token=secret#modal');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('조회 불가'));
+    const first = await diaryRoute.generateMetadata({ params: Promise.resolve({ id: '42' }) });
+    const second = await diaryRoute.generateMetadata({ params: Promise.resolve({ id: '99' }) });
+
+    expect(first.title).toEqual({ absolute: 'PikUme 일기' });
+    expect(first.description).toBe('PikUme에서 일기를 확인해 보세요.');
+    expect(first.metadataBase?.origin).toBe('https://preview.example');
+    expect(getCanonical(first)).toBe('/diary/42');
+    expect(getOpenGraphUrl(first)).toBe('/diary/42');
+    expect(getCanonical(second)).toBe('/diary/99');
+    expect(getOpenGraphUrl(second)).toBe('/diary/99');
+    expect(first.openGraph).toMatchObject({
+      title: 'PikUme 일기', description: 'PikUme에서 일기를 확인해 보세요.',
+      type: 'website', siteName: 'PikUme', locale: 'ko_KR',
+      images: [{ url: '/opengraph-image.png', width: 1200, height: 630, alt: 'PikUme - 캐릭터 감정 다이어리' }],
+    });
+    expect(first.twitter).toMatchObject({
+      title: 'PikUme 일기', description: 'PikUme에서 일기를 확인해 보세요.',
+      card: 'summary_large_image',
+      images: [{ url: '/twitter-image.png', width: 1200, height: 630, alt: 'PikUme - 캐릭터 감정 다이어리' }],
+    });
+    expect(first.openGraph?.images).toEqual(second.openGraph?.images);
+    expect(first.twitter).toEqual(second.twitter);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(JSON.stringify(first)).not.toMatch(/secret|#modal|\/path/);
+  });
+
+  it.each(['0', '-1', '1.5', 'NaN', 'Infinity', '9007199254740992', 'abc'])('유효하지 않은 일기 경로 %s는 공유 메타데이터를 만들지 않는다', async id => {
+    await expect(diaryRoute.generateMetadata({ params: Promise.resolve({ id }) })).rejects.toThrow();
+    await expect(diaryRoute.default({ params: Promise.resolve({ id }) })).rejects.toThrow();
+  });
+
   it('홈 메타데이터가 피쿠미 브랜드 별칭을 제공한다', () => {
     expect(getTitleText(homeMetadata.title)).toContain('피쿠미');
     expect(homeMetadata.description).toContain('PikUme(피쿠미)');

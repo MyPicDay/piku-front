@@ -139,6 +139,32 @@ const makePage = (content: Comment[], totalElements: number): CommentPage => ({
 describe('diary edit access', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('navigator', {});
+  });
+
+  it('하단 아이콘과 메뉴 공유가 같은 처리 잠금을 사용한다', async () => {
+    const shareResult = new Promise<void>(() => {});
+    const share = vi.fn(() => shareResult);
+    vi.stubGlobal('navigator', { share });
+    render(<DiaryDetailModal diary={diary} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '일기 공유' }));
+    expect(share).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '더보기' }));
+    fireEvent.click(screen.getByRole('button', { name: '공유 닫기' }));
+    const menuButton = screen.getByRole('button', { name: '일기 메뉴' });
+    fireEvent.click(menuButton);
+    fireEvent.click(await screen.findByRole('button', { name: '공유하기' }));
+
+    expect(share).toHaveBeenCalledOnce();
+  });
+
+  it('PRIVATE 일기는 아이콘과 메뉴에서 공유를 숨긴다', async () => {
+    render(<DiaryDetailModal diary={{ ...diary, status: 'PRIVATE' }} onClose={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: '일기 공유' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '일기 메뉴' }));
+    expect(screen.queryByRole('button', { name: '공유하기' })).not.toBeInTheDocument();
   });
 
   it('exposes the diary edit page route file', () => {
@@ -187,7 +213,9 @@ describe('diary edit access', () => {
     fireEvent.click(buttons[1]);
 
     await waitFor(() => {
-      expect(screen.getByText('공유하기')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: '공유하기' }),
+      ).toBeInTheDocument();
     });
     expect(screen.queryByText('일기 수정')).not.toBeInTheDocument();
     expect(screen.queryByText('일기 삭제')).not.toBeInTheDocument();

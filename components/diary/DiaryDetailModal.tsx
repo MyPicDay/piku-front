@@ -35,6 +35,9 @@ import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
 import MotionProfileHoverCard from '@/components/feed/ProfileHoverCard';
 import AnonymousProfileIcon from '@/components/common/AnonymousProfileIcon';
+import { useDiaryShare } from '@/hooks/useDiaryShare';
+import DiaryShareButton from './DiaryShareButton';
+import DiaryShareDialog from './DiaryShareDialog';
 
 interface DiaryDetailModalProps {
   diary: DiaryDetail;
@@ -65,7 +68,7 @@ const DiaryDetailModal = ({
   useBodyScrollLock(true);
   const router = useRouter();
 
-  const [currentDiary, setCurrentDiary] = useState(diary);
+  const currentDiary = diary;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(diary.isLiked);
   const [likeCount, setLikeCount] = useState(diary.likeCount);
@@ -89,6 +92,7 @@ const DiaryDetailModal = ({
 
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const shareButtonRef = useRef<HTMLButtonElement>(null);
 
   const { isLoggedIn, user } = useAuthStore();
   const serverUrl = getServerURL();
@@ -99,9 +103,9 @@ const DiaryDetailModal = ({
       ? `/profile/${currentDiary.userId}`
       : null;
   const isOwner = currentDiary.isOwner ?? user?.id === currentDiary.userId;
+  const diaryShare = useDiaryShare(currentDiary.diaryId, currentDiary.status);
 
   useEffect(() => {
-    setCurrentDiary(diary);
     setCurrentImageIndex(0);
     setIsLiked(diary.isLiked);
     setLikeCount(diary.likeCount);
@@ -489,9 +493,9 @@ const DiaryDetailModal = ({
 
   if (!currentDiary) return null;
 
-  const handleShareClick = () => {
+  const handleShareClick = (trigger: HTMLButtonElement) => {
     setIsMenuOpen(false);
-    setIsNotReadyModalOpen(true);
+    diaryShare.open(trigger);
   };
 
   const handleReportClick = () => {
@@ -679,6 +683,8 @@ const DiaryDetailModal = ({
             </div>
             <div className="relative">
               <button
+                type="button"
+                aria-label="일기 메뉴"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="cursor-pointer hover:opacity-60 dark:text-white"
               >
@@ -705,12 +711,20 @@ const DiaryDetailModal = ({
                       </button>
                     </>
                   )}
-                  <button
-                    onClick={handleShareClick}
-                    className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                  >
-                    공유하기
-                  </button>
+                  {diaryShare.visible && (
+                    <button
+                      type="button"
+                      onClick={event =>
+                        handleShareClick(
+                          shareButtonRef.current ?? event.currentTarget,
+                        )
+                      }
+                      disabled={diaryShare.pending}
+                      className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      공유하기
+                    </button>
+                  )}
                   <button
                     onClick={handleReportClick}
                     className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -827,11 +841,23 @@ const DiaryDetailModal = ({
                 >
                   <HeartIcon filled={isLiked} />
                 </button>
+                {diaryShare.visible && (
+                  <DiaryShareButton
+                    ref={shareButtonRef}
+                    status={currentDiary.status}
+                    pending={diaryShare.pending}
+                    onShare={diaryShare.open}
+                  />
+                )}
               </div>
             </div>
             <p className="mt-1 text-sm font-bold dark:text-white">
               좋아요 {likeCount}개
             </p>
+            <DiaryShareDialog
+              controller={diaryShare}
+              status={currentDiary.status}
+            />
           </div>
 
           {/* Comment Input */}
